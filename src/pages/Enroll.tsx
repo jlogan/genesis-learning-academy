@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -21,17 +21,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import heroImage from "@/assets/hero-classroom.jpg";
+
+const childSchema = z.object({
+  childName: z.string().trim().min(2, "Child's name must be at least 2 characters").max(100, "Name too long"),
+  childAge: z.string().min(1, "Please select age"),
+  preferredStartDate: z.string().min(1, "Please select start date"),
+});
 
 const enrollmentSchema = z.object({
   parentName: z.string().trim().min(2, "Parent name must be at least 2 characters").max(100, "Name too long"),
   email: z.string().trim().email("Invalid email address").max(255, "Email too long"),
   phone: z.string().trim().min(10, "Please enter a valid phone number").max(20, "Phone number too long"),
-  childName: z.string().trim().min(2, "Child's name must be at least 2 characters").max(100, "Name too long"),
-  childAge: z.string().min(1, "Please select your child's age"),
-  preferredStartDate: z.string().min(1, "Please select a preferred start date"),
+  children: z.array(childSchema).min(1, "Please add at least one child"),
   languagePreference: z.string().min(1, "Please select a language preference"),
   additionalInfo: z.string().max(1000, "Message too long").optional(),
 });
@@ -47,12 +51,15 @@ const Enroll = () => {
       parentName: "",
       email: "",
       phone: "",
-      childName: "",
-      childAge: "",
-      preferredStartDate: "",
+      children: [{ childName: "", childAge: "", preferredStartDate: "" }],
       languagePreference: "",
       additionalInfo: "",
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "children",
   });
 
   const onSubmit = (data: EnrollmentFormData) => {
@@ -164,68 +171,8 @@ const Enroll = () => {
                     </div>
                   </div>
 
-                  {/* Child Information */}
-                  <div className="space-y-4 pt-4 border-t">
-                    <h3 className="text-lg font-semibold text-primary">Child Information</h3>
-                    
-                    <FormField
-                      control={form.control}
-                      name="childName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Child's Full Name *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Emma Smith" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="childAge"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Age Group *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select age group" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="0-12months">Infant (0-12 months)</SelectItem>
-                                <SelectItem value="13-24months">Toddler (13-24 months)</SelectItem>
-                                <SelectItem value="3-4years">Preschool (3-4 years)</SelectItem>
-                                <SelectItem value="4years">Pre-K (4 years)</SelectItem>
-                                <SelectItem value="5+years">School-Age (5+ years)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="preferredStartDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preferred Start Date *</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Additional Information */}
-                  <div className="space-y-4 pt-4 border-t">
+              {/* Additional Information */}
+              <div className="space-y-4 pt-6 border-t border-border">
                     <h3 className="text-lg font-semibold text-primary">Additional Information</h3>
                     
                     <FormField
