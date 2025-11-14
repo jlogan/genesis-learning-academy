@@ -58,9 +58,14 @@ const About = () => {
                 Our Mission
               </h2>
               <p className="text-lg text-foreground mb-4">
-                Genesis Learning Academy of Kennesaw was founded with a clear vision: to provide 
+                Genesis Learning Academy is a trusted daycare in Kennesaw, GA, founded with a clear vision: to provide 
                 exceptional early childhood education in an environment where diversity is celebrated 
                 and every child feels valued.
+              </p>
+              <p className="text-muted-foreground mb-4">
+                Conveniently located walking distance from Downtown Kennesaw and just minutes from I-75, our childcare 
+                center makes it easy for working parents to drop off and pick up their children. Whether you're commuting 
+                to Atlanta or working locally, we're perfectly positioned to fit your busy schedule.
               </p>
               <p className="text-muted-foreground mb-4">
                 As a Black-owned and operated center, we take pride in creating a space where 

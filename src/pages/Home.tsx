@@ -43,10 +43,13 @@ const Home = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl text-white">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
-              Welcome to Genesis Learning Academy
+              Kennesaw's Premier Daycare & Learning Center
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-white/90">
+            <p className="text-xl md:text-2xl mb-4 text-white/90">
               Where every child thrives in a loving, inclusive environment
+            </p>
+            <p className="text-lg md:text-xl mb-8 text-white/80">
+              Walking distance from Downtown Kennesaw • Minutes from I-75 • Perfect for commuting families
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild variant="cta" size="lg">
@@ -65,10 +68,10 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-              Why Choose Genesis Learning Academy?
+              Why Choose Our Kennesaw Daycare?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A Black-owned and operated center committed to excellence in early childhood education
+              A Black-owned and operated daycare in Kennesaw, GA committed to excellence in early childhood education
             </p>
           </div>
 
@@ -94,17 +97,16 @@ const Home = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
-                Community-Focused Care
+                Your Trusted Kennesaw Childcare Partner
               </h2>
               <p className="text-lg text-foreground mb-4">
-                Genesis Learning Academy of Kennesaw is a proud Black-owned business serving our community 
-                with exceptional early childhood education.
+                Looking for a daycare in Kennesaw that's convenient and caring? Genesis Learning Academy is perfectly located 
+                just steps from Downtown Kennesaw and minutes from I-75, making drop-off and pick-up easy for busy parents 
+                commuting to work.
               </p>
               <p className="text-muted-foreground mb-6">
-                Our experienced team of diverse Black educators creates a welcoming space where children 
-                of all backgrounds feel valued, loved, and inspired to learn. We understand the importance 
-                of representation and provide an environment where every child can see themselves reflected 
-                in their teachers and peers.
+                Our Black-owned center brings together experienced educators who are passionate about early childhood development. 
+                We're more than a daycare – we're a family committed to serving Kennesaw families with flexible hours and affordable care.
               </p>
               <Button asChild variant="default" size="lg">
                 <Link to="/about">Meet Our Teachers</Link>
