@@ -171,6 +171,95 @@ const Enroll = () => {
                     </div>
                   </div>
 
+              {/* Children Information */}
+              <div className="space-y-6 pt-6 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-foreground">Children Information</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append({ childName: "", childAge: "", preferredStartDate: "" })}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Child
+                  </Button>
+                </div>
+
+                {fields.map((field, index) => (
+                  <div key={field.id} className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-foreground">Child {index + 1}</h4>
+                      {fields.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => remove(index)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name={`children.${index}.childName`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Child's Full Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Child's full name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`children.${index}.childAge`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Child's Age Group *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select age group" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="0-12m">Infants (0-12 months)</SelectItem>
+                              <SelectItem value="13-24m">Toddlers (13-24 months)</SelectItem>
+                              <SelectItem value="3-4y">Preschool (3-4 years)</SelectItem>
+                              <SelectItem value="4y">Pre-K (4 years)</SelectItem>
+                              <SelectItem value="5+">School-Age (5+ years)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`children.${index}.preferredStartDate`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preferred Start Date *</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
+
               {/* Additional Information */}
               <div className="space-y-4 pt-6 border-t border-border">
                     <h3 className="text-lg font-semibold text-primary">Additional Information</h3>
