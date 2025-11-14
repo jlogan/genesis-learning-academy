@@ -8,74 +8,79 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 200 15% 20%;
+    /* Warm, inviting backgrounds */
+    --background: 35 40% 98%;
+    --foreground: 25 25% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 15% 20%;
+    --card-foreground: 25 25% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 15% 20%;
+    --popover-foreground: 25 25% 25%;
 
-    /* Deep teal primary */
-    --primary: 185 65% 35%;
+    /* Soft teal primary - warmer and friendlier */
+    --primary: 180 45% 45%;
     --primary-foreground: 0 0% 100%;
     
-    /* Warm amber/gold accent */
-    --accent: 42 95% 55%;
-    --accent-foreground: 200 15% 20%;
+    /* Warm golden accent - inviting and cheerful */
+    --accent: 38 92% 58%;
+    --accent-foreground: 25 25% 25%;
 
-    /* Soft peach secondary */
-    --secondary: 15 80% 92%;
-    --secondary-foreground: 200 15% 20%;
+    /* Soft coral/peach secondary - nurturing */
+    --secondary: 18 85% 90%;
+    --secondary-foreground: 25 25% 25%;
 
-    --muted: 200 10% 96%;
-    --muted-foreground: 200 10% 45%;
+    /* Gentle muted tones */
+    --muted: 35 25% 95%;
+    --muted-foreground: 25 15% 50%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 15% 88%;
-    --input: 200 15% 88%;
-    --ring: 185 65% 35%;
+    /* Softer borders */
+    --border: 35 20% 90%;
+    --input: 35 20% 90%;
+    --ring: 180 45% 45%;
 
-    --radius: 0.75rem;
+    /* More rounded for friendly feel */
+    --radius: 1rem;
     
-    /* Custom tokens */
-    --hero-gradient-start: 185 70% 40%;
-    --hero-gradient-end: 185 60% 25%;
-    --warm-bg: 30 50% 98%;
-    --highlight: 42 100% 65%;
+    /* Custom tokens for warmth */
+    --hero-gradient-start: 180 50% 50%;
+    --hero-gradient-end: 180 45% 35%;
+    --warm-bg: 35 50% 97%;
+    --highlight: 38 95% 65%;
+    --section-spacing: 5rem;
   }
 
   .dark {
-    --background: 200 15% 8%;
+    --background: 25 15% 12%;
     --foreground: 0 0% 98%;
 
-    --card: 200 15% 10%;
+    --card: 25 15% 15%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 200 15% 10%;
+    --popover: 25 15% 15%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 185 65% 45%;
+    --primary: 180 45% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --accent: 42 95% 60%;
-    --accent-foreground: 200 15% 10%;
+    --accent: 38 92% 65%;
+    --accent-foreground: 25 15% 12%;
 
-    --secondary: 200 15% 15%;
+    --secondary: 25 15% 20%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 200 10% 15%;
-    --muted-foreground: 200 10% 65%;
+    --muted: 25 10% 18%;
+    --muted-foreground: 25 10% 70%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 15% 20%;
-    --input: 200 15% 20%;
-    --ring: 185 65% 45%;
+    --border: 25 15% 25%;
+    --input: 25 15% 25%;
+    --ring: 180 45% 55%;
   }
 }
 
@@ -85,6 +90,14 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+
+  section {
+    @apply py-16 md:py-20;
   }
 }
