@@ -1,9 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Baby, Smile, Palette, GraduationCap, Backpack } from "lucide-react";
+import { Baby, Smile, Palette, GraduationCap } from "lucide-react";
+import infantImage from "@/assets/infant-program.jpg";
 import toddlerImage from "@/assets/toddler-program.jpg";
 import preschoolImage from "@/assets/preschool-program.jpg";
+import preKImage from "@/assets/prekindergarten-program.jpg";
 
 const Programs = () => {
   const programs = [
@@ -11,66 +13,29 @@ const Programs = () => {
       icon: Baby,
       title: "Infants",
       ageRange: "0-12 months",
-      description: "Gentle care for your youngest learners with focus on sensory development, bonding, and basic motor skills.",
-      highlights: [
-        "Safe, nurturing environment",
-        "Individual feeding & sleeping schedules",
-        "Daily parent communication",
-        "Sensory exploration activities"
-      ],
-      image: toddlerImage,
+      description: "Gentle care for your youngest learners with focus on sensory development, bonding, and basic motor skills in a safe, nurturing environment.",
+      image: infantImage,
     },
     {
       icon: Smile,
       title: "Toddlers",
       ageRange: "13-24 months",
-      description: "Supporting early exploration and language development through play-based learning and social interaction.",
-      highlights: [
-        "Potty training support",
-        "Language development activities",
-        "Social skills building",
-        "Creative art & music"
-      ],
+      description: "Supporting early exploration and language development through play-based learning, social interaction, and creative activities.",
       image: toddlerImage,
     },
     {
       icon: Palette,
       title: "Preschool",
       ageRange: "3-4 years",
-      description: "Structured learning activities that prepare children for Pre-K with emphasis on creativity and independence.",
-      highlights: [
-        "Early literacy & math concepts",
-        "Hands-on science exploration",
-        "Social & emotional learning",
-        "Fine motor skill development"
-      ],
+      description: "Structured learning activities that prepare children for Pre-K with emphasis on creativity, independence, and early literacy.",
       image: preschoolImage,
     },
     {
       icon: GraduationCap,
       title: "Pre-Kindergarten",
-      ageRange: "4 years",
-      description: "Comprehensive kindergarten readiness program focusing on academic skills and school preparation.",
-      highlights: [
-        "Kindergarten prep curriculum",
-        "Reading & writing foundations",
-        "Math & problem-solving",
-        "Critical thinking skills"
-      ],
-      image: preschoolImage,
-    },
-    {
-      icon: Backpack,
-      title: "School-Age",
-      ageRange: "5+ years",
-      description: "Before and after school care with homework help, enrichment activities, and safe supervision.",
-      highlights: [
-        "Homework assistance",
-        "STEM activities",
-        "Sports & physical education",
-        "Arts & crafts projects"
-      ],
-      image: preschoolImage,
+      ageRange: "4-5 years",
+      description: "Comprehensive kindergarten readiness program focusing on academic skills, critical thinking, and school preparation.",
+      image: preKImage,
     },
   ];
 
@@ -82,74 +47,64 @@ const Programs = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Programs</h1>
           <p className="text-xl text-primary-foreground/90 max-w-3xl mx-auto">
             Quality education and care for children at every stage of development, 
-            from infants through school-age
+            from infants through pre-kindergarten
           </p>
         </div>
       </section>
 
       {/* Programs Grid */}
-      <section className="py-16">
+      <section className="py-16 bg-warmBg">
         <div className="container mx-auto px-4">
-          <div className="space-y-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {programs.map((program, index) => (
-              <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
-                  <div className={`relative h-64 md:h-auto ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                    <img 
-                      src={program.image} 
-                      alt={`${program.title} program at Genesis Learning Academy`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className={`p-8 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                    <CardHeader className="p-0 mb-4">
-                      <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-                          <program.icon className="h-6 w-6 text-accent" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-2xl text-primary">{program.title}</CardTitle>
-                          <p className="text-sm font-medium text-accent">{program.ageRange}</p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0 space-y-4">
-                      <p className="text-foreground">{program.description}</p>
-                      <div>
-                        <h4 className="font-semibold text-primary mb-2">Program Highlights:</h4>
-                        <ul className="space-y-2">
-                          {program.highlights.map((highlight, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className="text-accent mt-1">•</span>
-                              <span>{highlight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </CardContent>
+              <Card key={index} className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover-scale">
+                <div className="relative h-64 overflow-hidden">
+                  <img 
+                    src={program.image} 
+                    alt={`${program.title} program at Genesis Learning Academy`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 left-4 bg-primary/90 text-primary-foreground px-4 py-2 rounded-full">
+                    <div className="flex items-center gap-2">
+                      <program.icon className="h-5 w-5" />
+                      <span className="font-semibold">{program.ageRange}</span>
+                    </div>
                   </div>
                 </div>
+                
+                <CardContent className="p-6">
+                  <h3 className="text-2xl font-bold text-primary mb-3">
+                    {program.title}
+                  </h3>
+                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                    {program.description}
+                  </p>
+                  <Button asChild variant="cta" size="lg" className="w-full">
+                    <Link to="/enroll">Start Enrollment</Link>
+                  </Button>
+                </CardContent>
               </Card>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* CTA Section */}
-          <div className="mt-16 text-center bg-warmBg rounded-lg p-8 md:p-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-4">
-              Find the Perfect Program for Your Child
-            </h2>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Not sure which program is right for your child? Contact us or submit an enrollment 
-              form, and we'll help you find the best fit for your family's needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild variant="cta" size="lg">
-                <Link to="/enroll">Start Enrollment</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <a href="tel:770-672-4255">Call Us: (770) 672-4255</a>
-              </Button>
-            </div>
+      {/* CTA Section */}
+      <section className="py-16 bg-background border-t">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            Ready to Get Started?
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join our Kennesaw daycare family and give your child the foundation for lifelong success
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild variant="cta" size="lg">
+              <Link to="/enroll">Enroll Now</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <a href="tel:770-123-4567">Call Us: (770) 123-4567</a>
+            </Button>
           </div>
         </div>
       </section>
