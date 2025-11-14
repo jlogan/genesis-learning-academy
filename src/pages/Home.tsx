@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Users, Clock, Award, ArrowRight } from "lucide-react";
+import { Heart, Users, Clock, Award, ArrowRight, Shield, GraduationCap, Home as HomeIcon } from "lucide-react";
 import heroImage from "@/assets/hero-classroom.jpg";
 import outdoorPlay from "@/assets/outdoor-play.jpg";
 
@@ -58,6 +58,37 @@ const Home = () => {
               <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white">
                 <Link to="/programs">Explore Programs</Link>
               </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Highlights Section */}
+      <section className="py-12 bg-background border-b">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <Shield className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Safe, Clean Classrooms</h3>
+              <p className="text-sm text-muted-foreground">Bright, sanitized spaces where children learn and play safely</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <GraduationCap className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Caring, Experienced Teachers</h3>
+              <p className="text-sm text-muted-foreground">Passionate educators dedicated to your child's growth</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <HomeIcon className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Family-Focused Environment</h3>
+              <p className="text-sm text-muted-foreground">A warm community where every family feels at home</p>
             </div>
           </div>
         </div>
