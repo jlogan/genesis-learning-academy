@@ -77,6 +77,17 @@ const Footer = () => {
 
         <div className="border-t border-primary-foreground/20 mt-8 pt-6 text-center text-sm text-primary-foreground/70">
           <p>© {new Date().getFullYear()} Genesis Learning Academy of Kennesaw. All rights reserved.</p>
+          <p className="mt-2">
+            Built by{" "}
+            <a 
+              href="https://brogrammersagency.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-accent hover:underline font-medium"
+            >
+              Brogrammers
+            </a>
+          </p>
         </div>
       </div>
     </footer>
