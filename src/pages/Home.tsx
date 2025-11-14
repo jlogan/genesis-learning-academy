@@ -128,19 +128,16 @@ const Home = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
-                Your Trusted Kennesaw Childcare Partner
+                About Genesis Learning Academy
               </h2>
               <p className="text-lg text-foreground mb-4">
-                Looking for a daycare in Kennesaw that's convenient and caring? Genesis Learning Academy is perfectly located 
-                just steps from Downtown Kennesaw and minutes from I-75, making drop-off and pick-up easy for busy parents 
-                commuting to work.
+                At Genesis Learning Academy, we believe every child deserves a nurturing environment where they can grow, learn, and thrive. 
+                Our philosophy centers on creating a warm, inclusive community where children feel safe, valued, and inspired to explore the world around them. 
+                As a Black-owned daycare in Kennesaw, we're proud to offer diverse role models and culturally responsive education that prepares children for success. 
+                Our experienced educators combine proven early childhood development practices with genuine love and care, making us more than just a daycare—we're a family.
               </p>
-              <p className="text-muted-foreground mb-6">
-                Our Black-owned center brings together experienced educators who are passionate about early childhood development. 
-                We're more than a daycare – we're a family committed to serving Kennesaw families with flexible hours and affordable care.
-              </p>
-              <Button asChild variant="default" size="lg">
-                <Link to="/about">Meet Our Teachers</Link>
+              <Button asChild variant="default" size="lg" className="hover-scale">
+                <Link to="/about">Learn More About Us <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
