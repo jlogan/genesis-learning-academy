@@ -30,9 +30,9 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen -mt-0">
       {/* Hero Section */}
-      <section className="relative h-[500px] md:h-[600px] flex items-center">
+      <section className="relative h-[500px] md:h-[600px] flex items-center -mt-0">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImage})` }}
