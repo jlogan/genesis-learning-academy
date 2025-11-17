@@ -100,55 +100,52 @@ const Enroll = () => {
   return (
     <div className="min-h-screen bg-warmBg">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Enrollment Form</h1>
-          <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto">
-            Start your child's journey with Genesis Learning Academy today
+      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
+        <div className="container mx-auto px-4 text-center max-w-3xl">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Start Enrollment</h1>
+          <p className="text-lg text-primary-foreground/95 leading-relaxed">
+            Submit your information below and our enrollment team will contact you within 24 hours to answer your questions and schedule a tour of our facility.
           </p>
         </div>
       </section>
 
       {/* Form Section */}
-      <section className="py-16">
+      <section className="py-20">
         <div className="container mx-auto px-4 max-w-3xl">
-          <Card className="shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-2xl text-primary">Complete Your Application</CardTitle>
-              <CardDescription>
-                Fill out the form below and we'll contact you to discuss enrollment and schedule a tour.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="shadow-lg border-border/50">
+            <CardContent className="p-8 md:p-12">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
                   {/* Parent Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-primary">Parent/Guardian Information</h3>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-foreground mb-2">Parent or Guardian</h3>
+                      <p className="text-sm text-muted-foreground">Please provide your contact information</p>
+                    </div>
                     
                     <FormField
                       control={form.control}
                       name="parentName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name *</FormLabel>
+                          <FormLabel className="text-base">Your Full Name *</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Smith" {...field} />
+                            <Input placeholder="e.g., Jane Smith" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email Address *</FormLabel>
+                            <FormLabel className="text-base">Email Address *</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="john@example.com" {...field} />
+                              <Input type="email" placeholder="your.email@example.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -160,7 +157,7 @@ const Enroll = () => {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Phone Number *</FormLabel>
+                            <FormLabel className="text-base">Phone Number *</FormLabel>
                             <FormControl>
                               <Input type="tel" placeholder="(770) 555-1234" {...field} />
                             </FormControl>
@@ -172,9 +169,12 @@ const Enroll = () => {
                   </div>
 
               {/* Children Information */}
-              <div className="space-y-6 pt-6 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Children Information</h3>
+              <div className="space-y-6 pt-10 border-t border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Child Information</h3>
+                    <p className="text-sm text-muted-foreground">Add each child you'd like to enroll</p>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
@@ -187,7 +187,7 @@ const Enroll = () => {
                 </div>
 
                 {fields.map((field, index) => (
-                  <div key={field.id} className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
+                  <div key={field.id} className="space-y-5 p-6 border border-border/50 rounded-lg bg-muted/20 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-foreground">Child {index + 1}</h4>
                       {fields.length > 1 && (
@@ -209,9 +209,9 @@ const Enroll = () => {
                       name={`children.${index}.childName`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Child's Full Name *</FormLabel>
+                          <FormLabel className="text-base">Child's Full Name *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Child's full name" {...field} />
+                            <Input placeholder="e.g., Michael Johnson" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -223,11 +223,11 @@ const Enroll = () => {
                       name={`children.${index}.childAge`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Child's Age Group *</FormLabel>
+                          <FormLabel className="text-base">Age Group *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select age group" />
+                                <SelectValue placeholder="Select your child's age group" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -248,7 +248,7 @@ const Enroll = () => {
                       name={`children.${index}.preferredStartDate`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Preferred Start Date *</FormLabel>
+                          <FormLabel className="text-base">When would you like to start? *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -261,19 +261,22 @@ const Enroll = () => {
               </div>
 
               {/* Additional Information */}
-              <div className="space-y-4 pt-6 border-t border-border">
-                    <h3 className="text-lg font-semibold text-primary">Additional Information</h3>
+              <div className="space-y-6 pt-10 border-t border-border/50">
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Additional Details</h3>
+                  <p className="text-sm text-muted-foreground">Help us better understand your needs</p>
+                </div>
                     
                     <FormField
                       control={form.control}
                       name="languagePreference"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Language Preference *</FormLabel>
+                          <FormLabel className="text-base">Preferred Language *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select language" />
+                                <SelectValue placeholder="Select your preferred language" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -293,10 +296,10 @@ const Enroll = () => {
                       name="additionalInfo"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Additional Information or Questions (Optional)</FormLabel>
+                          <FormLabel className="text-base">Anything else we should know? (Optional)</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Tell us anything else we should know about your child or family..."
+                              placeholder="Share any special needs, allergies, schedules, or questions you have..."
                               className="resize-none h-32"
                               {...field}
                             />
@@ -307,10 +310,13 @@ const Enroll = () => {
                     />
                   </div>
 
-                  <div className="pt-4">
-                    <Button type="submit" variant="cta" size="lg" className="w-full">
-                      Submit Enrollment Form
+                  <div className="pt-8">
+                    <Button type="submit" variant="cta" size="lg" className="w-full text-lg py-6">
+                      Submit Enrollment Request
                     </Button>
+                    <p className="text-center text-sm text-muted-foreground mt-4">
+                      By submitting, you agree to be contacted by our team
+                    </p>
                   </div>
                 </form>
               </Form>
@@ -318,9 +324,9 @@ const Enroll = () => {
           </Card>
 
           {/* Contact Info */}
-          <div className="mt-8 text-center text-muted-foreground">
-            <p className="mb-2">Need help with enrollment? Call us at:</p>
-            <a href="tel:770-672-4255" className="text-primary font-semibold text-lg hover:text-accent">
+          <div className="mt-12 p-6 bg-muted/30 rounded-lg border border-border/50 text-center">
+            <p className="text-muted-foreground mb-3">Questions about enrollment?</p>
+            <a href="tel:770-672-4255" className="text-primary font-semibold text-xl hover:text-accent transition-colors">
               (770) 672-4255
             </a>
           </div>
