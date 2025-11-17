@@ -170,7 +170,7 @@ const Enroll = () => {
 
               {/* Children Information */}
               <div className="space-y-6 pt-10 border-t border-border/50">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
                   <div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">Child Information</h3>
                     <p className="text-sm text-muted-foreground">Add each child you'd like to enroll</p>
@@ -178,25 +178,27 @@ const Enroll = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="default"
                     onClick={() => append({ childName: "", childAge: "", preferredStartDate: "" })}
+                    className="w-full sm:w-auto border-primary/30 hover:bg-primary/5"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Child
+                    Add Another Child
                   </Button>
                 </div>
 
                 {fields.map((field, index) => (
-                  <div key={field.id} className="space-y-5 p-6 border border-border/50 rounded-lg bg-muted/20 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-foreground">Child {index + 1}</h4>
+                  <Card key={field.id} className="border-2 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6 space-y-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-foreground">Child {index + 1}</h4>
                       {fields.length > 1 && (
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="destructive"
                           size="sm"
                           onClick={() => remove(index)}
-                          className="text-destructive hover:text-destructive"
+                          className="hover:bg-destructive/90"
                         >
                           <Trash2 className="w-4 h-4 mr-1" />
                           Remove
@@ -256,7 +258,8 @@ const Enroll = () => {
                         </FormItem>
                       )}
                     />
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
 
