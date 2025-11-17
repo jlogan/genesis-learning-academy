@@ -64,7 +64,7 @@ const Enroll = () => {
 
   const onSubmit = (data: EnrollmentFormData) => {
     console.log("Enrollment form submitted:", data);
-    toast.success("Enrollment form submitted successfully!");
+    toast.success("Thank you! Your enrollment request has been received. A member of our team will reach out shortly.");
     setIsSubmitted(true);
   };
 
@@ -80,10 +80,9 @@ const Enroll = () => {
             <CheckCircle2 className="w-12 h-12 text-accent-foreground" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Thank You!</h1>
-          <p className="text-xl mb-2">Your enrollment form has been submitted successfully.</p>
+          <p className="text-xl mb-2">Your enrollment request has been received.</p>
           <p className="text-primary-foreground/90 mb-8 max-w-md mx-auto">
-            We'll review your application and contact you within 1-2 business days to discuss 
-            next steps and schedule a tour.
+            A member of our team will reach out shortly to discuss next steps and answer any questions you may have.
           </p>
           <Button 
             variant="cta" 
