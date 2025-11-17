@@ -2,8 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Heart, Award, Users, Shield } from "lucide-react";
-import teachersTeam from "@/assets/teachers-team.jpg";
-import heroImage from "@/assets/hero-classroom.jpg";
+import teachersTeam from "@/assets/teachers-team-ai.jpg";
+import heroImage from "@/assets/hero-classroom-ai.jpg";
 
 const About = () => {
   const values = [
