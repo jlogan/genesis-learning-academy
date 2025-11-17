@@ -1,31 +1,36 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Heart, Award, Users, Shield } from "lucide-react";
+import { Heart, Shield, Users, Globe, BookOpen } from "lucide-react";
 import teachersTeam from "@/assets/teachers-team-ai.jpg";
 import heroImage from "@/assets/hero-classroom-ai.jpg";
 
 const About = () => {
   const values = [
     {
-      icon: Heart,
-      title: "Nurturing Care",
-      description: "Your child receives individual attention, warmth, and love from teachers who truly care about their wellbeing and growth",
-    },
-    {
       icon: Shield,
-      title: "Safe & Secure",
-      description: "A protected environment with trained staff, secure facilities, and safety protocols that give you complete peace of mind",
+      title: "Safety",
+      description: "Your child's safety is our top priority with secure facilities, trained staff, and strict safety protocols",
     },
     {
       icon: Users,
-      title: "Family-Focused",
-      description: "We partner with you to support your child's development and create a strong, connected community for families",
+      title: "Community",
+      description: "Building a warm, welcoming community where families connect and support each other",
     },
     {
-      icon: Award,
-      title: "Quality Learning",
-      description: "Structured, age-appropriate curriculum that prepares children for kindergarten while fostering curiosity and confidence",
+      icon: Globe,
+      title: "Diversity",
+      description: "Celebrating all cultures and backgrounds, creating an inclusive environment where every child belongs",
+    },
+    {
+      icon: BookOpen,
+      title: "Learning",
+      description: "Age-appropriate curriculum that nurtures curiosity and prepares children for future success",
+    },
+    {
+      icon: Heart,
+      title: "Family Support",
+      description: "Partnering with parents every step of the way to support your child's growth and development",
     },
   ];
 
@@ -92,7 +97,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {values.map((value, index) => (
               <Card key={index} className="border-none shadow-md hover:shadow-xl transition-shadow">
                 <CardContent className="p-6 text-center">
