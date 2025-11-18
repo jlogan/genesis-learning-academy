@@ -22,7 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import heroImage from "@/assets/hero-classroom.jpg";
 
 const childSchema = z.object({
@@ -64,7 +64,10 @@ const Enroll = () => {
 
   const onSubmit = (data: EnrollmentFormData) => {
     console.log("Enrollment form submitted:", data);
-    toast.success("Thank you! Your enrollment request has been received. A member of our team will reach out shortly.");
+    toast({
+      title: "Thank you!",
+      description: "Your enrollment request has been received. A member of our team will reach out shortly.",
+    });
     setIsSubmitted(true);
   };
 
