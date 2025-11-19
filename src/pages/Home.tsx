@@ -144,7 +144,7 @@ const Home = () => {
               <img 
                 src={happyChild} 
                 alt="Happy child playing at Genesis Learning Academy playground in Kennesaw" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
             </div>
           </div>
