@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Users, Clock, Award, ArrowRight, Shield, GraduationCap, Home as HomeIcon } from "lucide-react";
 import heroImage from "@/assets/hero-classroom.jpg";
-import outdoorPlay from "@/assets/outdoor-play.jpg";
+import happyChild from "@/assets/happy-child-playground.jpg";
 
 const Home = () => {
   const features = [
@@ -142,8 +142,8 @@ const Home = () => {
             </div>
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <img 
-                src={outdoorPlay} 
-                alt="Children playing outdoors with teachers at Genesis Learning Academy" 
+                src={happyChild} 
+                alt="Happy child playing at Genesis Learning Academy playground in Kennesaw" 
                 className="w-full h-full object-cover"
               />
             </div>
