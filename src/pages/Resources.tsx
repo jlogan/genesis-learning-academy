@@ -219,24 +219,24 @@ const Resources = () => {
           </p>
           <div className="flex gap-6 justify-center">
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/genesiskennesaw"
               target="_blank"
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-3 p-6 rounded-lg bg-secondary hover:bg-accent hover:scale-105 transition-all group"
             >
               <Facebook className="h-12 w-12 text-primary group-hover:text-accent-foreground" />
               <span className="font-semibold text-foreground group-hover:text-accent-foreground">Facebook</span>
-              <span className="text-sm text-muted-foreground group-hover:text-accent-foreground/80">@GenesisLearningKennesaw</span>
+              <span className="text-sm text-muted-foreground group-hover:text-accent-foreground/80">@genesiskennesaw</span>
             </a>
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/genesis_kennesaw"
               target="_blank"
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-3 p-6 rounded-lg bg-secondary hover:bg-accent hover:scale-105 transition-all group"
             >
               <Instagram className="h-12 w-12 text-primary group-hover:text-accent-foreground" />
               <span className="font-semibold text-foreground group-hover:text-accent-foreground">Instagram</span>
-              <span className="text-sm text-muted-foreground group-hover:text-accent-foreground/80">@GenesisLearningGA</span>
+              <span className="text-sm text-muted-foreground group-hover:text-accent-foreground/80">@genesis_kennesaw</span>
             </a>
           </div>
         </div>
