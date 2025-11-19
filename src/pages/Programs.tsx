@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Baby, Smile, Palette, GraduationCap } from "lucide-react";
 import infantImage from "@/assets/infant-program.jpg";
-import toddlerImage from "@/assets/toddler-program.jpg";
-import preschoolImage from "@/assets/preschool-program.jpg";
-import preKImage from "@/assets/prekindergarten-program.jpg";
+import toddlerImage from "@/assets/child-construction-play.jpg";
+import preschoolImage from "@/assets/child-sensory-table.jpg";
+import preKImage from "@/assets/child-learning-activity.jpg";
 
 const Programs = () => {
   const programs = [
