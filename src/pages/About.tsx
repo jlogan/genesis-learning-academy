@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Globe, BookOpen } from "lucide-react";
 import teachersTeam from "@/assets/child-art-activity.jpg";
 import heroImage from "@/assets/classroom-interior-1.jpg";
+import ownerImage from "@/assets/owner-ms-angelia.jpg";
 
 const About = () => {
   const values = [
@@ -43,6 +44,61 @@ const About = () => {
           <p className="text-xl text-primary-foreground/90 max-w-3xl mx-auto">
             A proudly Black-owned childcare center in Kennesaw, dedicated to nurturing your child's growth in a safe, loving, and family-focused environment
           </p>
+        </div>
+      </section>
+
+      {/* Owner Section */}
+      <section className="py-16 bg-warmBg">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+              Meet Our Owner
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Leading with passion, dedication, and a heart for early childhood education
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
+            <div className="relative h-[500px] rounded-lg overflow-hidden shadow-xl">
+              <img 
+                src={ownerImage} 
+                alt="Ms. Angelia, Owner and Director of Genesis Learning Academy" 
+                className="w-full h-full object-cover"
+                style={{ objectPosition: '50% 20%' }}
+              />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-primary mb-4">Ms. Angelia</h3>
+              <p className="text-lg font-semibold text-foreground mb-4">
+                Owner & Director
+              </p>
+              <div className="space-y-4 text-muted-foreground">
+                <p>
+                  As a mother of 5 children and 2 grandchildren, Ms. Angelia understands the importance of 
+                  providing a nurturing and educational environment for young minds. She pursued her education 
+                  at Clayton State University and Atlanta Area Technical College, where she completed courses 
+                  in both business and education.
+                </p>
+                <p>
+                  Ms. Angelia's passion for early education led her to establish Genesis Learning Academy in 
+                  the heart of Kennesaw, GA. Her center has not only been a place of learning and growth for 
+                  countless children but has also become a pillar of support within the community.
+                </p>
+                <p>
+                  Through partnerships with organizations such as Family Promise and Must Ministry, Ms. Angelia 
+                  has been actively involved in helping families in need. Her dedication to serving others and 
+                  making a positive impact on the lives of children and families is truly commendable.
+                </p>
+                <p className="font-semibold text-foreground">
+                  Genesis Learning Academy holds a significant place in history as the very first childcare 
+                  center in Kennesaw, GA. Previously owned and operated by the late Carolyn Prewett for 25 years, 
+                  Ms. Angelia continues to carry on the legacy of providing exceptional care and education to 
+                  young learners.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
