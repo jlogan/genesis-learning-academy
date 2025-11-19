@@ -65,7 +65,6 @@ const About = () => {
                 src={ownerImage} 
                 alt="Ms. Angelia, Owner and Director of Genesis Learning Academy" 
                 className="w-full h-full object-cover"
-                style={{ objectPosition: '50% 20%' }}
               />
             </div>
             <div>
