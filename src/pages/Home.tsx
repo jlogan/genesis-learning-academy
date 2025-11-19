@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Users, Clock, Award, ArrowRight, Shield, GraduationCap, Home as HomeIcon } from "lucide-react";
-import heroImage from "@/assets/hero-classroom.jpg";
+import heroImage from "@/assets/classroom-interior-2.jpg";
 import happyChild from "@/assets/happy-child-playground.jpg";
 
 const Home = () => {
