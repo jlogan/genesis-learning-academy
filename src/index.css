@@ -8,79 +8,79 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Warm, inviting backgrounds */
-    --background: 35 40% 98%;
-    --foreground: 25 25% 25%;
+    /* Clean white backgrounds */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 25% 25%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 25% 25%;
+    --popover-foreground: 0 0% 0%;
 
-    /* Soft teal primary - warmer and friendlier */
-    --primary: 180 45% 45%;
-    --primary-foreground: 0 0% 100%;
+    /* Rich gold primary - matches logo */
+    --primary: 43 95% 48%;
+    --primary-foreground: 0 0% 0%;
     
-    /* Warm golden accent - inviting and cheerful */
-    --accent: 38 92% 58%;
-    --accent-foreground: 25 25% 25%;
+    /* Gold accent - warm and inviting */
+    --accent: 43 95% 48%;
+    --accent-foreground: 0 0% 0%;
 
-    /* Soft coral/peach secondary - nurturing */
-    --secondary: 18 85% 90%;
-    --secondary-foreground: 25 25% 25%;
+    /* Light gold secondary for subtle backgrounds */
+    --secondary: 43 40% 95%;
+    --secondary-foreground: 0 0% 0%;
 
-    /* Gentle muted tones */
-    --muted: 35 25% 95%;
-    --muted-foreground: 25 15% 50%;
+    /* Soft gray muted tones */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    --destructive: 0 70% 60%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Softer borders */
-    --border: 35 20% 90%;
-    --input: 35 20% 90%;
-    --ring: 180 45% 45%;
+    /* Light borders */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 43 95% 48%;
 
-    /* More rounded for friendly feel */
+    /* Rounded for friendly feel */
     --radius: 1rem;
     
-    /* Custom tokens for warmth */
-    --hero-gradient-start: 180 50% 50%;
-    --hero-gradient-end: 180 45% 35%;
-    --warm-bg: 35 50% 97%;
-    --highlight: 38 95% 65%;
+    /* Custom tokens for gold theme */
+    --hero-gradient-start: 43 95% 48%;
+    --hero-gradient-end: 43 75% 38%;
+    --warm-bg: 43 40% 98%;
+    --highlight: 43 100% 50%;
     --section-spacing: 5rem;
   }
 
   .dark {
-    --background: 25 15% 12%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 100%;
 
-    --card: 25 15% 15%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 25 15% 15%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 180 45% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 95% 48%;
+    --primary-foreground: 0 0% 0%;
 
-    --accent: 38 92% 65%;
-    --accent-foreground: 25 15% 12%;
+    --accent: 43 95% 48%;
+    --accent-foreground: 0 0% 0%;
 
-    --secondary: 25 15% 20%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 25 10% 18%;
-    --muted-foreground: 25 10% 70%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 70%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 15% 25%;
-    --input: 25 15% 25%;
-    --ring: 180 45% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 43 95% 48%;
   }
 }
 
