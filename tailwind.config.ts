@@ -52,6 +52,7 @@ export default {
         },
         warmBg: "hsl(var(--warm-bg))",
         highlight: "hsl(var(--highlight))",
+        bronze: "hsl(var(--bronze))",
       },
       borderRadius: {
         lg: "var(--radius)",
