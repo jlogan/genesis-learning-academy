@@ -98,22 +98,40 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    line-height: 1.7;
+    font-size: 16px;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
   h1 {
-    @apply text-4xl md:text-5xl leading-tight;
+    @apply text-4xl md:text-5xl lg:text-6xl;
+    font-weight: 800;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl leading-tight;
+    @apply text-3xl md:text-4xl lg:text-5xl;
+    font-weight: 700;
   }
 
   h3 {
-    @apply text-2xl md:text-3xl leading-snug;
+    @apply text-2xl md:text-3xl;
+    font-weight: 700;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+    font-weight: 600;
+  }
+
+  p {
+    @apply text-base md:text-lg;
+    line-height: 1.8;
+    margin-bottom: 1rem;
   }
 
   section {
