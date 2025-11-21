@@ -8,80 +8,80 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Ivory/Cream background */
-    --background: 43 50% 93%;
-    --foreground: 0 0% 10%;
+    /* Warm cream/ivory background */
+    --background: 40 35% 96%;
+    --foreground: 25 20% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 25 20% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 25 20% 25%;
 
-    /* Bright gold primary from palette */
-    --primary: 45 85% 60%;
-    --primary-foreground: 0 0% 10%;
+    /* Soft warm gold primary - daycare friendly */
+    --primary: 42 78% 58%;
+    --primary-foreground: 30 25% 20%;
     
-    /* Bronze/Orange gold accent */
-    --accent: 40 82% 42%;
+    /* Soft blue accent for trust and calm */
+    --accent: 200 75% 60%;
     --accent-foreground: 0 0% 100%;
 
-    /* White secondary for contrast */
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 0 0% 10%;
+    /* Soft peach secondary for warmth */
+    --secondary: 25 75% 90%;
+    --secondary-foreground: 25 20% 25%;
 
-    /* Muted with warm ivory tones */
-    --muted: 43 40% 88%;
-    --muted-foreground: 38 20% 35%;
+    /* Soft muted tones */
+    --muted: 40 25% 92%;
+    --muted-foreground: 25 15% 45%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Warm borders */
-    --border: 43 30% 85%;
-    --input: 43 30% 85%;
-    --ring: 45 85% 60%;
+    /* Subtle warm borders */
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 42 78% 58%;
 
-    /* Rounded for friendly feel */
-    --radius: 1rem;
+    /* Extra rounded for friendly feel */
+    --radius: 1.25rem;
     
-    /* Custom tokens for gold theme */
-    --hero-gradient-start: 45 85% 60%;
-    --hero-gradient-end: 40 82% 42%;
-    --warm-bg: 0 0% 100%;
-    --highlight: 45 90% 65%;
-    --bronze: 38 68% 37%;
-    --section-spacing: 5rem;
+    /* Custom daycare-friendly tokens */
+    --warm-bg: 40 50% 98%;
+    --highlight: 42 85% 65%;
+    --soft-green: 145 55% 65%;
+    --soft-blue: 200 75% 60%;
+    --soft-yellow: 48 92% 75%;
+    --section-spacing: 6rem;
   }
 
   .dark {
-    --background: 38 68% 15%;
-    --foreground: 43 50% 93%;
+    --background: 25 30% 12%;
+    --foreground: 40 35% 96%;
 
-    --card: 38 60% 20%;
-    --card-foreground: 43 50% 93%;
+    --card: 25 25% 18%;
+    --card-foreground: 40 35% 96%;
 
-    --popover: 38 60% 20%;
-    --popover-foreground: 43 50% 93%;
+    --popover: 25 25% 18%;
+    --popover-foreground: 40 35% 96%;
 
-    --primary: 45 85% 60%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 42 78% 58%;
+    --primary-foreground: 30 25% 20%;
 
-    --accent: 40 82% 42%;
+    --accent: 200 75% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --secondary: 38 40% 25%;
-    --secondary-foreground: 43 50% 93%;
+    --secondary: 25 30% 20%;
+    --secondary-foreground: 40 35% 96%;
 
-    --muted: 38 30% 30%;
-    --muted-foreground: 43 30% 75%;
+    --muted: 25 20% 25%;
+    --muted-foreground: 40 20% 70%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 38 30% 35%;
-    --input: 38 30% 35%;
-    --ring: 45 85% 60%;
+    --border: 25 20% 30%;
+    --input: 25 20% 30%;
+    --ring: 42 78% 58%;
   }
 }
 
@@ -103,7 +103,19 @@ All colors MUST be HSL.
     @apply font-bold;
   }
 
+  h1 {
+    @apply text-4xl md:text-5xl leading-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl leading-tight;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl leading-snug;
+  }
+
   section {
-    @apply py-16 md:py-20;
+    @apply py-20 md:py-24;
   }
 }
