@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Globe, BookOpen } from "lucide-react";
-import teachersTeam from "@/assets/child-art-activity.jpg";
+import teachersTeam from "@/assets/teachers-team-classroom.jpg";
 import heroImage from "@/assets/classroom-interior-1.jpg";
 import ownerImage from "@/assets/owner-ms-angelia.jpg";
 
