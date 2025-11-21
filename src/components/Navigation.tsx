@@ -21,10 +21,10 @@ const Navigation = () => {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-24 md:h-28 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-16 w-auto" />
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-20 md:h-24 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
