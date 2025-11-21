@@ -24,8 +24,8 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         {/* Logo Section */}
         <div className="flex justify-center py-4">
-          <Link to="/" className="flex items-center">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-16 md:h-20 w-auto object-contain" />
+          <Link to="/" className="flex items-center max-w-2xl">
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-16 md:h-20 w-full object-contain scale-150" />
           </Link>
         </div>
 
