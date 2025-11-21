@@ -190,7 +190,7 @@ const Resources = () => {
               <img 
                 src={academySign} 
                 alt="Genesis Learning Academy of Kennesaw Sign" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center scale-150"
               />
             </div>
             <div className="rounded-lg overflow-hidden shadow-xl h-[400px]">
