@@ -8,79 +8,80 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Clean white backgrounds */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    /* Ivory/Cream background */
+    --background: 43 50% 93%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Rich gold primary - matches logo */
-    --primary: 43 95% 48%;
-    --primary-foreground: 0 0% 0%;
+    /* Bright gold primary from palette */
+    --primary: 45 85% 60%;
+    --primary-foreground: 0 0% 10%;
     
-    /* Gold accent - warm and inviting */
-    --accent: 43 95% 48%;
-    --accent-foreground: 0 0% 0%;
+    /* Bronze/Orange gold accent */
+    --accent: 40 82% 42%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Light gold secondary for subtle backgrounds */
-    --secondary: 43 40% 95%;
-    --secondary-foreground: 0 0% 0%;
+    /* White secondary for contrast */
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 0 0% 10%;
 
-    /* Soft gray muted tones */
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
+    /* Muted with warm ivory tones */
+    --muted: 43 40% 88%;
+    --muted-foreground: 38 20% 35%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Light borders */
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 43 95% 48%;
+    /* Warm borders */
+    --border: 43 30% 85%;
+    --input: 43 30% 85%;
+    --ring: 45 85% 60%;
 
     /* Rounded for friendly feel */
     --radius: 1rem;
     
     /* Custom tokens for gold theme */
-    --hero-gradient-start: 43 95% 48%;
-    --hero-gradient-end: 43 75% 38%;
-    --warm-bg: 43 40% 98%;
-    --highlight: 43 100% 50%;
+    --hero-gradient-start: 45 85% 60%;
+    --hero-gradient-end: 40 82% 42%;
+    --warm-bg: 0 0% 100%;
+    --highlight: 45 90% 65%;
+    --bronze: 38 68% 37%;
     --section-spacing: 5rem;
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 100%;
+    --background: 38 68% 15%;
+    --foreground: 43 50% 93%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 100%;
+    --card: 38 60% 20%;
+    --card-foreground: 43 50% 93%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 38 60% 20%;
+    --popover-foreground: 43 50% 93%;
 
-    --primary: 43 95% 48%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 45 85% 60%;
+    --primary-foreground: 0 0% 10%;
 
-    --accent: 43 95% 48%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 40 82% 42%;
+    --accent-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 38 40% 25%;
+    --secondary-foreground: 43 50% 93%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 38 30% 30%;
+    --muted-foreground: 43 30% 75%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 43 95% 48%;
+    --border: 38 30% 35%;
+    --input: 38 30% 35%;
+    --ring: 45 85% 60%;
   }
 }
 
