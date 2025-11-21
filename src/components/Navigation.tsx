@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import genesisLogo from "@/assets/genesis-logo-new.png";
+import genesisLogo from "@/assets/genesis-logo-clean.png";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,8 +24,8 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         {/* Logo Section */}
         <div className="flex justify-center py-4">
-          <Link to="/" className="flex items-center max-w-2xl">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-16 md:h-20 w-full object-contain scale-150" />
+          <Link to="/" className="flex items-center">
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-12 md:h-16 w-auto object-contain" />
           </Link>
         </div>
 
