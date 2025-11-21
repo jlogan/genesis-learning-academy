@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import genesisLogo from "@/assets/genesis-logo.png";
+import genesisLogo from "@/assets/genesis-logo-new.png";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
