@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText } from "lucide-react";
-import outdoorPlay from "@/assets/outdoor-play.jpg";
+import academySign from "@/assets/academy-sign.png";
 import procareLogo from "@/assets/procare-logo.png";
 
 const Resources = () => {
@@ -188,8 +188,8 @@ const Resources = () => {
           <div className="grid md:grid-cols-2 gap-8">
             <div className="rounded-lg overflow-hidden shadow-xl h-[400px]">
               <img 
-                src={outdoorPlay} 
-                alt="Genesis Learning Academy outdoor playground and facilities" 
+                src={academySign} 
+                alt="Genesis Learning Academy of Kennesaw Sign" 
                 className="w-full h-full object-cover"
               />
             </div>
