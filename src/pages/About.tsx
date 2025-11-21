@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Globe, BookOpen } from "lucide-react";
 import teachersTeam from "@/assets/teachers-team-classroom.jpg";
-import heroImage from "@/assets/classroom-interior-1.jpg";
+import heroImage from "@/assets/outdoor-play-new.jpg";
 import ownerImage from "@/assets/owner-ms-angelia.jpg";
 
 const About = () => {
@@ -108,7 +108,7 @@ const About = () => {
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <img 
                 src={heroImage} 
-                alt="Teachers and children learning together at Genesis Learning Academy" 
+                alt="Teacher and child playing outdoors at Genesis Learning Academy" 
                 className="w-full h-full object-cover"
               />
             </div>
