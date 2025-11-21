@@ -53,30 +53,30 @@ const Programs = () => {
       </section>
 
       {/* Programs Grid */}
-      <section className="py-16 bg-warmBg">
+      <section className="py-16 md:py-20 bg-warmBg">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto">
             {programs.map((program, index) => (
-              <Card key={index} className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover-scale">
-                <div className="relative h-64 overflow-hidden">
+              <Card key={index} className="overflow-hidden border-2 border-border shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="relative h-56 md:h-64 overflow-hidden bg-muted">
                   <img 
                     src={program.image} 
                     alt={`${program.title} program at Genesis Learning Academy`}
-                    className={`w-full h-full object-cover ${index === 0 ? 'object-[center_50%]' : ''} ${index === 1 ? 'object-[50%_20%]' : ''} ${index === 2 ? 'object-[50%_15%]' : ''} ${index === 3 ? 'object-[50%_20%]' : ''}`}
+                    className="w-full h-full object-cover object-center"
                   />
-                  <div className="absolute top-4 left-4 bg-primary/90 text-primary-foreground px-4 py-2 rounded-full">
+                  <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-md">
                     <div className="flex items-center gap-2">
                       <program.icon className="h-5 w-5" />
-                      <span className="font-semibold">{program.ageRange}</span>
+                      <span className="font-semibold text-sm md:text-base">{program.ageRange}</span>
                     </div>
                   </div>
                 </div>
                 
-                <CardContent className="p-6">
-                  <h3 className="text-2xl font-bold text-primary mb-3">
+                <CardContent className="p-5 md:p-6">
+                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
                     {program.title}
                   </h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                  <p className="text-muted-foreground mb-6 leading-relaxed text-sm md:text-base">
                     {program.description}
                   </p>
                   <Button asChild variant="cta" size="lg" className="w-full">
