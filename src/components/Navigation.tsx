@@ -22,7 +22,7 @@ const Navigation = () => {
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4">
         {/* Logo Section */}
-        <div className="flex justify-center pb-4">
+        <div className="flex justify-center pb-2 mt-[-1.5rem]">
           <Link to="/" className="flex items-center">
             <img src={genesisLogo} alt="Genesis Learning Academy" className="h-24 md:h-32 w-auto object-contain" />
           </Link>
