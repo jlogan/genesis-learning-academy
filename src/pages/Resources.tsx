@@ -186,11 +186,11 @@ const Resources = () => {
       <section className="py-16 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="rounded-lg overflow-hidden shadow-xl h-[400px]">
+            <div className="rounded-lg overflow-hidden shadow-xl h-[400px] bg-black">
               <img 
                 src={academySign} 
                 alt="Genesis Learning Academy of Kennesaw Sign" 
-                className="w-full h-full object-cover object-center scale-150"
+                className="w-full h-full object-contain"
               />
             </div>
             <div className="rounded-lg overflow-hidden shadow-xl h-[400px]">
