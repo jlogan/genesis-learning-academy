@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText } from "lucide-react";
-import academySign from "@/assets/academy-sign.png";
+import academySign from "@/assets/academy-sign-new.jpg";
 import procareLogo from "@/assets/procare-logo.png";
 
 const Resources = () => {
@@ -186,11 +186,11 @@ const Resources = () => {
       <section className="py-16 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="rounded-lg overflow-hidden shadow-xl h-[400px] bg-black">
+            <div className="rounded-lg overflow-hidden shadow-xl h-[400px]">
               <img 
                 src={academySign} 
                 alt="Genesis Learning Academy of Kennesaw Sign" 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             </div>
             <div className="rounded-lg overflow-hidden shadow-xl h-[400px]">
