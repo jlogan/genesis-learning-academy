@@ -23,14 +23,14 @@ const Navigation = () => {
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4">
         {/* Logo Section */}
-        <div className="flex justify-center py-6 md:py-8">
+        <div className="flex justify-center py-4">
           <Link to="/" className="flex items-center">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="w-auto max-w-full h-auto" />
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-16 md:h-20 w-auto object-contain" />
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center justify-center gap-1 pb-6 border-t border-border pt-4">
+        <div className="hidden md:flex items-center justify-center gap-1 pb-4 border-t border-border pt-4">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -70,7 +70,7 @@ const Navigation = () => {
                 to={link.href}
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  "block px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  "block px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors text-center",
                   isActive(link.href)
                     ? "text-primary bg-secondary"
                     : "text-foreground hover:text-primary hover:bg-secondary/50"
