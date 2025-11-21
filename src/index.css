@@ -8,80 +8,81 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Warm cream/ivory background */
-    --background: 40 35% 96%;
-    --foreground: 25 20% 25%;
+    /* Ivory background - warm cream */
+    --background: 40 45% 93%;
+    --foreground: 43 10% 32%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 25 20% 25%;
+    --card: 40 50% 98%;
+    --card-foreground: 43 10% 32%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 25 20% 25%;
+    --popover: 40 50% 98%;
+    --popover-foreground: 43 10% 32%;
 
-    /* Soft warm gold primary - daycare friendly */
-    --primary: 42 78% 58%;
-    --primary-foreground: 30 25% 20%;
+    /* Dijon primary - warm mustard gold */
+    --primary: 40 71% 58%;
+    --primary-foreground: 0 0% 100%;
     
-    /* Soft blue accent for trust and calm */
-    --accent: 200 75% 60%;
+    /* Bronze accent - rich gold */
+    --accent: 42 91% 38%;
     --accent-foreground: 0 0% 100%;
 
-    /* Soft peach secondary for warmth */
-    --secondary: 25 75% 90%;
-    --secondary-foreground: 25 20% 25%;
+    /* Sesame secondary - light gold */
+    --secondary: 44 82% 71%;
+    --secondary-foreground: 43 10% 32%;
 
     /* Soft muted tones */
-    --muted: 40 25% 92%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 40 35% 88%;
+    --muted-foreground: 43 10% 45%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Subtle warm borders */
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: 42 78% 58%;
+    /* Subtle borders with moss tint */
+    --border: 40 25% 85%;
+    --input: 40 25% 85%;
+    --ring: 40 71% 58%;
 
     /* Extra rounded for friendly feel */
     --radius: 1.25rem;
     
-    /* Custom daycare-friendly tokens */
-    --warm-bg: 40 50% 98%;
-    --highlight: 42 85% 65%;
-    --soft-green: 145 55% 65%;
-    --soft-blue: 200 75% 60%;
-    --soft-yellow: 48 92% 75%;
+    /* Custom palette tokens */
+    --warm-bg: 40 50% 96%;
+    --moss: 43 10% 32%;
+    --ivory: 40 45% 93%;
+    --sesame: 44 82% 71%;
+    --dijon: 40 71% 58%;
+    --bronze: 42 91% 38%;
     --section-spacing: 6rem;
   }
 
   .dark {
-    --background: 25 30% 12%;
-    --foreground: 40 35% 96%;
+    --background: 43 15% 15%;
+    --foreground: 40 45% 93%;
 
-    --card: 25 25% 18%;
-    --card-foreground: 40 35% 96%;
+    --card: 43 12% 20%;
+    --card-foreground: 40 45% 93%;
 
-    --popover: 25 25% 18%;
-    --popover-foreground: 40 35% 96%;
+    --popover: 43 12% 20%;
+    --popover-foreground: 40 45% 93%;
 
-    --primary: 42 78% 58%;
-    --primary-foreground: 30 25% 20%;
+    --primary: 40 71% 58%;
+    --primary-foreground: 43 10% 32%;
 
-    --accent: 200 75% 60%;
+    --accent: 42 91% 38%;
     --accent-foreground: 0 0% 100%;
 
-    --secondary: 25 30% 20%;
-    --secondary-foreground: 40 35% 96%;
+    --secondary: 44 60% 45%;
+    --secondary-foreground: 40 45% 93%;
 
-    --muted: 25 20% 25%;
-    --muted-foreground: 40 20% 70%;
+    --muted: 43 10% 30%;
+    --muted-foreground: 40 30% 70%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 20% 30%;
-    --input: 25 20% 30%;
-    --ring: 42 78% 58%;
+    --border: 43 10% 35%;
+    --input: 43 10% 35%;
+    --ring: 40 71% 58%;
   }
 }
 
