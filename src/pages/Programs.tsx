@@ -62,7 +62,7 @@ const Programs = () => {
                   <img 
                     src={program.image} 
                     alt={`${program.title} program at Genesis Learning Academy`}
-                    className={`w-full h-full object-cover ${index === 0 ? 'object-[30%_center]' : ''} ${index === 1 ? 'object-[50%_20%]' : ''} ${index === 2 ? 'object-[50%_30%]' : ''}`}
+                    className={`w-full h-full object-cover ${index === 0 ? 'object-[30%_center]' : ''} ${index === 1 ? 'object-[50%_20%]' : ''} ${index === 2 ? 'object-[50%_15%]' : ''}`}
                   />
                   <div className="absolute top-4 left-4 bg-primary/90 text-primary-foreground px-4 py-2 rounded-full">
                     <div className="flex items-center gap-2">
