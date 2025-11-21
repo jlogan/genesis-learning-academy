@@ -22,37 +22,39 @@ const Navigation = () => {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex h-24 md:h-28 items-center justify-between">
-          {/* Logo */}
+        {/* Logo Section */}
+        <div className="flex justify-center py-6 md:py-8">
           <Link to="/" className="flex items-center">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-20 md:h-24 w-auto" />
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="w-auto max-w-full h-auto" />
           </Link>
+        </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors",
-                  isActive(link.href)
-                    ? "text-primary bg-secondary"
-                    : "text-foreground hover:text-primary hover:bg-secondary/50"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Button asChild variant="cta" size="default" className="ml-4">
-              <Link to="/enroll">Start Enrollment</Link>
-            </Button>
-          </div>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center justify-center gap-1 pb-6 border-t border-border pt-4">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={cn(
+                "px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors",
+                isActive(link.href)
+                  ? "text-primary bg-secondary"
+                  : "text-foreground hover:text-primary hover:bg-secondary/50"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Button asChild variant="cta" size="default" className="ml-4">
+            <Link to="/enroll">Start Enrollment</Link>
+          </Button>
+        </div>
 
-          {/* Mobile Menu Button */}
+        {/* Mobile Menu Button */}
+        <div className="md:hidden flex justify-center pb-4 border-t border-border pt-4">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-1.5 rounded-md hover:bg-secondary"
+            className="p-1.5 rounded-md hover:bg-secondary"
             aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
