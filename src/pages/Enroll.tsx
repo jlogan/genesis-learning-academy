@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import heroImage from "@/assets/hero-classroom.jpg";
+import academySign from "@/assets/academy-sign.png";
 
 const childSchema = z.object({
   childName: z.string().trim().min(2, "Child's name must be at least 2 characters").max(100, "Name too long"),
@@ -334,6 +335,32 @@ const Enroll = () => {
             <a href="tel:770-672-4255" className="text-primary font-semibold text-xl hover:text-accent transition-colors">
               (770) 672-4255
             </a>
+          </div>
+
+          {/* Location Section with Map and Sign */}
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Visit Our Academy</h2>
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="rounded-lg overflow-hidden shadow-lg">
+                <img 
+                  src={academySign} 
+                  alt="Genesis Learning Academy of Kennesaw Sign" 
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+              <div className="rounded-lg overflow-hidden shadow-lg h-[400px]">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3308.9!2d-84.6157!3d34.0234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f57b0c7d8e8e8d%3A0x1234567890abcdef!2s2098%20Carruth%20St%20NW%2C%20Kennesaw%2C%20GA%2030144!5e0!3m2!1sen!2sus!4v1234567890123"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Genesis Learning Academy Location"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
