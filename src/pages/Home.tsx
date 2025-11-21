@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Users, Clock, Award, ArrowRight, Shield, GraduationCap, Home as HomeIcon } from "lucide-react";
 import heroImage from "@/assets/classroom-interior-2.jpg";
 import happyChild from "@/assets/happy-child-playground.jpg";
+import childActivity from "@/assets/child-art-activity.jpg";
 
 const Home = () => {
   const features = [
@@ -142,9 +143,9 @@ const Home = () => {
             </div>
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <img 
-                src={happyChild} 
-                alt="Happy child playing at Genesis Learning Academy playground in Kennesaw" 
-                className="w-full h-full object-cover object-top"
+                src={childActivity} 
+                alt="Children engaged in creative activities at Genesis Learning Academy" 
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
