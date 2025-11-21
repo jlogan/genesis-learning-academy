@@ -44,13 +44,10 @@ const Home = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl text-white">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
-              Kennesaw's Premier Daycare & Learning Center
+              A Caring Learning Environment for Children in Kennesaw
             </h1>
-            <p className="text-xl md:text-2xl mb-4 text-white/90">
-              Where every child thrives in a loving, inclusive environment
-            </p>
-            <p className="text-lg md:text-xl mb-8 text-white/80">
-              Walking distance from Downtown Kennesaw • Minutes from I-75 • Perfect for commuting families
+            <p className="text-xl md:text-2xl mb-8 text-white/90">
+              Genesis Learning Academy provides a safe, nurturing, structured space where children can grow, learn, and feel supported.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild variant="cta" size="lg">
