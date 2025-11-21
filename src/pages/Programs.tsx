@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Baby, Smile, Palette, GraduationCap } from "lucide-react";
-import infantImage from "@/assets/infant-program.jpg";
+import infantImage from "@/assets/infant-caregiver.jpg";
 import toddlerImage from "@/assets/child-construction-play.jpg";
 import preschoolImage from "@/assets/child-sensory-table.jpg";
 import preKImage from "@/assets/child-learning-activity.jpg";
@@ -62,7 +62,7 @@ const Programs = () => {
                   <img 
                     src={program.image} 
                     alt={`${program.title} program at Genesis Learning Academy`}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${index === 0 ? 'object-[30%_center]' : ''}`}
                   />
                   <div className="absolute top-4 left-4 bg-primary/90 text-primary-foreground px-4 py-2 rounded-full">
                     <div className="flex items-center gap-2">
