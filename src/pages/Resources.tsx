@@ -7,21 +7,21 @@ import procareLogo from "@/assets/procare-logo.png";
 const Resources = () => {
   const testimonials = [
     {
-      name: "Sarah J.",
-      role: "Parent of 2 children",
-      quote: "Genesis Learning Academy has been a blessing for our family. The teachers genuinely care about each child, and I love that my kids see themselves represented in their educators.",
+      name: "Shanna Stevenson",
+      role: "Parent",
+      quote: "I'm so incredibly grateful we found this gem of a school for my son for the summer! From day one, I felt a true sense of care, professionalism, and passion from the entire team at Genesis Learning Academy of Kennesaw.",
       rating: 5,
     },
     {
-      name: "Michael T.",
-      role: "Parent of 1 child",
-      quote: "The flexible hours are perfect for our working family schedule. The staff is professional, loving, and always communicative. Highly recommend!",
+      name: "Shemariah Gates",
+      role: "Parent",
+      quote: "This is a One of kind center, with One of a kind teachers and staff, with One of a kind vision. My children are seen and heard here, they are valued here, and they are loved here. The curriculum is perfect for my girls!",
       rating: 5,
     },
     {
-      name: "Jessica M.",
-      role: "Parent of 3 children",
-      quote: "As a Black-owned business, Genesis truly understands our community. My children have thrived here, both academically and socially. The curriculum is excellent!",
+      name: "Tanysha Angel Russell",
+      role: "Parent of 3 daughters",
+      quote: "My 3 daughters have been attending Genesis Learning academy for almost 2 years now. We recently moved from another state so we were extremely cautious of where we would send our babies. GLA has been God sent for us!",
       rating: 5,
     },
   ];
