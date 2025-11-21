@@ -23,7 +23,14 @@ const Footer = () => {
             <div className="space-y-2 text-sm text-primary-foreground/80">
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>2098 Carruth St NW, Kennesaw, GA 30144</span>
+                <a 
+                  href="https://www.google.com/maps/dir/?api=1&destination=2098+Carruth+St+NW+Kennesaw+GA+30144"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-accent transition-colors"
+                >
+                  2098 Carruth St NW, Kennesaw, GA 30144
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 flex-shrink-0" />
