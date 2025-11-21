@@ -14,7 +14,6 @@ const Navigation = () => {
     { href: "/programs", label: "Programs" },
     { href: "/about", label: "About Us" },
     { href: "/resources", label: "Parent Resources" },
-    { href: "/bg-removal", label: "BG Removal" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -36,7 +35,7 @@ const Navigation = () => {
               key={link.href}
               to={link.href}
               className={cn(
-                "px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors",
+                "px-3.5 py-1.5 rounded-md text-sm font-bold transition-colors",
                 isActive(link.href)
                   ? "text-primary bg-secondary"
                   : "text-foreground hover:text-primary hover:bg-secondary/50"
@@ -70,7 +69,7 @@ const Navigation = () => {
                 to={link.href}
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  "block px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors text-center",
+                  "block px-3.5 py-1.5 rounded-md text-sm font-bold transition-colors text-center",
                   isActive(link.href)
                     ? "text-primary bg-secondary"
                     : "text-foreground hover:text-primary hover:bg-secondary/50"
