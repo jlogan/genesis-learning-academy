@@ -14,6 +14,7 @@ const Navigation = () => {
     { href: "/programs", label: "Programs" },
     { href: "/about", label: "About Us" },
     { href: "/resources", label: "Parent Resources" },
+    { href: "/bg-removal", label: "BG Removal" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
