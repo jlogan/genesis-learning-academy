@@ -10,10 +10,7 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-xl mb-3">Genesis Learning Academy</h3>
             <p className="text-primary-foreground/80 text-sm mb-4">
-              Where every child thrives in a loving, inclusive environment.
-            </p>
-            <p className="text-primary-foreground/70 text-xs">
-              Black-owned and operated early learning center serving Kennesaw, GA.
+              Serving families in Kennesaw with care and commitment.
             </p>
           </div>
 
@@ -54,7 +51,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-colors"
-                aria-label="Facebook"
+                aria-label="Visit our Facebook page"
               >
                 <Facebook className="h-5 w-5" />
               </a>
@@ -63,7 +60,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-colors"
-                aria-label="Instagram"
+                aria-label="Visit our Instagram page"
               >
                 <Instagram className="h-5 w-5" />
               </a>
