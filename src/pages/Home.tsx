@@ -16,7 +16,7 @@ const Home = () => {
     {
       icon: Users,
       title: "Experienced Teachers",
-      description: "Our diverse team of Black educators brings passion and expertise",
+      description: "Caring educators who bring warmth, dedication, and expertise to every day",
     },
     {
       icon: Clock,
