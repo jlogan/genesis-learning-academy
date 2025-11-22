@@ -22,6 +22,7 @@ import happyChildPlayground from "@/assets/happy-child-playground.jpg";
 import infantCaregiver from "@/assets/infant-caregiver.jpg";
 import outdoorPlayNew from "@/assets/outdoor-play-new.jpg";
 import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
+import genesisSignOutdoor from "@/assets/genesis-sign-outdoor.jpg";
 
 const galleryImages = [
   { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
@@ -32,6 +33,7 @@ const galleryImages = [
   { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
   { src: infantPlaytime, alt: "Infant engaged in developmental play" },
   { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
+  { src: genesisSignOutdoor, alt: "Genesis Learning Academy outdoor sign" },
   { src: girlCraftActivity, alt: "Child engaged in creative craft activity" },
 ];
 
