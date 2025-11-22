@@ -45,15 +45,9 @@ const About = () => {
       {/* Owner Section */}
       <section className="py-16 bg-warmBg">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-              Meet Our Owner
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Leading with passion, dedication, and a heart for early childhood education
-            </p>
-          </div>
-
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8 text-center md:text-left">
+            Meet Our Owner
+          </h2>
           <div className="grid md:grid-cols-2 gap-12 items-start max-w-5xl mx-auto">
             <div className="relative h-[500px] rounded-lg overflow-hidden shadow-xl">
               <img 
@@ -166,11 +160,11 @@ const About = () => {
       {/* Teachers Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8 text-center md:text-left">
+            Our Caring Teachers
+          </h2>
+          <div className="grid md:grid-cols-2 gap-12 items-start">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
-                Our Caring Teachers
-              </h2>
               <p className="text-lg text-foreground mb-4">
                 Your child will be cared for by a diverse team of warm, dedicated educators who bring 
                 passion and expertise to every day. Our teachers are carefully chosen not just for their 
