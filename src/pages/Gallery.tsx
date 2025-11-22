@@ -26,13 +26,13 @@ import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
 const galleryImages = [
   { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
   { src: classroomDecorations, alt: "Colorful classroom with educational decorations" },
-  { src: girlCraftActivity, alt: "Child engaged in creative craft activity" },
   { src: classroomLearningCorner, alt: "Learning corner with classroom jobs display" },
   { src: childLearningTable, alt: "Child learning phonics at activity table" },
   { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
   { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
   { src: infantPlaytime, alt: "Infant engaged in developmental play" },
   { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
+  { src: girlCraftActivity, alt: "Child engaged in creative craft activity" },
 ];
 
 const Gallery = () => {
