@@ -104,7 +104,7 @@ const About = () => {
       {/* Mission Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-12 items-start">
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <img 
                 src={heroImage} 
