@@ -34,24 +34,19 @@ const galleryImages = [
   { src: infantPlaytime, alt: "Infant engaged in developmental play" },
   { src: happyChildPlayground, alt: "Child playing on outdoor playground" },
   { src: childArtActivity, alt: "Art and creative expression activities" },
-  { src: childConstructionPlay, alt: "Construction and building play" },
   { src: outdoorPlayNew, alt: "Children enjoying outdoor activities" },
   { src: classroomInterior1, alt: "Well-equipped classroom interior" },
-  { src: classroomInterior2, alt: "Bright and welcoming classroom space" },
-  { src: childLearningActivity, alt: "Hands-on learning activities" },
-  { src: childSensoryTable, alt: "Sensory table exploration" },
   { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
-  { src: infantCaregiver, alt: "Nurturing infant care" },
 ];
 
 const Gallery = () => {
   return (
     <>
       <Helmet>
-        <title>Photo Gallery - Genesis Preparatory Academy | Kennesaw Childcare</title>
+        <title>Photo Gallery - Genesis Learning Academy | Kennesaw Childcare</title>
         <meta 
           name="description" 
-          content="Explore photos of our vibrant learning environment, classrooms, outdoor play areas, and children engaged in educational activities at Genesis Preparatory Academy in Kennesaw, GA." 
+          content="Explore photos of our vibrant learning environment, classrooms, outdoor play areas, and children engaged in educational activities at Genesis Learning Academy in Kennesaw, GA."
         />
       </Helmet>
 
@@ -64,7 +59,7 @@ const Gallery = () => {
                 Our Learning Environment
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground">
-                Take a look at our classrooms, outdoor spaces, and the joyful moments that make Genesis Preparatory Academy special
+                Take a look at our classrooms, outdoor spaces, and the joyful moments that make Genesis Learning Academy special
               </p>
             </div>
           </div>
