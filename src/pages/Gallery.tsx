@@ -32,10 +32,6 @@ const galleryImages = [
   { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
   { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
   { src: infantPlaytime, alt: "Infant engaged in developmental play" },
-  { src: happyChildPlayground, alt: "Child playing on outdoor playground" },
-  { src: childArtActivity, alt: "Art and creative expression activities" },
-  { src: outdoorPlayNew, alt: "Children enjoying outdoor activities" },
-  { src: classroomInterior1, alt: "Well-equipped classroom interior" },
   { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
 ];
 
