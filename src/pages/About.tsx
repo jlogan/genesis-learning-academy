@@ -99,6 +99,9 @@ const About = () => {
       {/* Mission Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8 text-center md:text-left">
+            Our Mission
+          </h2>
           <div className="grid md:grid-cols-2 gap-12 items-start">
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <img 
@@ -108,9 +111,6 @@ const About = () => {
               />
             </div>
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
-                Our Mission
-              </h2>
               <p className="text-lg text-foreground mb-4">
                 At Genesis Learning Academy, we believe every child deserves a strong foundation for success. 
                 As a Black-owned childcare center in Kennesaw, GA, we're committed to providing exceptional 
