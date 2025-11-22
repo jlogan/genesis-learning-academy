@@ -10,23 +10,23 @@ const About = () => {
   const values = [
     {
       icon: Shield,
-      title: "Safety",
-      description: "Your child's safety is our top priority with secure facilities, trained staff, and strict safety protocols",
+      title: "Safety First",
+      description: "Secure facilities, trained staff, and comprehensive safety protocols give you peace of mind every day",
     },
     {
       icon: BookOpen,
-      title: "Learning",
-      description: "Age-appropriate curriculum that nurtures curiosity and prepares children for future success",
+      title: "Quality Learning",
+      description: "Research-based curriculum tailored to each age group, fostering curiosity and school readiness",
     },
     {
       icon: Users,
-      title: "Community",
-      description: "Building a warm, welcoming community where families connect and support each other",
+      title: "Strong Community",
+      description: "A welcoming environment where families connect, support each other, and feel truly at home",
     },
     {
       icon: Heart,
-      title: "Family Support",
-      description: "Partnering with parents every step of the way to support your child's growth and development",
+      title: "Open Communication",
+      description: "Regular updates, daily reports, and ongoing dialogue keep you connected to your child's progress",
     },
   ];
 
@@ -37,7 +37,7 @@ const About = () => {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
           <p className="text-xl text-primary-foreground/90 max-w-3xl mx-auto">
-            A proudly Black-owned childcare center in Kennesaw, dedicated to nurturing your child's growth in a safe, loving, and family-focused environment
+            A nurturing childcare center in Kennesaw where every child feels safe, valued, and ready to learn
           </p>
         </div>
       </section>
@@ -107,22 +107,25 @@ const About = () => {
             <div>
               <p className="text-lg text-foreground mb-4">
                 At Genesis Learning Academy, we believe every child deserves a strong foundation for success. 
-                As a Black-owned childcare center in Kennesaw, GA, we're committed to providing exceptional 
-                early childhood education where your child feels safe, loved, and inspired to learn.
+                As a locally operated and Black-owned learning center, we are proud to serve families in the 
+                Kennesaw community with exceptional early childhood education where your child feels safe, loved, 
+                and inspired to learn.
               </p>
               <p className="text-muted-foreground mb-4">
                 We understand that choosing childcare is one of the most important decisions you'll make as a parent. 
-                That's why we've created a structured yet nurturing environment where children develop at their own pace, 
-                surrounded by caring teachers who celebrate their unique gifts and cultural backgrounds.
+                That's why we've created a warm, structured environment where children develop at their own pace, 
+                surrounded by caring teachers who celebrate their unique gifts and encourage their natural curiosity.
               </p>
               <p className="text-muted-foreground mb-4">
-                Our diverse team of dedicated educators brings warmth, patience, and expertise to every interaction. 
-                We partner with families to support each child's social, emotional, and intellectual growth through 
-                age-appropriate activities, hands-on learning, and genuine care.
+                Our age-appropriate curriculum focuses on hands-on learning experiences that build social, emotional, 
+                and cognitive skills. From interactive play to early literacy activities, every moment is designed to 
+                nurture growth and prepare children for future academic success.
               </p>
               <p className="text-muted-foreground">
-                Conveniently located near Downtown Kennesaw and just minutes from I-75, we're here to support 
-                your family with flexible hours, a safe facility, and a welcoming community where your child can truly thrive.
+                We believe in strong partnerships with families. Through daily communication, regular updates, and 
+                open-door policies, we ensure you're always connected to your child's learning journey. Located 
+                conveniently near Downtown Kennesaw and just minutes from I-75, we're here to support your family 
+                with flexible hours and a welcoming community where your child can truly thrive.
               </p>
             </div>
           </div>
@@ -166,15 +169,14 @@ const About = () => {
           <div className="grid md:grid-cols-2 gap-12 items-start">
             <div>
               <p className="text-lg text-foreground mb-4">
-                Your child will be cared for by a diverse team of warm, dedicated educators who bring 
-                passion and expertise to every day. Our teachers are carefully chosen not just for their 
-                qualifications, but for their genuine love of working with children and commitment to 
-                creating an inclusive, supportive learning environment.
+                Your child will be cared for by experienced educators who bring warmth, patience, and dedication 
+                to every interaction. Our teachers are carefully selected for their qualifications, genuine love 
+                of working with children, and commitment to creating a nurturing, supportive learning environment.
               </p>
               <div className="space-y-3 text-muted-foreground mb-6">
                 <p className="flex items-start gap-2">
                   <span className="text-accent mt-1">✓</span>
-                  <span>Experienced early childhood educators who truly care</span>
+                  <span>Qualified early childhood educators with proven expertise</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-accent mt-1">✓</span>
@@ -186,11 +188,11 @@ const About = () => {
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-accent mt-1">✓</span>
-                  <span>Diverse staff who celebrate all cultures and backgrounds</span>
+                  <span>Ongoing professional development and training</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-accent mt-1">✓</span>
-                  <span>Ongoing training in child development and best practices</span>
+                  <span>Passionate about fostering each child's unique potential</span>
                 </p>
               </div>
               <Button asChild variant="cta" size="lg">
