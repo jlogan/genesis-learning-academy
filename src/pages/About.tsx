@@ -59,7 +59,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-start max-w-5xl mx-auto">
             <div className="relative h-[500px] rounded-lg overflow-hidden shadow-xl">
               <img 
                 src={ownerImage} 
