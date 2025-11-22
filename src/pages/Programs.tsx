@@ -53,9 +53,9 @@ const Programs = () => {
       </section>
 
       {/* Programs Grid */}
-      <section className="py-16 bg-warmBg">
+      <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 max-w-6xl mx-auto">
             {programs.map((program, index) => (
               <Card key={index} className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover-scale">
                 <div className="relative h-64 overflow-hidden">
@@ -72,8 +72,8 @@ const Programs = () => {
                   </div>
                 </div>
                 
-                <CardContent className="p-6">
-                  <h3 className="text-2xl font-bold text-primary mb-3">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-2xl font-bold text-primary mb-4">
                     {program.title}
                   </h3>
                   <p className="text-muted-foreground mb-6 leading-relaxed">
@@ -90,20 +90,20 @@ const Programs = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-background border-t">
+      <section className="py-20 bg-background border-t">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
             Ready to Get Started?
           </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
             Join our Kennesaw daycare family and give your child the foundation for lifelong success
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild variant="cta" size="lg">
+            <Button asChild variant="cta" size="lg" className="w-full sm:w-auto min-w-[160px]">
               <Link to="/enroll">Enroll Now</Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
-              <a href="tel:770-123-4567">Call Us: (770) 123-4567</a>
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto min-w-[160px]">
+              <a href="tel:770-672-4255">Call: (770) 672-4255</a>
             </Button>
           </div>
         </div>

@@ -62,57 +62,57 @@ const Home = () => {
       </section>
 
       {/* Quick Highlights Section */}
-      <section className="py-12 bg-background border-b">
+      <section className="py-20 bg-background border-b">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 max-w-5xl mx-auto">
+            <div className="text-center px-4">
               <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <HomeIcon className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Family-Focused Care</h3>
-              <p className="text-sm text-muted-foreground">A warm community where every family feels at home</p>
+              <h3 className="font-semibold text-lg mb-3">Family-Focused Care</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">A warm community where every family feels at home</p>
             </div>
             
-            <div className="text-center">
+            <div className="text-center px-4">
               <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <GraduationCap className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Experienced Teachers</h3>
-              <p className="text-sm text-muted-foreground">Passionate educators dedicated to your child's growth</p>
+              <h3 className="font-semibold text-lg mb-3">Experienced Teachers</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">Passionate educators dedicated to your child's growth</p>
             </div>
             
-            <div className="text-center">
+            <div className="text-center px-4">
               <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <Shield className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Safe, Clean Learning Spaces</h3>
-              <p className="text-sm text-muted-foreground">Bright, sanitized spaces where children learn and play safely</p>
+              <h3 className="font-semibold text-lg mb-3">Safe, Clean Learning Spaces</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">Bright, sanitized spaces where children learn and play safely</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-warmBg">
+      <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
               Why Choose Our Kennesaw Daycare?
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               A Black-owned and operated daycare in Kennesaw, GA committed to excellence in early childhood education
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="border-none shadow-md hover:shadow-xl transition-shadow">
-                <CardContent className="p-6 text-center">
+                <CardContent className="p-6 md:p-8 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                     <feature.icon className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <h3 className="font-semibold text-lg mb-3">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -121,24 +121,24 @@ const Home = () => {
       </section>
 
       {/* About Preview Section */}
-      <section className="py-16">
+      <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
+          <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
                 About Genesis Learning Academy
               </h2>
-              <p className="text-lg text-foreground mb-4">
+              <p className="text-lg text-foreground leading-relaxed">
                 At Genesis Learning Academy, we believe every child deserves a nurturing environment where they can grow, learn, and thrive. 
                 Our philosophy centers on creating a warm, inclusive community where children feel safe, valued, and inspired to explore the world around them. 
                 As a Black-owned daycare in Kennesaw, we're proud to offer diverse role models and culturally responsive education that prepares children for success. 
                 Our experienced educators combine proven early childhood development practices with genuine love and care, making us more than just a daycare—we're a family.
               </p>
-              <Button asChild variant="default" size="lg" className="hover-scale">
+              <Button asChild variant="default" size="lg" className="hover-scale mt-2">
                 <Link to="/about">Learn More About Us <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
-            <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
+            <div className="relative h-[350px] md:h-[400px] rounded-lg overflow-hidden shadow-xl">
               <img 
                 src={childActivity} 
                 alt="Children engaged in creative activities at Genesis Learning Academy" 
@@ -150,16 +150,16 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+      <section className="py-20 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Join Our Family?
           </h2>
-          <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto">
+          <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
             Give your child the gift of quality education in a loving, inclusive environment. 
             Enroll today and become part of the Genesis family.
           </p>
-          <Button asChild variant="cta" size="lg">
+          <Button asChild variant="cta" size="lg" className="min-w-[200px]">
             <Link to="/enroll">Complete Enrollment Form</Link>
           </Button>
         </div>
