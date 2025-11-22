@@ -13,6 +13,7 @@ const Navigation = () => {
     { href: "/", label: "Home" },
     { href: "/programs", label: "Programs" },
     { href: "/about", label: "About Us" },
+    { href: "/gallery", label: "Gallery" },
     { href: "/resources", label: "Parent Resources" },
   ];
 

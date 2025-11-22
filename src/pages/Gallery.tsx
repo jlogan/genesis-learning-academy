@@ -1,0 +1,120 @@
+import { Card } from "@/components/ui/card";
+import { Helmet } from "react-helmet";
+
+// Import new gallery images
+import kidsPlayingBlocks from "@/assets/gallery-kids-playing-blocks.jpg";
+import classroomDecorations from "@/assets/gallery-classroom-decorations.jpg";
+import classroomLearningCorner from "@/assets/gallery-classroom-learning-corner.jpg";
+import childLearningTable from "@/assets/gallery-child-learning-table.jpg";
+import childSensoryBin from "@/assets/gallery-child-sensory-bin.jpg";
+import infantPlaytime from "@/assets/gallery-infant-playtime.jpg";
+import girlCraftActivity from "@/assets/gallery-girl-craft-activity.jpg";
+import girlOutdoorPlay from "@/assets/gallery-girl-outdoor-play.jpg";
+
+// Import existing images from website
+import childArtActivity from "@/assets/child-art-activity.jpg";
+import childConstructionPlay from "@/assets/child-construction-play.jpg";
+import childLearningActivity from "@/assets/child-learning-activity.jpg";
+import childSensoryTable from "@/assets/child-sensory-table.jpg";
+import classroomInterior1 from "@/assets/classroom-interior-1.jpg";
+import classroomInterior2 from "@/assets/classroom-interior-2.jpg";
+import happyChildPlayground from "@/assets/happy-child-playground.jpg";
+import infantCaregiver from "@/assets/infant-caregiver.jpg";
+import outdoorPlayNew from "@/assets/outdoor-play-new.jpg";
+import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
+
+const galleryImages = [
+  { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
+  { src: classroomDecorations, alt: "Colorful classroom with educational decorations" },
+  { src: girlCraftActivity, alt: "Child engaged in creative craft activity" },
+  { src: classroomLearningCorner, alt: "Learning corner with classroom jobs display" },
+  { src: childLearningTable, alt: "Child learning phonics at activity table" },
+  { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
+  { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
+  { src: infantPlaytime, alt: "Infant engaged in developmental play" },
+  { src: happyChildPlayground, alt: "Child playing on outdoor playground" },
+  { src: childArtActivity, alt: "Art and creative expression activities" },
+  { src: childConstructionPlay, alt: "Construction and building play" },
+  { src: outdoorPlayNew, alt: "Children enjoying outdoor activities" },
+  { src: classroomInterior1, alt: "Well-equipped classroom interior" },
+  { src: classroomInterior2, alt: "Bright and welcoming classroom space" },
+  { src: childLearningActivity, alt: "Hands-on learning activities" },
+  { src: childSensoryTable, alt: "Sensory table exploration" },
+  { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
+  { src: infantCaregiver, alt: "Nurturing infant care" },
+];
+
+const Gallery = () => {
+  return (
+    <>
+      <Helmet>
+        <title>Photo Gallery - Genesis Preparatory Academy | Kennesaw Childcare</title>
+        <meta 
+          name="description" 
+          content="Explore photos of our vibrant learning environment, classrooms, outdoor play areas, and children engaged in educational activities at Genesis Preparatory Academy in Kennesaw, GA." 
+        />
+      </Helmet>
+
+      <div className="min-h-screen">
+        {/* Hero Section */}
+        <section className="relative bg-primary/5 py-20">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+                Our Learning Environment
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground">
+                Take a look at our classrooms, outdoor spaces, and the joyful moments that make Genesis Preparatory Academy special
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Gallery Grid */}
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {galleryImages.map((image, index) => (
+                <Card 
+                  key={index}
+                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="aspect-square overflow-hidden">
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <section className="py-20 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5">
+          <div className="container mx-auto px-4">
+            <Card className="max-w-3xl mx-auto p-8 md:p-12 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+                Ready to Visit Us?
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                Schedule a tour to see our facility in person and meet our dedicated team
+              </p>
+              <a
+                href="/enroll"
+                className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Schedule a Tour
+              </a>
+            </Card>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+};
+
+export default Gallery;

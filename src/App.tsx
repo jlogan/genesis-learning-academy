@@ -10,6 +10,7 @@ import Programs from "./pages/Programs";
 import About from "./pages/About";
 import Enroll from "./pages/Enroll";
 import Resources from "./pages/Resources";
+import Gallery from "./pages/Gallery";
 import BackgroundRemoval from "./pages/BackgroundRemoval";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/enroll" element={<Enroll />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/gallery" element={<Gallery />} />
               <Route path="/bg-removal" element={<BackgroundRemoval />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
