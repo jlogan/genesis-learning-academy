@@ -14,19 +14,14 @@ const About = () => {
       description: "Your child's safety is our top priority with secure facilities, trained staff, and strict safety protocols",
     },
     {
-      icon: Users,
-      title: "Community",
-      description: "Building a warm, welcoming community where families connect and support each other",
-    },
-    {
-      icon: Globe,
-      title: "Diversity",
-      description: "Celebrating all cultures and backgrounds, creating an inclusive environment where every child belongs",
-    },
-    {
       icon: BookOpen,
       title: "Learning",
       description: "Age-appropriate curriculum that nurtures curiosity and prepares children for future success",
+    },
+    {
+      icon: Users,
+      title: "Community",
+      description: "Building a warm, welcoming community where families connect and support each other",
     },
     {
       icon: Heart,
@@ -152,7 +147,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
               <Card key={index} className="border-none shadow-md hover:shadow-xl transition-shadow">
                 <CardContent className="p-6 text-center">
