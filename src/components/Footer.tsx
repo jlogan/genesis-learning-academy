@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Clock, Facebook, Instagram } from "lucide-react";
+import brogrammersLogo from "@/assets/brogrammers-logo.png";
 
 const Footer = () => {
   return (
@@ -79,19 +80,25 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/20 mt-8 pt-6 text-center text-sm text-primary-foreground/70">
-          <p>© {new Date().getFullYear()} Genesis Learning Academy of Kennesaw. All rights reserved.</p>
-          <p className="mt-2">
-            Built by{" "}
-            <a 
-              href="https://brogrammersagency.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-accent hover:underline font-medium"
-            >
-              Brogrammers
-            </a>
+        <div className="border-t border-primary-foreground/20 mt-8 pt-6 text-center">
+          <p className="text-sm text-primary-foreground/70 mb-4">
+            © {new Date().getFullYear()} Genesis Learning Academy of Kennesaw. All rights reserved.
           </p>
+          <a 
+            href="https://brogrammersagency.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-all duration-300 group"
+          >
+            <img 
+              src={brogrammersLogo} 
+              alt="Brogrammers Agency Logo" 
+              className="h-8 w-8 object-contain group-hover:scale-110 transition-transform duration-300"
+            />
+            <span className="text-primary-foreground/90 font-medium group-hover:text-accent transition-colors">
+              Built by Brogrammers Agency
+            </span>
+          </a>
         </div>
       </div>
     </footer>
