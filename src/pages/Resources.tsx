@@ -285,7 +285,7 @@ const Resources = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild variant="cta" size="lg" className="w-full sm:w-auto">
-              <a href="/enroll">Submit Enrollment Form</a>
+              <a href="/enroll">Submit Enrollment Request</a>
             </Button>
             <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white w-full sm:w-auto">
               <a href="tel:770-672-4255">Call: (770) 672-4255</a>
