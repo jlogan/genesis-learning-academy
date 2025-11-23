@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import heroImage from "@/assets/hero-classroom.jpg";
+import { trackEnrollmentSubmission } from "@/utils/analytics";
 
 const childSchema = z.object({
   childName: z.string().trim().min(2, "Child's name must be at least 2 characters").max(100, "Name too long"),
@@ -64,6 +65,16 @@ const Enroll = () => {
 
   const onSubmit = (data: EnrollmentFormData) => {
     console.log("Enrollment form submitted:", data);
+    
+    // Track conversion in Google Analytics
+    trackEnrollmentSubmission({
+      parentName: data.parentName,
+      email: data.email,
+      numberOfChildren: data.children.length,
+      childAges: data.children.map(child => child.childAge),
+      languagePreference: data.languagePreference,
+    });
+    
     toast({
       title: "Thank you!",
       description: "Your enrollment request has been received. A member of our team will reach out shortly.",
