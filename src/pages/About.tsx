@@ -5,6 +5,7 @@ import { Heart, Shield, Users, Globe, BookOpen } from "lucide-react";
 import teachersTeam from "@/assets/teachers-team-classroom.jpg";
 import heroImage from "@/assets/outdoor-play-new.jpg";
 import ownerImage from "@/assets/owner-ms-angelia.jpg";
+import headerBg from "@/assets/classroom-header-2.jpg";
 
 const About = () => {
   const values = [
@@ -33,8 +34,14 @@ const About = () => {
   return (
     <div className="min-h-screen">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16 overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url(${headerBg})` }}
+        />
+        
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
           <p className="text-xl text-primary-foreground/90 max-w-3xl mx-auto">
             A nurturing childcare center in Kennesaw where every child feels safe, valued, and ready to learn

@@ -6,6 +6,7 @@ import infantImage from "@/assets/infant-program-new.jpg";
 import toddlerImage from "@/assets/child-construction-play.jpg";
 import preschoolImage from "@/assets/child-sensory-table.jpg";
 import preKImage from "@/assets/child-learning-activity.jpg";
+import headerBg from "@/assets/classroom-header-1.jpg";
 
 const Programs = () => {
   const programs = [
@@ -42,8 +43,14 @@ const Programs = () => {
   return (
     <div className="min-h-screen">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16 overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url(${headerBg})` }}
+        />
+        
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Programs</h1>
           <p className="text-xl text-primary-foreground/90 max-w-3xl mx-auto">
             Quality education and care for children at every stage of development, 
