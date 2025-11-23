@@ -80,7 +80,7 @@ const Programs = () => {
                     {program.description}
                   </p>
                   <Button asChild variant="cta" size="lg" className="w-full">
-                    <Link to="/enroll">Start Enrollment</Link>
+                    <Link to="/enroll">Get Started</Link>
                   </Button>
                 </CardContent>
               </Card>

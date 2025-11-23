@@ -46,7 +46,7 @@ const Navigation = () => {
             </Link>
           ))}
           <Button asChild variant="cta" size="default" className="ml-4">
-            <Link to="/enroll">Start Enrollment</Link>
+            <Link to="/enroll">Get Started</Link>
           </Button>
         </div>
 
@@ -82,7 +82,7 @@ const Navigation = () => {
             <div className="px-4 pt-2">
               <Button asChild variant="cta" size="lg" className="w-full">
                 <Link to="/enroll" onClick={() => setIsOpen(false)}>
-                  Start Enrollment
+                  Get Started
                 </Link>
               </Button>
             </div>

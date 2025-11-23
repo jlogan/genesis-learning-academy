@@ -51,7 +51,7 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild variant="cta" size="lg">
-                <Link to="/enroll">Start Enrollment <ArrowRight className="ml-2" /></Link>
+                <Link to="/enroll">Get Started <ArrowRight className="ml-2" /></Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white">
                 <Link to="/programs">Explore Programs</Link>
