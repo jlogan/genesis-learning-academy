@@ -39,7 +39,7 @@ const Navigation = () => {
                 "px-3.5 py-1.5 rounded-md text-sm font-bold transition-colors",
                 isActive(link.href)
                   ? "text-primary border-b-2 border-primary"
-                  : "text-foreground hover:text-primary hover:bg-secondary/50"
+                  : "text-foreground hover:text-primary hover:border-b-2 hover:border-primary"
               )}
             >
               {link.label}
@@ -73,7 +73,7 @@ const Navigation = () => {
                   "block px-3.5 py-1.5 rounded-md text-sm font-bold transition-colors text-center",
                   isActive(link.href)
                     ? "text-primary border-b-2 border-primary"
-                    : "text-foreground hover:text-primary hover:bg-secondary/50"
+                    : "text-foreground hover:text-primary hover:border-b-2 hover:border-primary"
                 )}
               >
                 {link.label}
