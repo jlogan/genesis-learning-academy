@@ -160,7 +160,7 @@ const Home = () => {
             Enroll today and become part of the Genesis family.
           </p>
           <Button asChild variant="cta" size="lg" className="min-w-[200px]">
-            <Link to="/enroll">Complete Enrollment Form</Link>
+            <Link to="/enroll">Submit Enrollment Request</Link>
           </Button>
         </div>
       </section>
