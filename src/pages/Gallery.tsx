@@ -50,13 +50,29 @@ const Gallery = () => {
 
       <div className="min-h-screen">
         {/* Hero Section */}
-        <section className="relative bg-primary/5 py-20">
-          <div className="container mx-auto px-4">
+        <section className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16 overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 text-6xl">🎨</div>
+            <div className="absolute top-20 right-20 text-5xl">🧸</div>
+            <div className="absolute bottom-16 left-1/4 text-4xl">🎭</div>
+            <div className="absolute top-32 right-1/3 text-5xl">🎪</div>
+            <div className="absolute bottom-20 right-16 text-6xl">🎨</div>
+            <div className="absolute top-16 left-1/3 text-4xl">🎯</div>
+            <div className="absolute bottom-32 left-20 text-5xl">🎨</div>
+            <div className="absolute top-40 right-1/4 text-4xl">🧩</div>
+          </div>
+          
+          {/* Background Image with Overlay */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-20"
+            style={{ backgroundImage: `url(${classroomInterior1})` }}
+          />
+          
+          <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-                Our Learning Environment
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Photo Gallery</h1>
+              <p className="text-lg text-primary-foreground/95">
                 Take a look at our classrooms, outdoor spaces, and the joyful moments that make Genesis Learning Academy special
               </p>
             </div>
