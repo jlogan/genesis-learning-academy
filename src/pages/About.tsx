@@ -52,10 +52,11 @@ const About = () => {
       {/* Owner Section */}
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-10 text-center md:text-left">
-            Meet Our Owner
-          </h2>
-          <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-10">
+              Meet Our Owner
+            </h2>
+            <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
             <div className="relative h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-xl">
               <img 
                 src={ownerImage} 
@@ -95,6 +96,7 @@ const About = () => {
                 </p>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </section>
