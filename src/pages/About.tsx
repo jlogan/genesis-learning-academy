@@ -56,7 +56,7 @@ const About = () => {
             Meet Our Owner
           </h2>
           <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
-            <div className="relative h-[350px] md:h-[400px] rounded-lg overflow-hidden shadow-xl">
+            <div className="relative h-[450px] md:h-[550px] rounded-lg overflow-hidden shadow-xl">
               <img 
                 src={ownerImage} 
                 alt="Ms. Angelia, Owner and Director of Genesis Learning Academy" 
