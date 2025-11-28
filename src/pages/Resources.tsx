@@ -1,29 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText } from "lucide-react";
+import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText, Star } from "lucide-react";
 import academySign from "@/assets/academy-sign-new.jpg";
 import procareLogo from "@/assets/procare-logo.png";
 
 const Resources = () => {
-  const testimonials = [
-    {
-      name: "Shanna Stevenson",
-      role: "Parent",
-      quote: "I'm so incredibly grateful we found this gem of a school for my son for the summer! From day one, I felt a true sense of care, professionalism, and passion from the entire team at Genesis Learning Academy of Kennesaw.",
-      rating: 5,
-    },
-    {
-      name: "Shemariah Gates",
-      role: "Parent",
-      quote: "This is a One of kind center, with One of a kind teachers and staff, with One of a kind vision. My children are seen and heard here, they are valued here, and they are loved here. The curriculum is perfect for my girls!",
-      rating: 5,
-    },
-    {
-      name: "Tanysha Angel Russell",
-      role: "Parent of 3 daughters",
-      quote: "My 3 daughters have been attending Genesis Learning academy for almost 2 years now. We recently moved from another state so we were extremely cautious of where we would send our babies. GLA has been God sent for us!",
-      rating: 5,
-    },
+  // Google Reviews - screenshots will be added here
+  const reviewImages = [
+    // Add review screenshot paths here
+    // Example: "/path/to/review1.jpg"
   ];
 
   return (
@@ -242,34 +227,51 @@ const Resources = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Google Reviews Section */}
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">What Parents Say</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Hear from families who trust Genesis Learning Academy with their children's care and education
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Star className="h-8 w-8 text-accent fill-accent" />
+              <h2 className="text-3xl md:text-4xl font-bold text-primary">Google Reviews</h2>
+              <Star className="h-8 w-8 text-accent fill-accent" />
+            </div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+              See what families are saying about Genesis Learning Academy on Google
             </p>
+            <Button asChild size="lg" variant="outline" className="mb-8">
+              <a 
+                href="https://www.google.com/search?sca_esv=16a5b3c49c9a2e73&sxsrf=AE3TifOYgxE5K4JF__WBpJzALwEMz8H5sw:1763768619004&si=AMgyJEtREmoPL4P1I5IDCfuA8gybfVI2d5Uj7QMwYCZHKDZ-EyndkXmFYcwKslSS4eorO-AoibReW42J9h4IQl42MiQl3NeUytSaCVbkppmMg8NuPhyF7UxH0Bx3hGOuqTnhucIq4KiHDkXn6e-nT0joOgcGIgITwLGYGOHjIZrxL8F5jPdMFV4%3D&q=Genesis+Learning+Academy+of+Kenessaw+Reviews&sa=X&ved=2ahUKEwi-yYGQtoSRAxWql4kEHfroLf0Q0bkNegQIJRAE&biw=1440&bih=703&dpr=2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View All Google Reviews
+              </a>
+            </Button>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex mb-3 justify-center md:justify-start">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <span key={i} className="text-accent text-xl">★</span>
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-4 italic text-center md:text-left">"{testimonial.quote}"</p>
-                  <div className="border-t pt-4 text-center md:text-left">
-                    <p className="font-semibold text-foreground">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {reviewImages.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {reviewImages.map((image, index) => (
+                <div key={index} className="rounded-lg overflow-hidden shadow-xl">
+                  <img 
+                    src={image} 
+                    alt={`Google Review ${index + 1}`}
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg mb-4">
+                Review screenshots will be displayed here
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Please provide screenshots of Google reviews to display
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
