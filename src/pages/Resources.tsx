@@ -91,8 +91,8 @@ const Resources = () => {
                     </div>
                     <div className="text-center sm:text-left w-full sm:w-auto">
                       <h3 className="font-semibold text-foreground mb-1">Email</h3>
-                      <a href="mailto:info@genesislearningacademy.com" className="text-accent hover:underline break-all sm:break-normal">
-                        info@genesislearningacademy.com
+                      <a href="mailto:genesislearningacademykennesaw@gmail.com" className="text-accent hover:underline break-all sm:break-normal">
+                        genesislearningacademykennesaw@gmail.com
                       </a>
                       <p className="text-muted-foreground text-sm mt-1">We respond within 24 hours</p>
                     </div>
