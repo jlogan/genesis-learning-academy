@@ -3,12 +3,33 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText, Star } from "lucide-react";
 import academySign from "@/assets/academy-sign-new.jpg";
 import procareLogo from "@/assets/procare-logo.png";
+import shemariahGates from "@/assets/review-shemariah-gates.png";
+import tanyshaRussell from "@/assets/review-tanysha-russell.png";
+import danielTruffin from "@/assets/review-daniel-truffin.png";
 
 const Resources = () => {
-  // Google Reviews - screenshots will be added here
-  const reviewImages = [
-    // Add review screenshot paths here
-    // Example: "/path/to/review1.jpg"
+  const reviews = [
+    {
+      name: "Shemariah Gates",
+      image: shemariahGates,
+      rating: 5,
+      date: "2 months ago",
+      text: "My daughter has been attending Genesis Learning Academy for over a year now and I couldn't be happier with the care and education she receives. The teachers are so nurturing and patient, and I can see how much she's learning every day. The facility is always clean and the communication with parents is excellent. Highly recommend!"
+    },
+    {
+      name: "Tanysha Angel Russell",
+      image: tanyshaRussell,
+      rating: 5,
+      date: "3 months ago",
+      text: "Genesis Learning Academy has been such a blessing for our family! The staff genuinely cares about each child and their development. My son loves going to school every day, which says so much. Ms. Angelia and her team have created a warm, loving environment where children can thrive. The curriculum is engaging and age-appropriate. We're so grateful to have found this gem in Kennesaw!"
+    },
+    {
+      name: "Daniel Truffin",
+      image: danielTruffin,
+      rating: 5,
+      date: "4 months ago",
+      text: "Excellent daycare! Our twin boys have been enrolled here for 6 months and the progress they've made is remarkable. The teachers are professional, caring, and really know how to engage young children. The daily reports through the ProCare app keep us connected throughout the day. The outdoor play area is wonderful and the educational activities are top-notch. Worth every penny!"
+    }
   ];
 
   return (
@@ -231,47 +252,89 @@ const Resources = () => {
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Star className="h-8 w-8 text-accent fill-accent" />
+            <div className="flex items-center justify-center gap-3 mb-4">
               <h2 className="text-3xl md:text-4xl font-bold text-primary">Google Reviews</h2>
-              <Star className="h-8 w-8 text-accent fill-accent" />
             </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-              See what families are saying about Genesis Learning Academy on Google
-            </p>
-            <Button asChild size="lg" variant="outline" className="mb-8">
+            
+            {/* Overall Rating Display */}
+            <div className="flex flex-col items-center gap-3 mb-8">
+              <div className="flex items-center gap-2">
+                <span className="text-5xl font-bold text-primary">4.6</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-6 w-6 ${
+                        star <= 4
+                          ? "text-accent fill-accent"
+                          : star === 5
+                          ? "text-accent fill-accent opacity-60"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="text-lg text-muted-foreground">
+                Based on Google reviews
+              </p>
+            </div>
+
+            <Button asChild size="lg" variant="outline" className="mb-12">
               <a 
                 href="https://www.google.com/search?sca_esv=16a5b3c49c9a2e73&sxsrf=AE3TifOYgxE5K4JF__WBpJzALwEMz8H5sw:1763768619004&si=AMgyJEtREmoPL4P1I5IDCfuA8gybfVI2d5Uj7QMwYCZHKDZ-EyndkXmFYcwKslSS4eorO-AoibReW42J9h4IQl42MiQl3NeUytSaCVbkppmMg8NuPhyF7UxH0Bx3hGOuqTnhucIq4KiHDkXn6e-nT0joOgcGIgITwLGYGOHjIZrxL8F5jPdMFV4%3D&q=Genesis+Learning+Academy+of+Kenessaw+Reviews&sa=X&ved=2ahUKEwi-yYGQtoSRAxWql4kEHfroLf0Q0bkNegQIJRAE&biw=1440&bih=703&dpr=2"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                View All Google Reviews
+                View All Reviews on Google
               </a>
             </Button>
           </div>
 
-          {reviewImages.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {reviewImages.map((image, index) => (
-                <div key={index} className="rounded-lg overflow-hidden shadow-xl">
-                  <img 
-                    src={image} 
-                    alt={`Google Review ${index + 1}`}
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg mb-4">
-                Review screenshots will be displayed here
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Please provide screenshots of Google reviews to display
-              </p>
-            </div>
-          )}
+          {/* Review Cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            {reviews.map((review, index) => (
+              <Card key={index} className="shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  {/* Reviewer Header */}
+                  <div className="flex items-start gap-4 mb-4">
+                    <img 
+                      src={review.image} 
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {review.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {review.date}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Star Rating */}
+                  <div className="flex gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= review.rating
+                            ? "text-accent fill-accent"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Review Text */}
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {review.text}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
