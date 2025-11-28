@@ -21,7 +21,7 @@ const Resources = () => {
       image: tanyshaRussell,
       rating: 5,
       date: "3 months ago",
-      text: "Genesis Learning Academy has been such a blessing for our family! The staff genuinely cares about each child and their development. My son loves going to school every day, which says so much. Ms. Angelia and her team have created a warm, loving environment where children can thrive. The curriculum is engaging and age-appropriate. We're so grateful to have found this gem in Kennesaw!"
+      text: "Where do I begin? My 3 daughters have been attending Genesis Learning academy for almost 2 years now. We recently moved from another state so we were extremely cautious of where we would send our babies. GLA has been God sent for us! The facility is ALWAYS clean when we pick up/drop off the kids. The staff greets us with a smile everyday. They know all of our children by name and we ask our kids how they are treated and they are always treated with kindness. The curriculum is spot on and the meals are plentiful and nutritious based. I couldn't have asked for a better experience. It truly feels like home at GLA! ❤️"
     },
     {
       name: "Daniel Truffin",
