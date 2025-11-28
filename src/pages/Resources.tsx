@@ -28,7 +28,7 @@ const Resources = () => {
       image: danielTruffin,
       rating: 5,
       date: "4 months ago",
-      text: "Excellent daycare! Our twin boys have been enrolled here for 6 months and the progress they've made is remarkable. The teachers are professional, caring, and really know how to engage young children. The daily reports through the ProCare app keep us connected throughout the day. The outdoor play area is wonderful and the educational activities are top-notch. Worth every penny!"
+      text: "My son has been going to this daycare for about a month. I love all of the employees, and they really make it feel like I'm dropping off my child off to a family member. They genuinely care about the children and their well-being and their development. It's a breath of fresh air as a parent to (especially a first-time parent)."
     }
   ];
 
