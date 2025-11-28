@@ -10,21 +10,21 @@ import danielTruffin from "@/assets/review-daniel-truffin.png";
 const Resources = () => {
   const reviews = [
     {
-      name: "Shemariah Gates",
+      name: "Shemariah",
       image: shemariahGates,
       rating: 5,
       date: "2 months ago",
       text: "This is a One of kind center, with One of a kind teachers and staff, with One of a kind vision. My children are seen and heard here, they are valued here, and they are loved here. The curriculum is perfect for my girls! I look forward to seeing the daily progress and images sent from their teachers. I'm so glad I chose Genesis Learning Academy because I'm not worried while they're in attendance!"
     },
     {
-      name: "Tanysha Angel Russell",
+      name: "Tanysha",
       image: tanyshaRussell,
       rating: 5,
       date: "3 months ago",
       text: "Where do I begin? My 3 daughters have been attending Genesis Learning academy for almost 2 years now. We recently moved from another state so we were extremely cautious of where we would send our babies. GLA has been God sent for us! The facility is ALWAYS clean when we pick up/drop off the kids. The staff greets us with a smile everyday. They know all of our children by name and we ask our kids how they are treated and they are always treated with kindness. The curriculum is spot on and the meals are plentiful and nutritious based. I couldn't have asked for a better experience. It truly feels like home at GLA! ❤️"
     },
     {
-      name: "Daniel Truffin",
+      name: "Daniel",
       image: danielTruffin,
       rating: 5,
       date: "4 months ago",
