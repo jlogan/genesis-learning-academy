@@ -14,7 +14,7 @@ const Resources = () => {
       image: shemariahGates,
       rating: 5,
       date: "2 months ago",
-      text: "My daughter has been attending Genesis Learning Academy for over a year now and I couldn't be happier with the care and education she receives. The teachers are so nurturing and patient, and I can see how much she's learning every day. The facility is always clean and the communication with parents is excellent. Highly recommend!"
+      text: "This is a One of kind center, with One of a kind teachers and staff, with One of a kind vision. My children are seen and heard here, they are valued here, and they are loved here. The curriculum is perfect for my girls! I look forward to seeing the daily progress and images sent from their teachers. I'm so glad I chose Genesis Learning Academy because I'm not worried while they're in attendance!"
     },
     {
       name: "Tanysha Angel Russell",
