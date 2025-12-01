@@ -115,7 +115,7 @@ const Resources = () => {
                       <div className="space-y-2 text-muted-foreground">
                         <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                           <span className="font-medium text-center sm:text-left">Monday - Friday:</span>
-                          <span className="text-accent text-center sm:text-right">6:30 AM - 6:30 PM</span>
+                          <span className="text-accent text-center sm:text-right">6:30 AM - 6:00 PM</span>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                           <span className="font-medium text-center sm:text-left">Saturday - Sunday:</span>

@@ -21,7 +21,7 @@ const Home = () => {
     {
       icon: Clock,
       title: "Flexible Hours",
-      description: "Open 6:30 AM - 6:30 PM weekdays to accommodate your schedule",
+      description: "Open 6:30 AM - 6:00 PM weekdays to accommodate your schedule",
     },
     {
       icon: Award,
