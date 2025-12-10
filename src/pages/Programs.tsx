@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Baby, Smile, Palette, GraduationCap } from "lucide-react";
+import { Baby, Smile, Palette, GraduationCap, BookOpen, Brain, Users, Lightbulb, Sparkles } from "lucide-react";
 import infantImage from "@/assets/infant-program-new.jpg";
 import toddlerImage from "@/assets/child-construction-play.jpg";
 import preschoolImage from "@/assets/child-sensory-table.jpg";
@@ -59,9 +59,118 @@ const Programs = () => {
         </div>
       </section>
 
-      {/* Programs Grid */}
+      {/* Creative Curriculum Section */}
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4">
+                <BookOpen className="h-5 w-5" />
+                <span className="font-semibold">Our Curriculum</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
+                The Creative Curriculum®
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                We use The Creative Curriculum, a widely recognized research-based curriculum for early childhood education, 
+                designed to support the development of infants, toddlers, and preschoolers through meaningful learning experiences.
+              </p>
+            </div>
+
+            {/* What It Focuses On */}
+            <div className="bg-background rounded-xl p-8 shadow-lg mb-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold text-primary">Learning Through Play & Exploration</h3>
+              </div>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                The Creative Curriculum emphasizes learning through play, hands-on exploration, and meaningful interactions. 
+                It supports the whole child—not just academics—and is built around key developmental areas:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {["Social-Emotional", "Physical", "Cognitive", "Literacy", "Mathematics", "Science", "Social Studies", "Art"].map((area, index) => (
+                  <div key={index} className="bg-warmBg rounded-lg px-4 py-3 text-center">
+                    <span className="text-sm font-medium text-foreground">{area}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* How Children Learn & How Teachers Teach */}
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card className="border-none shadow-lg">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Lightbulb className="h-6 w-6 text-accent" />
+                    </div>
+                    <h3 className="text-xl font-bold text-primary">How Children Learn</h3>
+                  </div>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Interest-based learning that sparks curiosity</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Learning centers for hands-on exploration</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Teacher-guided and child-initiated experiences</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Daily routines that promote independence</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-lg">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-accent" />
+                    </div>
+                    <h3 className="text-xl font-bold text-primary">How Our Teachers Teach</h3>
+                  </div>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Observe and document children's learning</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Plan lessons based on interests and developmental levels</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Adapt activities for different learning styles</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Build strong teacher-child relationships</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Programs Grid */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Our Age Groups</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Quality education and care tailored to each stage of development
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 max-w-6xl mx-auto">
             {programs.map((program, index) => (
               <Card key={index} className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover-scale">
