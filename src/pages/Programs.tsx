@@ -1,13 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Baby, Smile, Palette, GraduationCap, BookOpen, Brain, Users, Lightbulb, Sparkles, Sun, Backpack, Bus } from "lucide-react";
+import { Baby, Smile, Palette, GraduationCap, BookOpen, Brain, Users, Lightbulb, Sparkles, Backpack, Bus } from "lucide-react";
 import infantImage from "@/assets/infant-gentle-beginnings.jpg";
 import toddlerImage from "@/assets/toddler-little-adventures.jpg";
 import twosImage from "@/assets/twos-mini-makers.jpg";
 import preschoolImage from "@/assets/preschool-scholars.jpg";
 import preKImage from "@/assets/child-learning-activity.jpg";
-import outdoorImage from "@/assets/outdoor-play-new.jpg";
 import headerBg from "@/assets/classroom-header-1.jpg";
 
 const Programs = () => {
@@ -43,14 +42,6 @@ const Programs = () => {
       ageRange: "3-4 years",
       description: "Focused on growth and learning. Your child gains confidence and independence in a safe, supportive space through engaging activities that build early literacy, problem-solving skills, and positive peer relationships.",
       image: preschoolImage,
-    },
-    {
-      icon: Sun,
-      title: "GA Lottery Funded Pre-K",
-      subtitle: "Pre-Kindergarten",
-      ageRange: "4-5 years",
-      description: "Prepare your child for kindergarten success with confidence. Our caring educators foster academic readiness, critical thinking, and social skills in a structured yet nurturing environment that celebrates each child's growth.",
-      image: preKImage,
     },
   ];
 
@@ -227,7 +218,7 @@ const Programs = () => {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="relative">
                 <img 
-                  src={outdoorImage} 
+                  src={preKImage} 
                   alt="Junior Achievers Afterschool Program" 
                   className="rounded-xl shadow-xl w-full h-80 object-cover"
                 />
