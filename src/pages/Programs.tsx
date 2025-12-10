@@ -215,40 +215,19 @@ const Programs = () => {
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-              {/* Left Column - Image + Cards */}
-              <div className="space-y-4">
-                <div className="relative">
-                  <img 
-                    src={preKImage} 
-                    alt="Junior Achievers Afterschool Program" 
-                    className="rounded-xl shadow-xl w-full aspect-[4/3] object-cover object-[center_40%]"
-                  />
-                  <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
-                    <div className="flex items-center gap-2">
-                      <Backpack className="h-5 w-5" />
-                      <span className="font-bold">Ages 5-12</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Feature Cards under image */}
-                <div className="grid grid-cols-2 gap-3 pt-4">
-                  <div className="bg-background rounded-lg p-3 shadow-sm">
-                    <h4 className="font-semibold text-primary text-sm mb-1">Confidence Building</h4>
-                    <p className="text-xs text-muted-foreground">Independence and self-assurance</p>
-                  </div>
-                  <div className="bg-background rounded-lg p-3 shadow-sm">
-                    <h4 className="font-semibold text-primary text-sm mb-1">STEM Activities</h4>
-                    <p className="text-xs text-muted-foreground">Hands-on learning experiences</p>
-                  </div>
-                  <div className="bg-background rounded-lg p-3 shadow-sm">
-                    <h4 className="font-semibold text-primary text-sm mb-1">Teamwork</h4>
-                    <p className="text-xs text-muted-foreground">Collaborative skill building</p>
-                  </div>
-                  <div className="bg-background rounded-lg p-3 shadow-sm">
-                    <h4 className="font-semibold text-primary text-sm mb-1">Problem Solving</h4>
-                    <p className="text-xs text-muted-foreground">Puzzles, games & challenges</p>
+            {/* Top Row - Image and Description */}
+            <div className="grid md:grid-cols-2 gap-8 items-start mb-6">
+              {/* Left Column - Image */}
+              <div className="relative">
+                <img 
+                  src={preKImage} 
+                  alt="Junior Achievers Afterschool Program" 
+                  className="rounded-xl shadow-xl w-full aspect-[4/3] object-cover object-[center_40%]"
+                />
+                <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <Backpack className="h-5 w-5" />
+                    <span className="font-bold">Ages 5-12</span>
                   </div>
                 </div>
               </div>
@@ -267,7 +246,7 @@ const Programs = () => {
                   foster creativity, and build confidence while supporting early learning and school readiness.
                 </p>
 
-                <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6">
+                <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
                   <div className="flex items-center gap-3">
                     <Bus className="h-6 w-6 text-accent" />
                     <div>
@@ -276,11 +255,34 @@ const Programs = () => {
                     </div>
                   </div>
                 </div>
-
-                <Button asChild variant="cta" size="lg">
-                  <Link to="/enroll">Enroll in Junior Achievers</Link>
-                </Button>
               </div>
+            </div>
+            
+            {/* Feature Cards - Full Width Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-background rounded-xl p-5 shadow-md">
+                <h4 className="font-semibold text-primary text-base mb-2">Confidence Building</h4>
+                <p className="text-sm text-muted-foreground">Independence and self-assurance</p>
+              </div>
+              <div className="bg-background rounded-xl p-5 shadow-md">
+                <h4 className="font-semibold text-primary text-base mb-2">STEM Activities</h4>
+                <p className="text-sm text-muted-foreground">Hands-on learning experiences</p>
+              </div>
+              <div className="bg-background rounded-xl p-5 shadow-md">
+                <h4 className="font-semibold text-primary text-base mb-2">Teamwork</h4>
+                <p className="text-sm text-muted-foreground">Collaborative skill building</p>
+              </div>
+              <div className="bg-background rounded-xl p-5 shadow-md">
+                <h4 className="font-semibold text-primary text-base mb-2">Problem Solving</h4>
+                <p className="text-sm text-muted-foreground">Puzzles, games & challenges</p>
+              </div>
+            </div>
+
+            {/* Enrollment Button - Bottom */}
+            <div className="text-center">
+              <Button asChild variant="cta" size="lg">
+                <Link to="/enroll">Enroll in Junior Achievers</Link>
+              </Button>
             </div>
           </div>
         </div>
