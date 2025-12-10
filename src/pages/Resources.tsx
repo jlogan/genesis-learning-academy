@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText, Star } from "lucide-react";
+import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText, Star, Utensils } from "lucide-react";
+import myplateNutrition from "@/assets/myplate-nutrition.jpg";
 import academySign from "@/assets/academy-sign-new.jpg";
 import procareLogo from "@/assets/procare-logo.png";
 import shemariahGates from "@/assets/review-shemariah-gates.png";
@@ -185,6 +186,58 @@ const Resources = () => {
               </p>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* CACFP Meal Program Section */}
+      <section className="py-20 bg-warmBg">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Utensils className="h-8 w-8 text-primary" />
+              <h2 className="text-3xl md:text-4xl font-bold text-primary">Meals & Nutrition</h2>
+            </div>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              We participate in the CACFP to provide healthy, balanced meals for your child
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-5xl mx-auto">
+            <div className="order-2 md:order-1">
+              <Card className="shadow-lg">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-xl font-bold text-primary mb-4">CACFP Program</h3>
+                  <div className="space-y-4 text-muted-foreground">
+                    <p>
+                      <span className="font-semibold text-foreground">What is the CACFP?</span>
+                    </p>
+                    <p>
+                      The Child and Adult Care Food Program (CACFP) is a federally funded program 
+                      administered by the USDA that provides financial reimbursement to childcare 
+                      centers, family childcare homes, and afterschool programs for serving 
+                      nutritious meals and snacks to children.
+                    </p>
+                    <p>
+                      The purpose of CACFP is to ensure that children have access to healthy, 
+                      balanced meals and snacks, promote healthy growth, development, and lifelong 
+                      healthy eating habits.
+                    </p>
+                    <p className="bg-secondary/50 p-4 rounded-lg border-l-4 border-primary">
+                      Genesis Learning Academy of Kennesaw follows age-appropriate portion sizes, 
+                      and our Infants follow parent instructions and dietary guidelines.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="order-1 md:order-2">
+              <img 
+                src={myplateNutrition} 
+                alt="MyPlate nutrition guide showing Fruits, Grains, Vegetables, Protein, and Dairy" 
+                className="rounded-lg shadow-xl w-full max-w-md mx-auto"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
