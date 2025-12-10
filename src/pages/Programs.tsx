@@ -215,12 +215,12 @@ const Programs = () => {
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-12 items-start">
               <div className="relative">
                 <img 
                   src={preKImage} 
                   alt="Junior Achievers Afterschool Program" 
-                  className="rounded-xl shadow-xl w-full h-80 object-cover"
+                  className="rounded-xl shadow-xl w-full h-80 object-cover object-top"
                 />
                 <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
                   <div className="flex items-center gap-2">
