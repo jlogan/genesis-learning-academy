@@ -17,7 +17,7 @@ const About = () => {
     {
       icon: BookOpen,
       title: "Quality Learning",
-      description: "Research-based curriculum tailored to each age group, fostering curiosity and school readiness",
+      description: "The Creative Curriculum® supports whole-child development through play-based, hands-on learning experiences",
     },
     {
       icon: Users,
