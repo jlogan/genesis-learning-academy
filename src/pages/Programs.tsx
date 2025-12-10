@@ -12,6 +12,7 @@ import headerBg from "@/assets/classroom-header-1.jpg";
 const Programs = () => {
   const programs = [
     {
+      id: "infants",
       icon: Baby,
       title: "Gentle Beginnings",
       subtitle: "Infants",
@@ -20,6 +21,7 @@ const Programs = () => {
       image: infantImage,
     },
     {
+      id: "toddlers",
       icon: Smile,
       title: "Little Adventures",
       subtitle: "Toddlers",
@@ -28,6 +30,7 @@ const Programs = () => {
       image: toddlerImage,
     },
     {
+      id: "twos",
       icon: Palette,
       title: "Mini Makers",
       subtitle: "Twos",
@@ -36,6 +39,7 @@ const Programs = () => {
       image: twosImage,
     },
     {
+      id: "preschool",
       icon: GraduationCap,
       title: "Preschool Scholars",
       subtitle: "Preschool",
@@ -70,34 +74,34 @@ const Programs = () => {
           <div className="max-w-4xl mx-auto">
             <h2 className="text-center text-lg font-semibold text-primary mb-6">Our Programs at a Glance</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-warmBg rounded-lg p-3 text-center">
+              <a href="#infants" className="bg-warmBg rounded-lg p-3 text-center hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Infants</p>
                 <p className="text-xs text-muted-foreground">Gentle Beginnings</p>
-              </div>
-              <div className="bg-warmBg rounded-lg p-3 text-center">
+              </a>
+              <a href="#toddlers" className="bg-warmBg rounded-lg p-3 text-center hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Toddlers</p>
                 <p className="text-xs text-muted-foreground">Little Adventures</p>
-              </div>
-              <div className="bg-warmBg rounded-lg p-3 text-center">
+              </a>
+              <a href="#twos" className="bg-warmBg rounded-lg p-3 text-center hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Twos</p>
                 <p className="text-xs text-muted-foreground">Mini Makers</p>
-              </div>
-              <div className="bg-warmBg rounded-lg p-3 text-center">
+              </a>
+              <a href="#preschool" className="bg-warmBg rounded-lg p-3 text-center hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Preschool</p>
                 <p className="text-xs text-muted-foreground">Preschool Scholars</p>
-              </div>
-              <div className="bg-warmBg rounded-lg p-3 text-center">
+              </a>
+              <a href="#junior-achievers" className="bg-warmBg rounded-lg p-3 text-center hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Pre-K</p>
                 <p className="text-xs text-muted-foreground">GA Lottery Funded</p>
-              </div>
-              <div className="bg-warmBg rounded-lg p-3 text-center">
+              </a>
+              <a href="#junior-achievers" className="bg-warmBg rounded-lg p-3 text-center hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Summer</p>
                 <p className="text-xs text-muted-foreground">Transition Program</p>
-              </div>
-              <div className="bg-warmBg rounded-lg p-3 text-center md:col-span-2">
+              </a>
+              <a href="#junior-achievers" className="bg-warmBg rounded-lg p-3 text-center md:col-span-2 hover:bg-primary/10 transition-colors cursor-pointer">
                 <p className="font-semibold text-primary text-sm">Afterschool & Summer Camp</p>
                 <p className="text-xs text-muted-foreground">Junior Achievers Program</p>
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -207,7 +211,7 @@ const Programs = () => {
       </section>
 
       {/* Programs Grid */}
-      <section className="py-20 bg-background">
+      <section id="prek" className="py-20 bg-background scroll-mt-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Our Programs</h2>
@@ -217,7 +221,7 @@ const Programs = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {programs.map((program, index) => (
-              <Card key={index} className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover-scale">
+              <Card key={index} id={program.id} className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover-scale scroll-mt-24">
                 <div className="relative h-64 overflow-hidden">
                   <img 
                     src={program.image} 
@@ -251,7 +255,7 @@ const Programs = () => {
       </section>
 
       {/* Junior Achievers Program */}
-      <section className="py-20 bg-warmBg">
+      <section id="junior-achievers" className="py-20 bg-warmBg scroll-mt-24">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             {/* Top Row - Image and Description */}
