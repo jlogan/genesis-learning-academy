@@ -64,6 +64,45 @@ const Programs = () => {
         </div>
       </section>
 
+      {/* Programs Summary */}
+      <section className="py-12 bg-background border-b">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-center text-lg font-semibold text-primary mb-6">Our Programs at a Glance</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-warmBg rounded-lg p-3 text-center">
+                <p className="font-semibold text-primary text-sm">Infants</p>
+                <p className="text-xs text-muted-foreground">Gentle Beginnings</p>
+              </div>
+              <div className="bg-warmBg rounded-lg p-3 text-center">
+                <p className="font-semibold text-primary text-sm">Toddlers</p>
+                <p className="text-xs text-muted-foreground">Little Adventures</p>
+              </div>
+              <div className="bg-warmBg rounded-lg p-3 text-center">
+                <p className="font-semibold text-primary text-sm">Twos</p>
+                <p className="text-xs text-muted-foreground">Mini Makers</p>
+              </div>
+              <div className="bg-warmBg rounded-lg p-3 text-center">
+                <p className="font-semibold text-primary text-sm">Preschool</p>
+                <p className="text-xs text-muted-foreground">Preschool Scholars</p>
+              </div>
+              <div className="bg-warmBg rounded-lg p-3 text-center">
+                <p className="font-semibold text-primary text-sm">Pre-K</p>
+                <p className="text-xs text-muted-foreground">GA Lottery Funded</p>
+              </div>
+              <div className="bg-warmBg rounded-lg p-3 text-center">
+                <p className="font-semibold text-primary text-sm">Summer</p>
+                <p className="text-xs text-muted-foreground">Transition Program</p>
+              </div>
+              <div className="bg-warmBg rounded-lg p-3 text-center md:col-span-2">
+                <p className="font-semibold text-primary text-sm">Afterschool & Summer Camp</p>
+                <p className="text-xs text-muted-foreground">Junior Achievers Program</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Creative Curriculum Section */}
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
