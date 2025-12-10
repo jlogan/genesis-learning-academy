@@ -220,7 +220,7 @@ const Programs = () => {
                 <img 
                   src={preKImage} 
                   alt="Junior Achievers Afterschool Program" 
-                  className="rounded-xl shadow-xl w-full h-80 object-cover object-top"
+                  className="rounded-xl shadow-xl w-full h-80 object-cover object-[center_40%]"
                 />
                 <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
                   <div className="flex items-center gap-2">
