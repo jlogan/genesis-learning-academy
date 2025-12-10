@@ -215,21 +215,45 @@ const Programs = () => {
       <section className="py-20 bg-warmBg">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div className="relative">
-                <img 
-                  src={preKImage} 
-                  alt="Junior Achievers Afterschool Program" 
-                  className="rounded-xl shadow-xl w-full h-80 object-cover object-[center_40%]"
-                />
-                <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
-                  <div className="flex items-center gap-2">
-                    <Backpack className="h-5 w-5" />
-                    <span className="font-bold">Ages 5-12</span>
+            <div className="grid md:grid-cols-2 gap-8 items-start">
+              {/* Left Column - Image + Cards */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <img 
+                    src={preKImage} 
+                    alt="Junior Achievers Afterschool Program" 
+                    className="rounded-xl shadow-xl w-full aspect-[4/3] object-cover object-[center_40%]"
+                  />
+                  <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <Backpack className="h-5 w-5" />
+                      <span className="font-bold">Ages 5-12</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Feature Cards under image */}
+                <div className="grid grid-cols-2 gap-3 pt-4">
+                  <div className="bg-background rounded-lg p-3 shadow-sm">
+                    <h4 className="font-semibold text-primary text-sm mb-1">Confidence Building</h4>
+                    <p className="text-xs text-muted-foreground">Independence and self-assurance</p>
+                  </div>
+                  <div className="bg-background rounded-lg p-3 shadow-sm">
+                    <h4 className="font-semibold text-primary text-sm mb-1">STEM Activities</h4>
+                    <p className="text-xs text-muted-foreground">Hands-on learning experiences</p>
+                  </div>
+                  <div className="bg-background rounded-lg p-3 shadow-sm">
+                    <h4 className="font-semibold text-primary text-sm mb-1">Teamwork</h4>
+                    <p className="text-xs text-muted-foreground">Collaborative skill building</p>
+                  </div>
+                  <div className="bg-background rounded-lg p-3 shadow-sm">
+                    <h4 className="font-semibold text-primary text-sm mb-1">Problem Solving</h4>
+                    <p className="text-xs text-muted-foreground">Puzzles, games & challenges</p>
                   </div>
                 </div>
               </div>
               
+              {/* Right Column - Description */}
               <div>
                 <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4">
                   <Backpack className="h-5 w-5" />
@@ -242,25 +266,6 @@ const Programs = () => {
                   A fun and engaging enrichment program for elementary school children. Our goal is to spark curiosity, 
                   foster creativity, and build confidence while supporting early learning and school readiness.
                 </p>
-                
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-background rounded-lg p-4 shadow-sm">
-                    <h4 className="font-semibold text-primary mb-2">Confidence Building</h4>
-                    <p className="text-sm text-muted-foreground">Independence and self-assurance</p>
-                  </div>
-                  <div className="bg-background rounded-lg p-4 shadow-sm">
-                    <h4 className="font-semibold text-primary mb-2">STEM Activities</h4>
-                    <p className="text-sm text-muted-foreground">Hands-on learning experiences</p>
-                  </div>
-                  <div className="bg-background rounded-lg p-4 shadow-sm">
-                    <h4 className="font-semibold text-primary mb-2">Teamwork</h4>
-                    <p className="text-sm text-muted-foreground">Collaborative skill building</p>
-                  </div>
-                  <div className="bg-background rounded-lg p-4 shadow-sm">
-                    <h4 className="font-semibold text-primary mb-2">Problem Solving</h4>
-                    <p className="text-sm text-muted-foreground">Puzzles, games & challenges</p>
-                  </div>
-                </div>
 
                 <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6">
                   <div className="flex items-center gap-3">
