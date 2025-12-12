@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Clock, Facebook, Instagram } from "lucide-react";
 import brogrammersLogo from "@/assets/brogrammers-logo.png";
+import qualityRatedLogo from "@/assets/quality-rated-logo.png";
 
 const Footer = () => {
   return (
@@ -13,6 +14,20 @@ const Footer = () => {
             <p className="text-primary-foreground/80 text-sm mb-4">
               Serving families in Kennesaw with care and commitment.
             </p>
+            {/* Quality Rated Badge */}
+            <a
+              href="https://families.decal.ga.gov/Provider/Details/48020"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block hover:opacity-80 transition-opacity"
+              aria-label="View our Quality Rated profile on Georgia DECAL"
+            >
+              <img 
+                src={qualityRatedLogo} 
+                alt="Quality Rated Child Care" 
+                className="h-12 w-auto"
+              />
+            </a>
           </div>
 
           {/* Contact Information */}
