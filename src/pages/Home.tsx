@@ -229,6 +229,18 @@ const Home = () => {
                 </AccordionContent>
               </AccordionItem>
 
+              <AccordionItem value="tuition" className="bg-card rounded-lg border px-6">
+                <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                  What are your tuition rates?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  We offer competitive weekly rates for all age groups, starting at $115 for before or after school care. Registration and other fees are clearly outlined on our Tuition page.{" "}
+                  <Link to="/tuition" className="text-primary font-medium hover:underline">
+                    View tuition and fees →
+                  </Link>
+                </AccordionContent>
+              </AccordionItem>
+
               <AccordionItem value="transportation" className="bg-card rounded-lg border px-6">
                 <AccordionTrigger className="text-left font-semibold hover:no-underline">
                   Do you offer transportation for after school?
