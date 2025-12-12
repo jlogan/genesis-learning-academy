@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText, Star, Utensils } from "lucide-react";
+import { MapPin, Phone, Clock, Mail, Facebook, Instagram, Calendar, FileText, Star, Utensils, DollarSign } from "lucide-react";
 import myplateNutrition from "@/assets/myplate-nutrition.jpg";
 import academySign from "@/assets/academy-sign-new.jpg";
 import procareLogo from "@/assets/procare-logo.png";
@@ -161,31 +162,48 @@ const Resources = () => {
       {/* Parent Portal Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <Card className="shadow-lg max-w-3xl mx-auto">
-            <CardContent className="p-6 md:p-8 text-center">
-              <img 
-                src={procareLogo} 
-                alt="ProCare Solutions - Parent Portal" 
-                className="h-16 mx-auto mb-6"
-              />
-              <h2 className="text-2xl font-bold text-primary mb-4">Parent Portal Access</h2>
-              <p className="text-muted-foreground mb-6">
-                Stay connected with your child's daily activities, photos, and updates through our ProCare parent portal.
-              </p>
-              <Button asChild size="lg" className="mb-4 w-full sm:w-auto">
-                <a 
-                  href="https://schools.procareconnect.com/dashboard" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  Access Parent Portal
-                </a>
-              </Button>
-              <p className="text-sm text-muted-foreground">
-                Need help accessing the portal? Please speak with our staff at the daycare for assistance with your login credentials.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <Card className="shadow-lg">
+              <CardContent className="p-6 md:p-8 text-center">
+                <img 
+                  src={procareLogo} 
+                  alt="ProCare Solutions - Parent Portal" 
+                  className="h-16 mx-auto mb-6"
+                />
+                <h2 className="text-2xl font-bold text-primary mb-4">Parent Portal Access</h2>
+                <p className="text-muted-foreground mb-6">
+                  Stay connected with your child's daily activities, photos, and updates through our ProCare parent portal.
+                </p>
+                <Button asChild size="lg" className="mb-4 w-full sm:w-auto">
+                  <a 
+                    href="https://schools.procareconnect.com/dashboard" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    Access Parent Portal
+                  </a>
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Need help accessing the portal? Please speak with our staff for assistance.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
+              <CardContent className="p-6 md:p-8 text-center">
+                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-6">
+                  <DollarSign className="h-8 w-8 text-accent" />
+                </div>
+                <h2 className="text-2xl font-bold text-primary mb-4">Tuition & Fees</h2>
+                <p className="text-muted-foreground mb-6">
+                  View our transparent pricing for all programs, including weekly rates, registration fees, and additional services.
+                </p>
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link to="/tuition">View Tuition Rates</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
