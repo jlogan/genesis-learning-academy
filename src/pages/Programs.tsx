@@ -7,6 +7,7 @@ import toddlerImage from "@/assets/toddler-little-adventures.jpg";
 import twosImage from "@/assets/twos-mini-makers.jpg";
 import preschoolImage from "@/assets/preschool-scholars.jpg";
 import preKImage from "@/assets/child-learning-activity.jpg";
+import juniorAchieversSwings from "@/assets/junior-achievers-swings.jpg";
 import headerBg from "@/assets/classroom-header-1.jpg";
 
 const Programs = () => {
@@ -263,9 +264,9 @@ const Programs = () => {
               {/* Left Column - Image */}
               <div className="relative">
                 <img 
-                  src={preKImage} 
-                  alt="Junior Achievers Afterschool Program" 
-                  className="rounded-xl shadow-xl w-full aspect-[4/3] object-cover object-[center_40%]"
+                  src={juniorAchieversSwings} 
+                  alt="Children enjoying outdoor play on swings at Junior Achievers Program" 
+                  className="rounded-xl shadow-xl w-full aspect-[4/3] object-cover object-center"
                 />
                 <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
                   <div className="flex items-center gap-2">
