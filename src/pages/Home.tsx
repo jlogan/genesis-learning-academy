@@ -234,10 +234,10 @@ const Home = () => {
                   What are your tuition rates?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed">
-                  We offer competitive weekly rates for all age groups, starting at $115 for before or after school care. Registration and other fees are clearly outlined on our Tuition page.{" "}
-                  <Link to="/tuition" className="text-primary font-medium hover:underline">
-                    View tuition and fees →
-                  </Link>
+                  We offer competitive weekly rates for all age groups. For the most up-to-date tuition and fee information, please call our front office at{" "}
+                  <a href="tel:770-672-4255" className="text-primary font-medium hover:underline">
+                    (770) 672-4255
+                  </a>.
                 </AccordionContent>
               </AccordionItem>
 
