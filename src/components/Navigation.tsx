@@ -36,10 +36,10 @@ const Navigation = () => {
               key={link.href}
               to={link.href}
               className={cn(
-                "px-3.5 py-1.5 rounded-md text-sm font-bold transition-colors",
+                "px-3.5 py-1.5 text-sm font-bold transition-colors",
                 isActive(link.href)
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-foreground hover:text-primary hover:border-b-2 hover:border-primary"
+                  ? "text-primary underline underline-offset-4 decoration-2"
+                  : "text-foreground hover:text-primary hover:underline hover:underline-offset-4 hover:decoration-2"
               )}
             >
               {link.label}
@@ -70,10 +70,10 @@ const Navigation = () => {
                 to={link.href}
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  "block px-3.5 py-1.5 rounded-md text-sm font-bold transition-colors text-center",
+                  "block px-3.5 py-1.5 text-sm font-bold transition-colors text-center",
                   isActive(link.href)
-                    ? "text-primary border-b-2 border-primary"
-                    : "text-foreground hover:text-primary hover:border-b-2 hover:border-primary"
+                    ? "text-primary underline underline-offset-4 decoration-2"
+                    : "text-foreground hover:text-primary hover:underline hover:underline-offset-4 hover:decoration-2"
                 )}
               >
                 {link.label}
