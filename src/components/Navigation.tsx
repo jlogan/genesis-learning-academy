@@ -14,6 +14,7 @@ const Navigation = () => {
     { href: "/programs", label: "Programs" },
     { href: "/about", label: "About Us" },
     { href: "/gallery", label: "Gallery" },
+    { href: "/tuition", label: "Tuition & Fees" },
     { href: "/resources", label: "Parent Resources" },
   ];
 
