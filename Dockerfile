@@ -13,9 +13,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Expose the port Vite uses
-EXPOSE 8080
+# Expose ports for Vite and API server
+EXPOSE 8080 3001
 
-# Start the development server
+# Start the development server (default)
+# For API server, override with: node server.js
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 

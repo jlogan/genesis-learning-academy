@@ -13,8 +13,28 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - DOCKER_ENV=true
     networks:
       - genesis-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: glak-api
+    command: node server.js
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - RESEND_API_KEY=${RESEND_API_KEY:-re_fxbYnt43_MAAExytzt2fHoExxH7ksT1Fc}
+    networks:
+      - genesis-network
+    depends_on:
+      - app
 
   nginx:
     image: nginx:alpine

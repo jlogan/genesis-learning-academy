@@ -23,6 +23,14 @@ export default defineConfig(({ mode }) => {
       port: 8080,
       strictPort: true,
       allowedHosts,
+      proxy: {
+        '/api': {
+          // In Docker, use service name; locally, use localhost
+          target: process.env.DOCKER_ENV === 'true' ? 'http://api:3001' : 'http://localhost:3001',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
     preview: {
       host: "0.0.0.0",
