@@ -45,6 +45,7 @@ type EnrollmentFormData = z.infer<typeof enrollmentSchema>;
 
 const Enroll = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<EnrollmentFormData>({
     resolver: zodResolver(enrollmentSchema),
@@ -63,23 +64,78 @@ const Enroll = () => {
     name: "children",
   });
 
-  const onSubmit = (data: EnrollmentFormData) => {
-    console.log("Enrollment form submitted:", data);
+  const onSubmit = async (data: EnrollmentFormData) => {
+    setIsSubmitting(true);
     
-    // Track conversion in Google Analytics
-    trackEnrollmentSubmission({
-      parentName: data.parentName,
-      email: data.email,
-      numberOfChildren: data.children.length,
-      childAges: data.children.map(child => child.childAge),
-      languagePreference: data.languagePreference,
-    });
-    
-    toast({
-      title: "Thank you!",
-      description: "Your enrollment request has been received. A member of our team will reach out shortly.",
-    });
-    setIsSubmitted(true);
+    try {
+      // Send enrollment data to API
+      const response = await fetch('/api/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Check if response is ok before parsing JSON
+      if (!response.ok) {
+        // Try to get error message from response
+        let errorMessage = 'Failed to submit enrollment request';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If response isn't JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Parse JSON only if response is ok
+      let result;
+      try {
+        const text = await response.text();
+        result = text ? JSON.parse(text) : { success: true };
+      } catch (parseError) {
+        // If JSON parsing fails but response was ok, assume success
+        console.warn('Could not parse response as JSON, but request succeeded');
+        result = { success: true };
+      }
+
+      // Track conversion in Google Analytics
+      trackEnrollmentSubmission({
+        parentName: data.parentName,
+        email: data.email,
+        numberOfChildren: data.children.length,
+        childAges: data.children.map(child => child.childAge),
+        languagePreference: data.languagePreference,
+      });
+      
+      toast({
+        title: "Thank you!",
+        description: "Your enrollment request has been received. A member of our team will reach out shortly.",
+      });
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Enrollment submission error:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to submit enrollment request. Please try again or call us at (770) 672-4255.";
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = "Unable to connect to server. Please make sure the API server is running and try again.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -327,8 +383,14 @@ const Enroll = () => {
                   </div>
 
                   <div className="pt-8">
-                    <Button type="submit" variant="cta" size="lg" className="w-full text-lg py-6">
-                      Submit Enrollment Request
+                    <Button 
+                      type="submit" 
+                      variant="cta" 
+                      size="lg" 
+                      className="w-full text-lg py-6"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit Enrollment Request"}
                     </Button>
                     <p className="text-center text-sm text-muted-foreground mt-4">
                       By submitting, you agree to be contacted by our team
