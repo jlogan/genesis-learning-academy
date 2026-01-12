@@ -4,17 +4,17 @@ import { DollarSign, FileText, Clock } from "lucide-react";
 
 const Tuition = () => {
   const weeklyRates = [
-    { program: "Infants (6 weeks – 12 months)", rate: "$275" },
-    { program: "Toddlers (13 months – 2 years old)", rate: "$265" },
-    { program: "Two-Year-Old", rate: "$255" },
-    { program: "Three-Year-Old", rate: "$245" },
-    { program: "Non-Potty", rate: "$235" },
-    { program: "Before OR After School Care", rate: "$115" },
-    { program: "Before AND After School Care", rate: "$150" },
-    { program: "Summer Camp", rate: "$240" },
-    { program: "Part-Time Care 8 hrs (6 weeks – 1 year old)", rate: "$190" },
-    { program: "Part-Time Care 8 hrs (Two's)", rate: "$190" },
-    { program: "Part-Time Care 8 hrs (Three's)", rate: "$190" },
+    { program: "Infants (6 weeks – 12 months)", rate: "$285" },
+    { program: "Toddlers (13 months – 2 years old)", rate: "$275" },
+    { program: "Two-Year-Old", rate: "$265" },
+    { program: "Three-Year-Old", rate: "$255" },
+    { program: "Non-Potty", rate: "$245" },
+    { program: "Before OR After School Care", rate: "$120" },
+    { program: "Before AND After School Care", rate: "$160" },
+    { program: "Summer Camp", rate: "$250" },
+    { program: "Part-Time Care 8 hrs (6 weeks – 1 year old)", rate: "$200" },
+    { program: "Part-Time Care 8 hrs (Two's)", rate: "$200" },
+    { program: "Part-Time Care 8 hrs (Three's)", rate: "$200" },
   ];
 
   const dailyFees = [
