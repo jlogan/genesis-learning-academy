@@ -18,8 +18,8 @@ const Tuition = () => {
   ];
 
   const dailyFees = [
-    { feeType: "Early Release Days (Elementary Students)", rate: "$65 per day" },
-    { feeType: "Drop-In Fee / Teacher Workdays", rate: "$100 per day" },
+    { feeType: "Early Release Days (Elementary Students)", rate: "$70 per day" },
+    { feeType: "Drop-In Fee / Teacher Workdays", rate: "$110 per day" },
     { feeType: "Transportation", rate: "$75 per week" },
     { feeType: "Hourly Rate (Per Child)", rate: "$20 per hour" },
   ];
