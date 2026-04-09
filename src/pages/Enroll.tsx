@@ -1163,6 +1163,7 @@ const Enroll = () => {
   const totalActiveSteps = activeSteps.length;
   const activeStepIndex = activeSteps.indexOf(currentStep);
   const progressPercent = Math.round(((activeStepIndex + 1) / totalActiveSteps) * 100);
+  const stepsAfterCurrent = Math.max(0, totalActiveSteps - activeStepIndex - 1);
 
   // Save draft to localStorage on form value changes
   const formValues = useWatch({ control: form.control });
@@ -1361,18 +1362,59 @@ const Enroll = () => {
         </div>
       </section>
 
-      {/* Progress Bar */}
+      {/* Progress, remaining steps, and jump navigation (sticky) */}
       <section className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 max-w-4xl py-3">
-          <div className="flex items-center gap-3 mb-2">
-            <StepIcon className="w-5 h-5 text-primary shrink-0" />
-            <span className="text-sm font-semibold text-foreground">
-              Step {activeStepIndex + 1} of {totalActiveSteps}
-            </span>
-            <span className="text-sm text-muted-foreground">— {STEP_TITLES[currentStep]}</span>
-            <span className="ml-auto text-xs text-muted-foreground">{progressPercent}%</span>
+        <div className="container mx-auto px-4 max-w-4xl py-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <StepIcon className="w-6 h-6 text-primary shrink-0 mt-0.5" aria-hidden />
+              <div className="min-w-0 space-y-1">
+                <p className="text-sm font-semibold text-foreground leading-snug">
+                  Step {activeStepIndex + 1} of {totalActiveSteps}
+                  <span className="font-normal text-muted-foreground"> · {STEP_TITLES[currentStep]}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {stepsAfterCurrent === 0
+                    ? "Final step — review everything, then submit when you’re ready."
+                    : stepsAfterCurrent === 1
+                      ? "1 step left after this one."
+                      : `${stepsAfterCurrent} steps left after this one.`}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm font-medium text-muted-foreground tabular-nums sm:text-right shrink-0">
+              {progressPercent}% complete
+            </p>
           </div>
-          <Progress value={progressPercent} className="h-2" />
+          <Progress value={progressPercent} className="h-2 mb-4" />
+          <nav aria-label="Jump to a step" className="-mx-1 px-1">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-2">
+              Go to step
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {activeSteps.map((stepNum, idx) => {
+                const shortLabel = STEP_TITLES[stepNum].split(" ")[0];
+                const isCurrent = stepNum === currentStep;
+                return (
+                  <Button
+                    key={stepNum}
+                    type="button"
+                    variant={isCurrent ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 px-2.5 text-xs font-medium"
+                    onClick={() => goToStep(stepNum)}
+                  >
+                    <span className="sr-only">
+                      {isCurrent
+                        ? `Current: ${STEP_TITLES[stepNum]}`
+                        : `Go to step ${idx + 1}: ${STEP_TITLES[stepNum]}`}
+                    </span>
+                    {idx + 1}. {shortLabel}
+                  </Button>
+                );
+              })}
+            </div>
+          </nav>
         </div>
       </section>
 
@@ -1429,25 +1471,6 @@ const Enroll = () => {
               </Form>
             </CardContent>
           </Card>
-
-          {/* Step Quick Navigation */}
-          <div className="mt-8 p-4 bg-muted/30 rounded-lg border border-border/50">
-            <p className="text-xs text-muted-foreground mb-3 font-medium">Quick Navigation:</p>
-            <div className="flex flex-wrap gap-2">
-              {activeSteps.map((stepNum, idx) => (
-                <Button
-                  key={stepNum}
-                  type="button"
-                  variant={stepNum === currentStep ? "default" : "outline"}
-                  size="sm"
-                  className="text-xs h-7"
-                  onClick={() => goToStep(stepNum)}
-                >
-                  {idx + 1}. {STEP_TITLES[stepNum].split(" ")[0]}
-                </Button>
-              ))}
-            </div>
-          </div>
 
           {/* Contact Info */}
           <div className="mt-6 p-6 bg-muted/30 rounded-lg border border-border/50 text-center">
