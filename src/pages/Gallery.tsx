@@ -31,6 +31,21 @@ import outdoorPlayNew from "@/assets/outdoor-play-new.jpg";
 import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
 import genesisSignOutdoor from "@/assets/genesis-sign-outdoor.jpg";
 
+// Gentle Beginning (Infants) gallery images
+import gentleBeginning1 from "@/assets/gallery-gentle-beginning-1.jpg";
+import gentleBeginning2 from "@/assets/gallery-gentle-beginning-2.jpg";
+import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
+import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
+import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
+
+const gentleBeginningImages = [
+  { src: gentleBeginning1, alt: "Infant enjoying playtime in a nurturing classroom environment" },
+  { src: gentleBeginning2, alt: "Caregiver providing gentle, attentive infant care" },
+  { src: gentleBeginning3, alt: "Baby exploring sensory activities during Gentle Beginnings" },
+  { src: gentleBeginning4, alt: "Infant engaged in early developmental play" },
+  { src: gentleBeginning5, alt: "Calm and secure infant care space at Genesis Learning Academy" },
+];
+
 const galleryImages = [
   { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
   { src: prekReading1, alt: "Teacher reading to children during GA Pre-K Week" },
@@ -87,6 +102,37 @@ const Gallery = () => {
               <p className="text-lg text-primary-foreground/95">
                 Take a look at our classrooms, outdoor spaces, and the joyful moments that make Genesis Learning Academy special
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Gentle Beginning Gallery */}
+        <section className="py-20 bg-warmBg/50">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Gentle Beginning
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                A calm and nurturing space for infants starting their growth journey
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {gentleBeginningImages.map((image, index) => (
+                <Card
+                  key={index}
+                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="aspect-square overflow-hidden">
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  </div>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
