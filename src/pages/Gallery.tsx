@@ -120,11 +120,13 @@ const Gallery = () => {
                 A calm and nurturing space for infants starting their growth journey
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-6 mb-6">
               {gentleBeginningRow1.map((image, index) => (
                 <Card
                   key={`row1-${index}`}
-                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+                  className={`group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 sm:col-span-2 ${
+                    index === 0 ? "sm:col-start-2" : "sm:col-start-4"
+                  }`}
                 >
                   <div className="aspect-square overflow-hidden">
                     <img
