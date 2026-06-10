@@ -32,18 +32,21 @@ import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
 import genesisSignOutdoor from "@/assets/genesis-sign-outdoor.jpg";
 
 // Gentle Beginning (Infants) gallery images
-import gentleBeginning1 from "@/assets/gallery-gentle-beginning-1.jpg";
-import gentleBeginning2 from "@/assets/gallery-gentle-beginning-2.jpg";
-import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
-import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
-import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
+import gentleBeginning1 from "@/assets/gentle-beginning-new-8.jpg.asset.json";
+import gentleBeginning2 from "@/assets/gentle-beginning-new-9.jpg.asset.json";
+import gentleBeginning3 from "@/assets/gentle-beginning-new-10.jpg.asset.json";
+import gentleBeginning4 from "@/assets/gentle-beginning-new-11.jpg.asset.json";
+import gentleBeginning5 from "@/assets/gentle-beginning-new-12.jpg.asset.json";
 
-const gentleBeginningImages = [
-  { src: gentleBeginning1, alt: "Infant enjoying playtime in a nurturing classroom environment" },
-  { src: gentleBeginning2, alt: "Caregiver providing gentle, attentive infant care" },
-  { src: gentleBeginning3, alt: "Baby exploring sensory activities during Gentle Beginnings" },
-  { src: gentleBeginning4, alt: "Infant engaged in early developmental play" },
-  { src: gentleBeginning5, alt: "Calm and secure infant care space at Genesis Learning Academy" },
+const gentleBeginningRow1 = [
+  { src: gentleBeginning1.url, alt: "Smiling infant standing in playpen reaching out" },
+  { src: gentleBeginning2.url, alt: "Baby exploring sensory art activity at table" },
+];
+
+const gentleBeginningRow2 = [
+  { src: gentleBeginning3.url, alt: "Happy infant sitting on classroom rug" },
+  { src: gentleBeginning4.url, alt: "Baby with pink headband holding a toy" },
+  { src: gentleBeginning5.url, alt: "Infant crawling through colorful play tunnel" },
 ];
 
 const galleryImages = [
@@ -117,10 +120,27 @@ const Gallery = () => {
                 A calm and nurturing space for infants starting their growth journey
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {gentleBeginningImages.map((image, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+              {gentleBeginningRow1.map((image, index) => (
                 <Card
-                  key={index}
+                  key={`row1-${index}`}
+                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="aspect-square overflow-hidden">
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  </div>
+                </Card>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {gentleBeginningRow2.map((image, index) => (
+                <Card
+                  key={`row2-${index}`}
                   className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
                 >
                   <div className="aspect-square overflow-hidden">
