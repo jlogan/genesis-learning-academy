@@ -32,21 +32,21 @@ import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
 import genesisSignOutdoor from "@/assets/genesis-sign-outdoor.jpg";
 
 // Gentle Beginning (Infants) gallery images
-import gentleBeginning1 from "@/assets/gentle-beginning-new-8.jpg.asset.json";
-import gentleBeginning2 from "@/assets/gentle-beginning-new-9.jpg.asset.json";
-import gentleBeginning3 from "@/assets/gentle-beginning-new-10.jpg.asset.json";
-import gentleBeginning4 from "@/assets/gentle-beginning-new-11.jpg.asset.json";
-import gentleBeginning5 from "@/assets/gentle-beginning-new-12.jpg.asset.json";
+import gentleBeginning1 from "@/assets/gallery-gentle-beginning-1.jpg";
+import gentleBeginning2 from "@/assets/gallery-gentle-beginning-2.jpg";
+import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
+import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
+import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
 
 const gentleBeginningRow1 = [
-  { src: gentleBeginning1.url, alt: "Smiling infant standing in playpen reaching out" },
-  { src: gentleBeginning2.url, alt: "Baby exploring sensory art activity at table" },
+  { src: gentleBeginning1, alt: "Smiling infant standing in playpen reaching out" },
+  { src: gentleBeginning2, alt: "Baby exploring sensory art activity at table" },
 ];
 
 const gentleBeginningRow2 = [
-  { src: gentleBeginning3.url, alt: "Happy infant sitting on classroom rug" },
-  { src: gentleBeginning4.url, alt: "Baby with pink headband holding a toy" },
-  { src: gentleBeginning5.url, alt: "Infant crawling through colorful play tunnel" },
+  { src: gentleBeginning3, alt: "Happy infant sitting on classroom rug" },
+  { src: gentleBeginning4, alt: "Baby with pink headband holding a toy" },
+  { src: gentleBeginning5, alt: "Infant crawling through colorful play tunnel" },
 ];
 
 const galleryImages = [
