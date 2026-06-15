@@ -179,6 +179,36 @@ const Gallery = () => {
           </div>
         </section>
 
+        {/* Toddlers Gallery */}
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Toddlers
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Little Adventures
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {toddlerImages.map((image, index) => (
+                <Card
+                  key={`toddler-${index}`}
+                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="aspect-square overflow-hidden">
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+
         {/* Gallery Grid */}
         <section className="py-20">
           <div className="container mx-auto px-4">
