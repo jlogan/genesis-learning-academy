@@ -1,35 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Helmet } from "react-helmet";
 
-// Import new gallery images
-import kidsPlayingBlocks from "@/assets/gallery-kids-playing-blocks.jpg";
-import classroomDecorations from "@/assets/gallery-classroom-decorations.jpg";
-import classroomLearningCorner from "@/assets/gallery-classroom-learning-corner.jpg";
-import childLearningTable from "@/assets/gallery-child-learning-table.jpg";
-import childSensoryBin from "@/assets/gallery-child-sensory-bin.jpg";
-import infantPlaytime from "@/assets/gallery-infant-playtime.jpg";
-import girlCraftActivity from "@/assets/gallery-girl-craft-activity.jpg";
-import girlOutdoorPlay from "@/assets/gallery-girl-outdoor-play.jpg";
-
-// Import GA Pre-K Week images
-import prekReading1 from "@/assets/gallery-prek-reading-1.jpg";
-import prekReading2 from "@/assets/gallery-prek-reading-2.jpg";
-import prekGroupBooks from "@/assets/gallery-prek-group-books.jpg";
-import kidsHandsTogether from "@/assets/gallery-kids-hands-together.jpg";
-import teachersVisitor from "@/assets/gallery-teachers-visitor.jpg";
-
-// Import existing images from website
-import childArtActivity from "@/assets/child-art-activity.jpg";
-import childConstructionPlay from "@/assets/child-construction-play.jpg";
-import childLearningActivity from "@/assets/child-learning-activity.jpg";
-import childSensoryTable from "@/assets/child-sensory-table.jpg";
 import classroomInterior1 from "@/assets/classroom-interior-1.jpg";
-import classroomInterior2 from "@/assets/classroom-interior-2.jpg";
-import happyChildPlayground from "@/assets/happy-child-playground.jpg";
-import infantCaregiver from "@/assets/infant-caregiver.jpg";
-import outdoorPlayNew from "@/assets/outdoor-play-new.jpg";
-import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
-import genesisSignOutdoor from "@/assets/genesis-sign-outdoor.jpg";
 
 // Gentle Beginning (Infants) gallery images
 import gentleBeginning1 from "@/assets/gallery-gentle-beginning-1.jpg";
