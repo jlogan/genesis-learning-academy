@@ -38,13 +38,6 @@ import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
 import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
 import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
 
-// Toddlers (Little Adventures) gallery images
-import toddler13 from "@/assets/toddler-13.png.asset.json";
-import toddler14 from "@/assets/toddler-14.png.asset.json";
-import toddler15 from "@/assets/toddler-15.png.asset.json";
-import toddler16 from "@/assets/toddler-16.png.asset.json";
-import toddler18 from "@/assets/toddler-18.png.asset.json";
-import toddler19 from "@/assets/toddler-19.png.asset.json";
 
 const gentleBeginningRow1 = [
   { src: gentleBeginning1, alt: "Smiling infant standing in playpen reaching out" },
@@ -57,14 +50,7 @@ const gentleBeginningRow2 = [
   { src: gentleBeginning5, alt: "Infant crawling through colorful play tunnel" },
 ];
 
-const toddlerImages = [
-  { src: toddler13.url, alt: "Smiling toddler in pink top playing outdoors" },
-  { src: toddler14.url, alt: "Teacher reading to toddlers seated on classroom rug" },
-  { src: toddler15.url, alt: "Group photo of toddlers and teachers with books" },
-  { src: toddler16.url, alt: "Teacher sharing picture book with attentive toddlers" },
-  { src: toddler18.url, alt: "Young girl with braided hair holding a small blue pompom ball" },
-  { src: toddler19.url, alt: "Toddler holding a number card during a classroom activity" },
-];
+const toddlerImages: { src: string; alt: string }[] = [];
 
 
 
