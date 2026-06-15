@@ -38,6 +38,15 @@ import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
 import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
 import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
 
+// Toddlers (Little Adventures) gallery images
+import toddler13 from "@/assets/toddler-13.png.asset.json";
+import toddler14 from "@/assets/toddler-14.png.asset.json";
+import toddler15 from "@/assets/toddler-15.png.asset.json";
+import toddler16 from "@/assets/toddler-16.png.asset.json";
+import toddler17 from "@/assets/toddler-17.png.asset.json";
+import toddler18 from "@/assets/toddler-18.png.asset.json";
+import toddler19 from "@/assets/toddler-19.png.asset.json";
+
 const gentleBeginningRow1 = [
   { src: gentleBeginning1, alt: "Smiling infant standing in playpen reaching out" },
   { src: gentleBeginning2, alt: "Baby exploring sensory art activity at table" },
@@ -48,6 +57,17 @@ const gentleBeginningRow2 = [
   { src: gentleBeginning4, alt: "Baby with pink headband holding a toy" },
   { src: gentleBeginning5, alt: "Infant crawling through colorful play tunnel" },
 ];
+
+const toddlerImages = [
+  { src: toddler13.url, alt: "Smiling toddler in pink top playing outdoors" },
+  { src: toddler14.url, alt: "Teacher reading to toddlers seated on classroom rug" },
+  { src: toddler15.url, alt: "Group photo of toddlers and teachers with books" },
+  { src: toddler16.url, alt: "Teacher sharing picture book with attentive toddlers" },
+  { src: toddler17.url, alt: "Two toddlers building with colorful blocks on alphabet rug" },
+  { src: toddler18.url, alt: "Toddler smiling while doing pom-pom craft activity" },
+  { src: toddler19.url, alt: "Toddler enjoying sensory bin activity with lightning bolts" },
+];
+
 
 const galleryImages = [
   { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
