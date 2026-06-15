@@ -207,6 +207,10 @@ const Gallery = () => {
                 </Card>
               ))}
             </div>
+          </div>
+        </section>
+
+
 
 
         {/* Gallery Grid */}
