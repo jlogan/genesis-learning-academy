@@ -169,29 +169,6 @@ const Gallery = () => {
 
 
 
-        {/* Gallery Grid */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleryImages.map((image, index) => (
-                <Card 
-                  key={index}
-                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Call to Action */}
         <section className="py-20 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5">
           <div className="container mx-auto px-4">
