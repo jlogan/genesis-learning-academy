@@ -41,23 +41,7 @@ const toddlerImages = [
 ];
 
 
-const galleryImages = [
-  { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
-  { src: prekReading1, alt: "Teacher reading to children during GA Pre-K Week" },
-  { src: classroomDecorations, alt: "Colorful classroom with educational decorations" },
-  { src: prekGroupBooks, alt: "Children and staff with books during GA Pre-K Week celebration" },
-  { src: classroomLearningCorner, alt: "Learning corner with classroom jobs display" },
-  { src: kidsHandsTogether, alt: "Children putting hands together in teamwork activity" },
-  { src: childLearningTable, alt: "Child learning phonics at activity table" },
-  { src: prekReading2, alt: "Story time with children engaged in reading" },
-  { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
-  { src: teachersVisitor, alt: "Teachers with special visitor during Pre-K Week" },
-  { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
-  { src: infantPlaytime, alt: "Infant engaged in developmental play" },
-  { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
-  { src: genesisSignOutdoor, alt: "Genesis Learning Academy outdoor sign" },
-  { src: girlCraftActivity, alt: "Child engaged in creative craft activity" },
-];
+
 
 const Gallery = () => {
   return (
