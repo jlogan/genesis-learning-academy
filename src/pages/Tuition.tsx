@@ -48,8 +48,11 @@ const Tuition = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-primary">Registration Fee</h2>
               </div>
               
-              <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
+              <p className="text-muted-foreground mb-4 text-lg leading-relaxed">
                 There is a non-refundable <span className="font-semibold text-foreground">$100.00</span> registration fee assessed during enrollment and annually in January. Upon payment of the registration fee, you will receive an enrollment packet.
+              </p>
+              <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
+                A copy of the following records should be reviewed with you accurately completing the enrollment packet.
               </p>
 
               <div className="bg-secondary/50 rounded-lg p-6 border-l-4 border-primary">
