@@ -63,7 +63,6 @@ const galleryImages = [
   { src: childLearningTable, alt: "Child learning phonics at activity table" },
   { src: prekReading2, alt: "Story time with children engaged in reading" },
   { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
-  { src: teachersVisitor, alt: "Teachers with special visitor during Pre-K Week" },
   { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
   { src: infantPlaytime, alt: "Infant engaged in developmental play" },
   { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
