@@ -20,7 +20,8 @@ Configure these under **Settings → Secrets and variables → Actions**:
 | --- | --- | --- |
 | `DEPLOY_HOST` | Yes | Server hostname or IP |
 | `DEPLOY_USER` | Yes | SSH user |
-| `DEPLOY_SSH_KEY` | Yes | Private key (PEM). Paste with real newlines or escaped `\n`; CRLF is normalized |
+| `DEPLOY_SSH_KEY` | Yes* | Private key (PEM). Raw multiline key; optional if `DEPLOY_SSH_KEY_B64` is set. |
+| `DEPLOY_SSH_KEY_B64` | Yes* | Base64-encoded private key. Preferred because it avoids multiline secret formatting issues. |
 | `DEPLOY_PATH` | Yes | Remote directory for static files (e.g. `/var/www/genesislearningacademyofkennesaw.com/public`) |
 | `DEPLOY_PORT` | No | SSH port (default: `22`) |
 | `DEPLOY_HEALTH_URL` | No | URL checked after deploy (default: `https://genesislearningacademyofkennesaw.com/gallery`) |
