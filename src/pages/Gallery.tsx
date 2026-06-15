@@ -16,7 +16,6 @@ import prekReading1 from "@/assets/gallery-prek-reading-1.jpg";
 import prekReading2 from "@/assets/gallery-prek-reading-2.jpg";
 import prekGroupBooks from "@/assets/gallery-prek-group-books.jpg";
 import kidsHandsTogether from "@/assets/gallery-kids-hands-together.jpg";
-import teachersVisitor from "@/assets/gallery-teachers-visitor.jpg";
 
 // Import existing images from website
 import childArtActivity from "@/assets/child-art-activity.jpg";
@@ -64,7 +63,6 @@ const galleryImages = [
   { src: childLearningTable, alt: "Child learning phonics at activity table" },
   { src: prekReading2, alt: "Story time with children engaged in reading" },
   { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
-  { src: teachersVisitor, alt: "Teachers with special visitor during Pre-K Week" },
   { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
   { src: infantPlaytime, alt: "Infant engaged in developmental play" },
   { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
