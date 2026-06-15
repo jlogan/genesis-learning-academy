@@ -16,7 +16,6 @@ import prekReading1 from "@/assets/gallery-prek-reading-1.jpg";
 import prekReading2 from "@/assets/gallery-prek-reading-2.jpg";
 import prekGroupBooks from "@/assets/gallery-prek-group-books.jpg";
 import kidsHandsTogether from "@/assets/gallery-kids-hands-together.jpg";
-import teachersVisitor from "@/assets/gallery-teachers-visitor.jpg";
 
 // Import existing images from website
 import childArtActivity from "@/assets/child-art-activity.jpg";
