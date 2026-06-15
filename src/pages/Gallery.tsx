@@ -24,6 +24,7 @@ import gentleBeginning2 from "@/assets/gallery-gentle-beginning-2.jpg";
 import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
 import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
 import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
+import gentleBeginningWalker from "@/assets/gallery-gentle-beginning-walker.png.asset.json";
 
 
 const gentleBeginningRow1 = [
@@ -35,6 +36,7 @@ const gentleBeginningRow2 = [
   { src: gentleBeginning3, alt: "Happy infant sitting on classroom rug" },
   { src: gentleBeginning4, alt: "Baby with pink headband holding a toy" },
   { src: gentleBeginning5, alt: "Infant crawling through colorful play tunnel" },
+  { src: gentleBeginningWalker.url, alt: "Baby playing with bright activity walker toy" },
 ];
 
 const toddlerImages: { src: string; alt: string }[] = [];
