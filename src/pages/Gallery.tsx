@@ -36,6 +36,7 @@ const gentleBeginningRow2 = [
   { src: gentleBeginning3, alt: "Happy infant sitting on classroom rug" },
   { src: gentleBeginning4, alt: "Baby with pink headband holding a toy" },
   { src: gentleBeginning5, alt: "Infant crawling through colorful play tunnel" },
+  { src: gentleBeginningWalker.url, alt: "Baby playing with bright activity walker toy" },
 ];
 
 const toddlerImages: { src: string; alt: string }[] = [];
