@@ -132,7 +132,11 @@ const Gallery = () => {
               {gentleBeginningRow2.map((image, index) => (
                 <Card
                   key={`row2-${index}`}
-                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+                  className={`group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 ${
+                    index === gentleBeginningRow2.length - 1 && gentleBeginningRow2.length % 3 === 1
+                      ? "sm:col-start-2"
+                      : ""
+                  }`}
                 >
                   <div className="aspect-square overflow-hidden">
                     <img
