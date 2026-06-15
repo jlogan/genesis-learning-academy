@@ -61,19 +61,15 @@ const Tuition = () => {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-primary font-bold">•</span>
-                    <span>Immunization Record (3231 Form)</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">•</span>
                     <span>Parent ID</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-primary font-bold">•</span>
-                    <span>GA Pre-K Enrollment Form (for GA Pre-K students only)</span>
+                    <span>Immunization Record (3231 Form)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-primary font-bold">•</span>
-                    <span>Birth Certificate, Social Security Card, Parent Driver's License, Proof of Address (GA Pre-K)</span>
+                    <span>GA Pre-K Enrollment Form – Immunization Record for each child (3231 Form), Ear, Eye, and Dental, Birth Certificate, Child's Social Security Card, Parent's Driver's License, Proof of Address (for GA Pre-K Families)</span>
                   </li>
                 </ul>
               </div>
