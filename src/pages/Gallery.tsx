@@ -1,35 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Helmet } from "react-helmet";
 
-// Import new gallery images
-import kidsPlayingBlocks from "@/assets/gallery-kids-playing-blocks.jpg";
-import classroomDecorations from "@/assets/gallery-classroom-decorations.jpg";
-import classroomLearningCorner from "@/assets/gallery-classroom-learning-corner.jpg";
-import childLearningTable from "@/assets/gallery-child-learning-table.jpg";
-import childSensoryBin from "@/assets/gallery-child-sensory-bin.jpg";
-import infantPlaytime from "@/assets/gallery-infant-playtime.jpg";
-import girlCraftActivity from "@/assets/gallery-girl-craft-activity.jpg";
-import girlOutdoorPlay from "@/assets/gallery-girl-outdoor-play.jpg";
-
-// Import GA Pre-K Week images
-import prekReading1 from "@/assets/gallery-prek-reading-1.jpg";
-import prekReading2 from "@/assets/gallery-prek-reading-2.jpg";
-import prekGroupBooks from "@/assets/gallery-prek-group-books.jpg";
-import kidsHandsTogether from "@/assets/gallery-kids-hands-together.jpg";
-import teachersVisitor from "@/assets/gallery-teachers-visitor.jpg";
-
-// Import existing images from website
-import childArtActivity from "@/assets/child-art-activity.jpg";
-import childConstructionPlay from "@/assets/child-construction-play.jpg";
-import childLearningActivity from "@/assets/child-learning-activity.jpg";
-import childSensoryTable from "@/assets/child-sensory-table.jpg";
 import classroomInterior1 from "@/assets/classroom-interior-1.jpg";
-import classroomInterior2 from "@/assets/classroom-interior-2.jpg";
-import happyChildPlayground from "@/assets/happy-child-playground.jpg";
-import infantCaregiver from "@/assets/infant-caregiver.jpg";
-import outdoorPlayNew from "@/assets/outdoor-play-new.jpg";
-import teachersTeamClassroom from "@/assets/teachers-team-classroom.jpg";
-import genesisSignOutdoor from "@/assets/genesis-sign-outdoor.jpg";
 
 // Gentle Beginning (Infants) gallery images
 import gentleBeginning1 from "@/assets/gallery-gentle-beginning-1.jpg";
@@ -69,23 +41,7 @@ const toddlerImages = [
 ];
 
 
-const galleryImages = [
-  { src: girlOutdoorPlay, alt: "Happy child enjoying outdoor play" },
-  { src: prekReading1, alt: "Teacher reading to children during GA Pre-K Week" },
-  { src: classroomDecorations, alt: "Colorful classroom with educational decorations" },
-  { src: prekGroupBooks, alt: "Children and staff with books during GA Pre-K Week celebration" },
-  { src: classroomLearningCorner, alt: "Learning corner with classroom jobs display" },
-  { src: kidsHandsTogether, alt: "Children putting hands together in teamwork activity" },
-  { src: childLearningTable, alt: "Child learning phonics at activity table" },
-  { src: prekReading2, alt: "Story time with children engaged in reading" },
-  { src: kidsPlayingBlocks, alt: "Children playing together with building blocks" },
-  { src: teachersVisitor, alt: "Teachers with special visitor during Pre-K Week" },
-  { src: childSensoryBin, alt: "Child exploring sensory bin activity" },
-  { src: infantPlaytime, alt: "Infant engaged in developmental play" },
-  { src: teachersTeamClassroom, alt: "Teachers engaging with students" },
-  { src: genesisSignOutdoor, alt: "Genesis Learning Academy outdoor sign" },
-  { src: girlCraftActivity, alt: "Child engaged in creative craft activity" },
-];
+
 
 const Gallery = () => {
   return (
@@ -212,29 +168,6 @@ const Gallery = () => {
 
 
 
-
-        {/* Gallery Grid */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleryImages.map((image, index) => (
-                <Card 
-                  key={index}
-                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Call to Action */}
         <section className="py-20 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5">
