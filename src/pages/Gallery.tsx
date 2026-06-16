@@ -38,7 +38,7 @@ import gentleBeginning2 from "@/assets/gallery-gentle-beginning-2.jpg";
 import gentleBeginning3 from "@/assets/gallery-gentle-beginning-3.jpg";
 import gentleBeginning4 from "@/assets/gallery-gentle-beginning-4.jpg";
 import gentleBeginning5 from "@/assets/gallery-gentle-beginning-5.jpg";
-import gentleBeginningWalker from "@/assets/gallery-gentle-beginning-walker.png.asset.json";
+import gentleBeginningWalker from "@/assets/gallery-gentle-beginning-walker-new.png.asset.json";
 
 type ProgramPhoto = {
   src: string;
