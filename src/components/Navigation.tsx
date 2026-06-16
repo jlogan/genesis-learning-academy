@@ -15,7 +15,6 @@ const Navigation = () => {
     { href: "/about", label: "About Us" },
     { href: "/gallery", label: "Gallery" },
     { href: "/resources", label: "Parent Resources" },
-    { href: "/contact", label: "Contact" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -24,9 +23,9 @@ const Navigation = () => {
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 pt-2">
         {/* Logo + Nav + CTA Section */}
-        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 pb-4">
-          <Link to="/" className="flex items-center">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-24 md:h-32 w-auto object-contain" />
+        <div className="flex flex-nowrap items-center justify-between gap-4 pb-4">
+          <Link to="/" className="flex items-center shrink-0">
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-20 md:h-24 w-auto object-contain" />
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -35,7 +34,7 @@ const Navigation = () => {
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "px-3.5 py-1.5 text-sm font-bold transition-colors",
+                  "px-3 py-1.5 text-sm font-bold whitespace-nowrap transition-colors",
                   isActive(link.href)
                     ? "text-primary underline underline-offset-4 decoration-2"
                     : "text-foreground hover:text-primary hover:underline hover:underline-offset-4 hover:decoration-2"
@@ -46,16 +45,16 @@ const Navigation = () => {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3">
+          <div className="hidden md:flex items-center gap-3 shrink-0">
             <a
               href="tel:770-672-4255"
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap text-primary hover:bg-primary/10 transition-colors"
               aria-label="Call Genesis Learning Academy at 770-672-4255"
             >
-              <Phone className="h-4 w-4" />
+              <Phone className="h-4 w-4 shrink-0" />
               (770) 672-4255
             </a>
-            <Button asChild variant="cta" size="default">
+            <Button asChild variant="cta" size="default" className="whitespace-nowrap shrink-0">
               <Link to="/contact">Schedule a Visit</Link>
             </Button>
           </div>
