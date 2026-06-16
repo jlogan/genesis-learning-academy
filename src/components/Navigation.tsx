@@ -45,30 +45,28 @@ const Navigation = () => {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-3 shrink-0">
-            <a
-              href="tel:770-672-4255"
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap text-primary hover:bg-primary/10 transition-colors"
-              aria-label="Call Genesis Learning Academy at 770-672-4255"
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="hidden md:flex items-center gap-3">
+              <a
+                href="tel:770-672-4255"
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap text-primary hover:bg-primary/10 transition-colors"
+                aria-label="Call Genesis Learning Academy at 770-672-4255"
+              >
+                <Phone className="h-4 w-4 shrink-0" />
+                (770) 672-4255
+              </a>
+              <Button asChild variant="cta" size="default" className="whitespace-nowrap shrink-0">
+                <Link to="/contact">Schedule a Visit</Link>
+              </Button>
+            </div>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-1.5 rounded-md hover:bg-secondary"
+              aria-label="Toggle menu"
             >
-              <Phone className="h-4 w-4 shrink-0" />
-              (770) 672-4255
-            </a>
-            <Button asChild variant="cta" size="default" className="whitespace-nowrap shrink-0">
-              <Link to="/contact">Schedule a Visit</Link>
-            </Button>
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden flex justify-center pb-4 border-t border-border pt-4">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-1.5 rounded-md hover:bg-secondary"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
         </div>
 
         {/* Mobile Navigation */}
