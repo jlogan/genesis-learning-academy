@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
+    "dev": "node init && vite",
+    "dev:all": "node init && concurrently \"npm run dev\" \"npm run server\"",
     "server": "node server.js",
-    "build": "node scripts/build.mjs",
-    "build:dev": "vite build --mode development",
+    "build": "node init && node scripts/build.mjs",
+    "build:dev": "node init && vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
   },
