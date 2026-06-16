@@ -413,15 +413,14 @@ const Resources = () => {
       <section className="py-20 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Get Started?
+            Questions Before You Enroll?
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto">
-            Have questions or ready to enroll? Contact us today to learn more about our programs 
-            and schedule a tour of our facility.
+            Contact us today to ask questions, talk through your child's needs, or schedule a visit to tour our facility.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild variant="cta" size="lg" className="w-full sm:w-auto">
-              <a href="/enroll">Submit Enrollment Request</a>
+              <a href="/contact">Ask a Question / Schedule a Visit</a>
             </Button>
             <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white w-full sm:w-auto">
               <a href="tel:770-672-4255">Call: (770) 672-4255</a>

@@ -20,9 +20,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // ─── PDF Generation ───────────────────────────────────────────────────────────
 
 const BRAND = {
-  name: 'Genesis Learning Academy of Killeen',
-  address: '4604 Westcliff Rd, Killeen, TX 76543',
-  phone: '(254) 213-5005',
+  name: 'Genesis Learning Academy of Kennesaw',
+  address: '2098 Carruth St NW, Kennesaw, GA 30144',
+  phone: '(770) 672-4255',
 };
 
 const COLORS = {
@@ -129,20 +129,21 @@ function generateEnrollmentPDF(data) {
       y += 45;
     }
 
-    // Safely get nested data
+    // Safely get nested data — field names match frontend schema (src/types/enrollment.ts)
     const d = data || {};
-    const child = d.childInformation || d.child || {};
-    const mother = d.parentGuardianMother || d.mother || {};
-    const father = d.parentGuardianFather || d.father || {};
-    const emergency = d.emergencyContacts || d.emergency || {};
-    const payment = d.paymentPolicy || d.payment || {};
-    const medical = d.medicalEmergency || d.medical || {};
-    const policies = d.policiesConsent || d.policies || {};
-    const photo = d.photoMediaAuthorization || d.photoMedia || {};
-    const infant = d.infantInformation || d.infant || {};
-    const cacfp = d.cacfpMedicaid || d.cacfp || {};
-    const transport = d.transportation || d.transport || {};
-    const family = d.aboutYourFamily || d.family || {};
+    const child = d.childInfo || {};
+    const parent1 = (d.parentGuardian && d.parentGuardian.parent1) || {};
+    const parent2 = (d.parentGuardian && d.parentGuardian.parent2) || {};
+    const guardian = d.parentGuardian || {};
+    const emergency = d.emergencyContacts || {};
+    const payment = d.paymentPolicies || {};
+    const medical = d.medicalInfo || {};
+    const policies = d.policiesConsent || {};
+    const photo = d.photoMedia || {};
+    const infant = d.infantInfo || {};
+    const cacfp = d.cacfp || {};
+    const transport = d.transportation || {};
+    const family = d.aboutFamily || {};
 
     // ── Page 1: Title + Child Information ──
 
@@ -162,216 +163,272 @@ function generateEnrollmentPDF(data) {
 
     // ── A. Child Information ──
     sectionTitle('Child Information');
-    fieldRow('First Name', child.firstName);
-    fieldRow('Middle Name', child.middleName);
-    fieldRow('Last Name', child.lastName);
-    fieldRowHalf('Date of Birth', child.dateOfBirth, 'Gender', child.gender);
-    fieldRow('Age Group', child.ageGroup || child.childAge);
-    fieldRow('Address', child.address || child.streetAddress);
-    fieldRowHalf('City', child.city, 'State', child.state);
-    fieldRowHalf('Zip Code', child.zipCode, 'County', child.county);
-    fieldRow('Lives With', child.livesWith);
-    fieldRow('Preferred Start Date', child.preferredStartDate || child.startDate);
-    fieldRow('Enrollment Type', child.enrollmentType);
-    fieldRow('Schedule', child.schedule);
-    fieldRow('Previous Childcare', child.previousChildcare);
-    if (child.allergies) fieldRow('Allergies', child.allergies);
-    if (child.specialNeeds) fieldRow('Special Needs', child.specialNeeds);
+    fieldRow('Full Name', child.childFullName);
+    fieldRowHalf('Birth Date', child.childBirthDate, 'Sex', child.childSex);
+    fieldRow('Nick Name', child.childNickName);
+    fieldRow('Home Address', child.childHomeAddress);
+    fieldRowHalf('City', child.childCity, 'State', child.childState);
+    fieldRow('Zip Code', child.childZipCode);
+    fieldRow('Home Phone', child.childHomePhone);
 
-    // ── B. Parent/Guardian Mother ──
-    sectionTitle('Parent/Guardian — Mother');
-    fieldRow('Name', mother.name || `${mother.firstName || ''} ${mother.lastName || ''}`.trim());
-    fieldRow('Relationship', mother.relationship);
-    fieldRow('Address', mother.address || mother.streetAddress);
-    fieldRowHalf('City', mother.city, 'State', mother.state);
-    fieldRowHalf('Zip Code', mother.zipCode, 'County', mother.county);
-    fieldRowHalf('Home Phone', mother.homePhone, 'Cell Phone', mother.cellPhone || mother.phone);
-    fieldRow('Email', mother.email);
-    fieldRow('Employer', mother.employer);
-    fieldRow('Employer Address', mother.employerAddress);
-    fieldRowHalf('Work Phone', mother.workPhone, 'Work Hours', mother.workHours);
-    fieldRow('Drivers License #', mother.driversLicense);
-    fieldRowHalf('DL State', mother.dlState, 'DL Expiration', mother.dlExpiration);
+    // ── B. Parent/Guardian #1 ──
+    sectionTitle('1st Parent/Guardian');
+    fieldRow('Full Name', parent1.fullName);
+    fieldRow('Birth Date', parent1.birthDate);
+    fieldRow('Home Address', parent1.homeAddress);
+    fieldRowHalf('City', parent1.city, 'State', parent1.state);
+    fieldRow('Zip Code', parent1.zipCode);
+    fieldRowHalf('Home Phone', parent1.homePhone, 'Cell Phone', parent1.cellPhone);
+    fieldRow('Email', parent1.email);
+    fieldRow('Occupation', parent1.occupation);
+    fieldRow('Employer', parent1.employerName);
+    fieldRow('Employer Address', parent1.employerAddress);
+    fieldRowHalf('Work Phone', parent1.workPhone, 'Work Hours', parent1.workHours);
 
-    // ── C. Parent/Guardian Father ──
-    sectionTitle('Parent/Guardian — Father');
-    fieldRow('Name', father.name || `${father.firstName || ''} ${father.lastName || ''}`.trim());
-    fieldRow('Relationship', father.relationship);
-    fieldRow('Address', father.address || father.streetAddress);
-    fieldRowHalf('City', father.city, 'State', father.state);
-    fieldRowHalf('Zip Code', father.zipCode, 'County', father.county);
-    fieldRowHalf('Home Phone', father.homePhone, 'Cell Phone', father.cellPhone || father.phone);
-    fieldRow('Email', father.email);
-    fieldRow('Employer', father.employer);
-    fieldRow('Employer Address', father.employerAddress);
-    fieldRowHalf('Work Phone', father.workPhone, 'Work Hours', father.workHours);
-    fieldRow('Drivers License #', father.driversLicense);
-    fieldRowHalf('DL State', father.dlState, 'DL Expiration', father.dlExpiration);
+    // ── C. Parent/Guardian #2 ──
+    const hasParent2 = parent2.fullName || parent2.cellPhone || parent2.email;
+    if (hasParent2) {
+      sectionTitle('2nd Parent/Guardian');
+      fieldRow('Full Name', parent2.fullName);
+      fieldRow('Birth Date', parent2.birthDate);
+      fieldRow('Home Address', parent2.homeAddress);
+      fieldRowHalf('City', parent2.city, 'State', parent2.state);
+      fieldRow('Zip Code', parent2.zipCode);
+      fieldRowHalf('Home Phone', parent2.homePhone, 'Cell Phone', parent2.cellPhone);
+      fieldRow('Email', parent2.email);
+      fieldRow('Occupation', parent2.occupation);
+      fieldRow('Employer', parent2.employerName);
+      fieldRow('Employer Address', parent2.employerAddress);
+      fieldRowHalf('Work Phone', parent2.workPhone, 'Work Hours', parent2.workHours);
+    }
+    fieldRow('Legal Custody Parent', guardian.legalCustodyParent);
+    fieldRow('Parental Status', guardian.parentalStatus);
+    // Household members
+    const members = guardian.otherHouseholdMembers || [];
+    const filledMembers = members.filter(m => m && m.name);
+    if (filledMembers.length > 0) {
+      checkPage(30);
+      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
+        .text('Other Household Members', 55, y);
+      y += 16;
+      filledMembers.forEach(m => {
+        fieldRow(m.name, `Age: ${m.age || '—'}, Relationship: ${m.relationship || '—'}`);
+      });
+    }
 
     // ── D. Emergency Contacts & Authorized Pickup ──
     sectionTitle('Emergency Contacts & Authorized Pickup');
-    const contacts = emergency.contacts || emergency.emergencyContacts || [];
-    if (Array.isArray(contacts) && contacts.length > 0) {
-      contacts.forEach((c, i) => {
-        checkPage(60);
-        doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-          .text(`Contact #${i + 1}`, 55, y);
-        y += 16;
-        fieldRow('Name', c.name);
-        fieldRow('Relationship', c.relationship);
-        fieldRow('Phone', c.phone);
-        fieldRow('Authorized for Pickup', c.authorizedPickup ? 'Yes' : 'No');
-        if (i < contacts.length - 1) separator();
-      });
-    } else {
-      // Try flat fields
-      fieldRow('Contact 1 Name', emergency.contact1Name);
-      fieldRow('Contact 1 Phone', emergency.contact1Phone);
-      fieldRow('Contact 1 Relationship', emergency.contact1Relationship);
+    const ec1 = emergency.emergencyContact1 || {};
+    const ec2 = emergency.emergencyContact2 || {};
+    checkPage(60);
+    doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
+      .text('Emergency Contact #1', 55, y);
+    y += 16;
+    fieldRow('Name', ec1.name);
+    fieldRowHalf('Home/Cell', ec1.homeCell, 'Work Phone', ec1.workPhone);
+    fieldRow('Relationship', ec1.relationship);
+    fieldRow('Address', ec1.address);
+    fieldRow('City/State/Zip', ec1.cityStateZip);
+    separator();
+    if (ec2.name) {
+      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
+        .text('Emergency Contact #2', 55, y);
+      y += 16;
+      fieldRow('Name', ec2.name);
+      fieldRowHalf('Home/Cell', ec2.homeCell, 'Work Phone', ec2.workPhone);
+      fieldRow('Relationship', ec2.relationship);
+      fieldRow('Address', ec2.address);
+      fieldRow('City/State/Zip', ec2.cityStateZip);
       separator();
-      fieldRow('Contact 2 Name', emergency.contact2Name);
-      fieldRow('Contact 2 Phone', emergency.contact2Phone);
-      fieldRow('Contact 2 Relationship', emergency.contact2Relationship);
     }
+    fieldRow('Kid Code (Secret Pickup Word)', emergency.kidCode);
 
-    const authorizedPickup = emergency.authorizedPickup || emergency.authorizedPersons || [];
-    if (Array.isArray(authorizedPickup) && authorizedPickup.length > 0) {
+    // Authorized Pickup
+    const ap1 = emergency.authorizedPickup1 || {};
+    const ap2 = emergency.authorizedPickup2 || {};
+    if (ap1.name || ap2.name) {
       checkPage(30);
-      y += 4;
       doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
         .text('Authorized Pickup Persons', 55, y);
       y += 16;
-      authorizedPickup.forEach(p => {
-        if (typeof p === 'string') {
-          bulletItem(p);
-        } else {
-          fieldRow(p.name || 'Person', `${p.relationship || ''} — ${p.phone || ''}`);
-        }
-      });
+      if (ap1.name) {
+        fieldRow(ap1.name, `${ap1.relationship || '—'} — ${ap1.homeCell || '—'}`);
+        if (ap1.address) fieldRow('Address', ap1.address);
+      }
+      if (ap2.name) {
+        fieldRow(ap2.name, `${ap2.relationship || '—'} — ${ap2.homeCell || '—'}`);
+        if (ap2.address) fieldRow('Address', ap2.address);
+      }
+    }
+
+    // Unauthorized Pickup
+    const up1 = emergency.unauthorizedPickup1 || {};
+    const up2 = emergency.unauthorizedPickup2 || {};
+    if (up1.name || up2.name) {
+      checkPage(30);
+      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
+        .text('NOT Authorized for Pickup', 55, y);
+      y += 16;
+      if (up1.name) fieldRow(up1.name, up1.comment);
+      if (up2.name) fieldRow(up2.name, up2.comment);
     }
 
     // ── E. Payment Policy ──
     sectionTitle('Payment Policy Acknowledgments');
-    const paymentAcks = payment.acknowledgments || payment.policies || [];
-    if (Array.isArray(paymentAcks) && paymentAcks.length > 0) {
-      paymentAcks.forEach(ack => bulletItem(typeof ack === 'string' ? ack : (ack.text || ack.policy || JSON.stringify(ack))));
-    }
-    // Also check for individual boolean acknowledgments
-    const paymentBooleans = [
-      ['tuitionAcknowledged', 'Tuition policy acknowledged'],
-      ['latePaymentAcknowledged', 'Late payment policy acknowledged'],
-      ['registrationFeeAcknowledged', 'Registration fee policy acknowledged'],
-      ['depositAcknowledged', 'Deposit policy acknowledged'],
-      ['withdrawalPolicyAcknowledged', 'Withdrawal/termination policy acknowledged'],
-      ['ccmsAcknowledged', 'CCMS/subsidy policy acknowledged'],
-      ['absenceAcknowledged', 'Absence policy acknowledged'],
-      ['holidayAcknowledged', 'Holiday closure policy acknowledged'],
-      ['allPoliciesAccepted', 'All payment policies accepted'],
+    const paymentAcks = [
+      ['ackHoursOvertime', 'Hours & overtime policy acknowledged'],
+      ['ackPaymentDeadline', 'Payment deadline policy acknowledged'],
+      ['ackRegistrationFee', 'Registration fee policy acknowledged'],
+      ['ackVacationPolicy', 'Vacation policy acknowledged'],
+      ['ackNoAbsenceDiscounts', 'No absence discounts policy acknowledged'],
+      ['ackDisenrollmentNotice', 'Disenrollment notice policy acknowledged'],
+      ['ackAgeGrouping', 'Age grouping policy acknowledged'],
+      ['ackEscortPolicy', 'Escort policy acknowledged'],
+      ['ackTransportationFee', 'Transportation fee acknowledged'],
+      ['ackDayServicePayment', 'Day service payment acknowledged'],
     ];
-    paymentBooleans.forEach(([key, label]) => {
+    paymentAcks.forEach(([key, label]) => {
       if (payment[key]) bulletItem(`✓ ${label}`);
     });
-    if (payment.paymentMethod) fieldRow('Payment Method', payment.paymentMethod);
-    if (payment.tuitionRate) fieldRow('Tuition Rate', payment.tuitionRate);
+    if (payment.isAfterSchool) fieldRow('After School Program', 'Yes');
 
     // ── F. Medical & Emergency Information ──
     sectionTitle('Medical & Emergency Information');
-    fieldRow('Physician Name', medical.physicianName || medical.doctorName);
-    fieldRow('Physician Phone', medical.physicianPhone || medical.doctorPhone);
-    fieldRow('Physician Address', medical.physicianAddress || medical.doctorAddress);
-    fieldRow('Dentist Name', medical.dentistName);
-    fieldRow('Dentist Phone', medical.dentistPhone);
-    fieldRow('Preferred Hospital', medical.preferredHospital || medical.hospital);
-    fieldRow('Insurance Provider', medical.insuranceProvider || medical.insurance);
-    fieldRow('Policy Number', medical.policyNumber || medical.insurancePolicy);
-    fieldRow('Known Allergies', medical.allergies || medical.knownAllergies);
-    fieldRow('Medications', medical.medications || medical.currentMedications);
-    fieldRow('Medical Conditions', medical.medicalConditions || medical.conditions);
-    fieldRow('Special Dietary Needs', medical.dietaryNeeds || medical.specialDiet);
-    fieldRow('Immunizations Current', medical.immunizationsCurrent ? 'Yes' : (medical.immunizationsCurrent === false ? 'No' : '—'));
+    fieldRow('Physician Name', medical.physicianName);
+    fieldRow('Physician Phone', medical.physicianPhone);
+    fieldRow('Preferred Hospital', medical.preferredHospital);
+    fieldRow('Hospital Phone', medical.hospitalPhone);
+    fieldRow('Blood Type', medical.bloodType);
+    fieldRow('Regular Medications', medical.regularMedications);
+    fieldRow('Medical Allergies', medical.medicalAllergies);
+    fieldRow('Food Allergies', medical.foodAllergies);
+    fieldRow('Other Allergies', medical.otherAllergies);
+    fieldRow('Special Health Conditions', medical.specialHealthConditions);
+    if (medical.ackEmergencyMedicalCare) bulletItem('✓ Emergency medical care authorized');
 
     // ── G. Policies & Consent ──
     sectionTitle('Policies & Consent Forms');
-    const consentItems = [
-      ['liabilityWaiver', 'Liability Waiver accepted'],
-      ['topicalPreparations', 'Topical Preparations consent given'],
-      ['childCombination', 'Child Combination/Mixed Age Group consent given'],
-      ['mediaConsent', 'Media/photo consent given'],
-      ['disciplinePolicy', 'Discipline policy acknowledged'],
-      ['illnessPolicy', 'Illness policy acknowledged'],
-      ['fieldTripConsent', 'Field trip consent given'],
-      ['waterActivities', 'Water activities consent given'],
-      ['transportConsent', 'Transportation consent given'],
-      ['sunscreenConsent', 'Sunscreen application consent given'],
-      ['insectRepellent', 'Insect repellent consent given'],
-      ['handSanitizer', 'Hand sanitizer consent given'],
-      ['allConsentsGiven', 'All policies and consents accepted'],
+    if (policies.ackNoLiabilityInsurance) bulletItem('✓ No liability insurance policy acknowledged');
+    if (policies.ackChildCombination) bulletItem('✓ Child combination/mixed age group policy acknowledged');
+    // Topical preparations
+    const topicals = [
+      ['topicalBabyWipes', 'Baby Wipes'], ['topicalBandAids', 'Band-Aids'],
+      ['topicalNeosporin', 'Neosporin'], ['topicalBactine', 'Bactine'],
+      ['topicalSunscreen', 'Sunscreen'], ['topicalInsectRepellent', 'Insect Repellent'],
+      ['topicalNonRxOintment', 'Non-Rx Ointment'], ['topicalBabyPowder', 'Baby Powder'],
+      ['topicalOther', 'Other'],
     ];
-    consentItems.forEach(([key, label]) => {
-      if (policies[key]) bulletItem(`✓ ${label}`);
-    });
-    if (policies.additionalNotes) fieldRow('Additional Notes', policies.additionalNotes);
+    const approvedTopicals = topicals.filter(([key]) => policies[key]).map(([, label]) => label);
+    if (approvedTopicals.length > 0) {
+      fieldRow('Topical Preparations Authorized', approvedTopicals.join(', '));
+    }
+    if (policies.topicalOtherSpecify) fieldRow('Other Topical', policies.topicalOtherSpecify);
 
     // ── H. Photo/Media Authorization ──
     sectionTitle('Photo/Media Authorization');
-    fieldRow('Photo Authorization', photo.authorized != null ? (photo.authorized ? 'AUTHORIZED' : 'NOT AUTHORIZED') : (photo.consent || '—'));
-    if (photo.restrictions) fieldRow('Restrictions', photo.restrictions);
-    if (photo.socialMedia != null) fieldRow('Social Media', photo.socialMedia ? 'Permitted' : 'Not Permitted');
-    if (photo.website != null) fieldRow('Website', photo.website ? 'Permitted' : 'Not Permitted');
-    if (photo.promotional != null) fieldRow('Promotional Materials', photo.promotional ? 'Permitted' : 'Not Permitted');
+    fieldRow('Photo Authorization', photo.photoAuthorization);
 
     // ── I. Infant Information (if applicable) ──
-    const hasInfant = infant && Object.keys(infant).length > 0 && (infant.applicable || infant.feedingSchedule || infant.napSchedule || infant.formula);
+    const hasInfant = infant && (infant.ackSafeSleep || infant.takesBottle || infant.formulaType);
     if (hasInfant) {
       sectionTitle('Infant Information');
-      fieldRow('Feeding Schedule', infant.feedingSchedule);
-      fieldRow('Formula/Breast Milk', infant.formula || infant.feedingType);
-      fieldRow('Formula Brand', infant.formulaBrand);
-      fieldRow('Nap Schedule', infant.napSchedule);
-      fieldRow('Solid Foods Introduced', infant.solidFoods);
-      fieldRow('Special Instructions', infant.specialInstructions);
-      fieldRow('Diaper Cream', infant.diaperCream);
-      fieldRow('Comfort Items', infant.comfortItems);
+      if (infant.ackSafeSleep) bulletItem('✓ Safe sleep policy acknowledged');
+      fieldRow('Takes Bottle', infant.takesBottle);
+      fieldRow('Bottle Warmed', infant.bottleWarmed);
+      fieldRow('Holds Own Bottle', infant.holdsOwnBottle);
+      fieldRow('Feeds Self', infant.feedsSelf);
+      // Food types
+      const foodTypes = [
+        ['foodStrained', 'Strained'], ['foodBaby', 'Baby Food'], ['foodFormula', 'Formula'],
+        ['foodWholeMilk', 'Whole Milk'], ['foodTable', 'Table Food'], ['foodOther', 'Other'],
+      ];
+      const selectedFoods = foodTypes.filter(([key]) => infant[key]).map(([, label]) => label);
+      if (selectedFoods.length > 0) fieldRow('Food Types', selectedFoods.join(', '));
+      if (infant.foodOtherSpecify) fieldRow('Other Food', infant.foodOtherSpecify);
+      fieldRow('Formula Type', infant.formulaType);
+      fieldRow('Formula Amount', infant.formulaAmount);
+      fieldRow('Formula Schedule', infant.formulaSchedule);
+      fieldRow('Formula Option', infant.formulaOption);
+      fieldRow('Pacifier Use', infant.pacifierUse);
+      fieldRow('Pacifier When', infant.pacifierWhen);
+      // Developmental milestones
+      if (infant.devRollOver || infant.devSitAlone || infant.devCrawl || infant.devWalk) {
+        fieldRowHalf('Roll Over', infant.devRollOver, 'Sit Alone', infant.devSitAlone);
+        fieldRowHalf('Crawl', infant.devCrawl, 'Walk', infant.devWalk);
+      }
+      fieldRow('Food Likes', infant.foodLikes);
+      fieldRow('Food Dislikes', infant.foodDislikes);
+      fieldRow('Food Allergies', infant.foodAllergiesInfant);
+      fieldRow('Solid Foods Instructions', infant.solidFoodsInstructions);
     }
 
     // ── J. CACFP/Medicaid ──
     sectionTitle('CACFP / Medicaid Information');
-    fieldRow('CACFP Participation', cacfp.participates != null ? (cacfp.participates ? 'Yes' : 'No') : (cacfp.cacfpParticipation || '—'));
+    if (cacfp.optOutMedicaidSharing) bulletItem('Opted out of Medicaid sharing');
+    fieldRow('SNAP/TANF Case #', cacfp.snapTanfCase);
+    // Categories
+    const categories = [
+      ['catHeadStart', 'Head Start'], ['catFosterChild', 'Foster Child'],
+      ['catMigrant', 'Migrant'], ['catRunaway', 'Runaway'], ['catHomeless', 'Homeless'],
+    ];
+    const selectedCats = categories.filter(([key]) => cacfp[key]).map(([, label]) => label);
+    if (selectedCats.length > 0) fieldRow('Categories', selectedCats.join(', '));
+    fieldRow('Household Income', cacfp.householdIncome);
     fieldRow('Household Size', cacfp.householdSize);
-    fieldRow('Annual Income', cacfp.annualIncome || cacfp.income);
-    fieldRow('Income Frequency', cacfp.incomeFrequency);
-    fieldRow('SNAP/TANF Benefits', cacfp.snapTanf != null ? (cacfp.snapTanf ? 'Yes' : 'No') : '—');
-    fieldRow('Case Number', cacfp.caseNumber);
-    fieldRow('Medicaid', cacfp.medicaid != null ? (cacfp.medicaid ? 'Yes' : 'No') : (cacfp.medicaidStatus || '—'));
-    fieldRow('Medicaid Number', cacfp.medicaidNumber);
-    fieldRow('Race/Ethnicity', cacfp.raceEthnicity || cacfp.ethnicity);
+    fieldRow('Hispanic/Latino', cacfp.ethnicHispanic);
+    // Race
+    const races = [
+      ['raceAmericanIndian', 'American Indian/Alaska Native'], ['raceAsian', 'Asian'],
+      ['raceBlack', 'Black/African American'], ['raceHawaiian', 'Native Hawaiian/Pacific Islander'],
+      ['raceWhite', 'White'],
+    ];
+    const selectedRaces = races.filter(([key]) => cacfp[key]).map(([, label]) => label);
+    if (selectedRaces.length > 0) fieldRow('Race', selectedRaces.join(', '));
+    // Meals
+    const meals = [
+      ['mealBreakfast', 'Breakfast'], ['mealAMSnack', 'AM Snack'], ['mealLunch', 'Lunch'],
+      ['mealPMSnack', 'PM Snack'], ['mealSupper', 'Supper'], ['mealEveningSnack', 'Evening Snack'],
+    ];
+    const selectedMeals = meals.filter(([key]) => cacfp[key]).map(([, label]) => label);
+    if (selectedMeals.length > 0) fieldRow('Meals', selectedMeals.join(', '));
+    // Days
+    const days = [
+      ['dayMon', 'Mon'], ['dayTue', 'Tue'], ['dayWed', 'Wed'],
+      ['dayThu', 'Thu'], ['dayFri', 'Fri'], ['daySat', 'Sat'],
+    ];
+    const selectedDays = days.filter(([key]) => cacfp[key]).map(([, label]) => label);
+    if (selectedDays.length > 0) fieldRow('Days of Attendance', selectedDays.join(', '));
+    fieldRow('Hours of Attendance', cacfp.hoursOfAttendance);
 
     // ── K. Transportation ──
-    const hasTransport = transport && Object.keys(transport).length > 0 && (transport.needed || transport.schoolName || transport.required);
+    const hasTransport = transport && (transport.transFatherName || transport.transMotherName || transport.transPickupLocation);
     if (hasTransport) {
       sectionTitle('Transportation Information');
-      fieldRow('Transportation Needed', transport.needed ? 'Yes' : 'No');
-      fieldRow('School Name', transport.schoolName);
-      fieldRow('School Address', transport.schoolAddress);
-      fieldRow('AM Transport', transport.amTransport || transport.morning);
-      fieldRow('PM Transport', transport.pmTransport || transport.afternoon);
-      fieldRow('Bus Number', transport.busNumber);
-      fieldRow('Special Instructions', transport.specialInstructions);
+      fieldRowHalf('Father Name', transport.transFatherName, 'Father Phone', transport.transFatherPhone);
+      fieldRowHalf('Mother Name', transport.transMotherName, 'Mother Phone', transport.transMotherPhone);
+      fieldRowHalf('Emergency Contact', transport.transEmergencyContact, 'Emergency Phone', transport.transEmergencyPhone);
+      fieldRowHalf('Doctor Name', transport.transDoctorName, 'Doctor Phone', transport.transDoctorPhone);
+      fieldRow('Pickup Location', transport.transPickupLocation);
+      fieldRow('Delivery Location', transport.transDeliveryLocation);
+      fieldRowHalf('Pickup Time', transport.transPickupTime, 'Delivery Time', transport.transDeliveryTime);
+      const transDays = [
+        ['transDayMon', 'Mon'], ['transDayTue', 'Tue'], ['transDayWed', 'Wed'],
+        ['transDayThu', 'Thu'], ['transDayFri', 'Fri'],
+      ];
+      const selectedTransDays = transDays.filter(([key]) => transport[key]).map(([, label]) => label);
+      if (selectedTransDays.length > 0) fieldRow('Transportation Days', selectedTransDays.join(', '));
+      fieldRow('Authorized Person', transport.transAuthorizedPerson);
     }
 
     // ── L. About Your Family ──
     sectionTitle('About Your Family');
-    fieldRow('Primary Language', family.primaryLanguage || d.languagePreference);
-    fieldRow('Other Languages', family.otherLanguages);
-    fieldRow('Number of Siblings', family.numberOfSiblings || family.siblings);
-    fieldRow('Siblings at GLAK', family.siblingsAtGLAK);
-    fieldRow('How Did You Hear About Us?', family.referralSource || family.howDidYouHear);
-    fieldRow('Reason for Enrollment', family.reasonForEnrollment);
-    fieldRow('Special Considerations', family.specialConsiderations);
-    fieldRow('Court Orders/Custody', family.custodyOrders || family.courtOrders);
-    if (family.additionalInfo || d.additionalInfo) {
-      fieldRow('Additional Information', family.additionalInfo || d.additionalInfo);
-    }
+    fieldRow('Family Members', family.familyMembers);
+    fieldRow('Birthday', family.familyBirthday);
+    fieldRow('Activities', family.familyActivities);
+    fieldRow('Strengths', family.familyStrengths);
+    fieldRow('Areas to Work On', family.familyWorkOn);
+    fieldRow('Medical Needs', family.familyMedicalNeeds);
+    fieldRow('Other Information', family.familyOtherInfo);
 
     // ── Signature Pages ──
     doc.addPage();
@@ -389,9 +446,9 @@ function generateEnrollmentPDF(data) {
 
     separator();
 
-    signatureLine('Parent/Guardian — Mother');
+    signatureLine('1st Parent/Guardian');
     y += 10;
-    signatureLine('Parent/Guardian — Father');
+    signatureLine('2nd Parent/Guardian');
     y += 10;
 
     separator();
@@ -410,16 +467,24 @@ function generateEnrollmentPDF(data) {
     fieldRow('Notes', '');
 
     // ── Footer on every page ──
+    // PDFKit's switchToPage + text near bottom margin creates ghost pages.
+    // Fix: track real page count, pop any extra pages from the buffer.
     const pages = doc.bufferedPageRange();
-    for (let i = 0; i < pages.count; i++) {
+    const realPageCount = pages.count;
+    for (let i = 0; i < realPageCount; i++) {
       doc.switchToPage(i);
       doc.fontSize(7).font('Helvetica').fill(COLORS.muted)
         .text(
-          `${BRAND.name}  •  Enrollment Application  •  Page ${i + 1} of ${pages.count}`,
+          `${BRAND.name}  •  Enrollment Application  •  Page ${i + 1} of ${realPageCount}`,
           50, doc.page.height - 35,
-          { width: pageWidth, align: 'center' }
+          { width: pageWidth, align: 'center', lineBreak: false }
         );
     }
+
+    // Remove ghost pages created by switchToPage + text writes
+    const extra = doc.bufferedPageRange().count - realPageCount;
+    for (let i = 0; i < extra; i++) doc._pageBuffer.pop();
+    doc.switchToPage(realPageCount - 1);
 
     doc.end();
   });
@@ -432,14 +497,14 @@ app.post('/api/enroll', async (req, res) => {
     const data = req.body;
 
     // Derive names for the email subject/filename
-    const child = data.childInformation || data.child || {};
+    // Frontend sends: data.childInfo.childFullName, data.parentGuardian.parent1.{fullName,email}
+    const child = data.childInfo || data.childInformation || data.child || {};
+    const parent1 = (data.parentGuardian && data.parentGuardian.parent1) || {};
     const mother = data.parentGuardianMother || data.mother || {};
-    const childFirst = child.firstName || child.childName || 'Child';
-    const childLast = child.lastName || '';
-    const childFullName = `${childFirst} ${childLast}`.trim();
-    const parentName = mother.name || `${mother.firstName || ''} ${mother.lastName || ''}`.trim() || data.parentName || 'Parent';
-    const parentEmail = mother.email || data.email || '';
-    const filenameSafe = (childLast || childFirst || 'Enrollment').replace(/[^a-zA-Z0-9]/g, '');
+    const childFullName = child.childFullName || `${child.firstName || child.childName || 'Child'} ${child.lastName || ''}`.trim();
+    const parentName = parent1.fullName || mother.name || `${mother.firstName || ''} ${mother.lastName || ''}`.trim() || data.parentName || 'Parent';
+    const parentEmail = parent1.email || mother.email || data.email || '';
+    const filenameSafe = (childFullName || 'Enrollment').replace(/[^a-zA-Z0-9]/g, '');
 
     // Validate minimum fields
     if (!parentEmail) {
@@ -464,8 +529,8 @@ app.post('/api/enroll', async (req, res) => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a202c;">
           <div style="background-color: #1a365d; padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 22px;">Genesis Learning Academy of Killeen</h1>
-            <p style="color: #e2e8f0; margin: 5px 0 0;">4604 Westcliff Rd, Killeen, TX 76543</p>
+            <h1 style="color: white; margin: 0; font-size: 22px;">Genesis Learning Academy of Kennesaw</h1>
+            <p style="color: #e2e8f0; margin: 5px 0 0;">2098 Carruth St NW, Kennesaw, GA 30144</p>
           </div>
           <div style="padding: 30px 20px;">
             <p>Dear ${parentName},</p>
@@ -485,12 +550,12 @@ app.post('/api/enroll', async (req, res) => {
               <li>Photo ID of parent/guardian</li>
               <li>Court orders (if applicable)</li>
             </ul>
-            <p>If you have any questions, please call us at <strong>(254) 213-5005</strong>.</p>
-            <p>We look forward to welcoming ${childFirst} to our GLAK family!</p>
-            <p style="margin-top: 30px;">Warm regards,<br><strong>Genesis Learning Academy of Killeen</strong></p>
+            <p>If you have any questions, please call us at <strong>(770) 672-4255</strong>.</p>
+            <p>We look forward to welcoming ${childFullName} to our GLAK family!</p>
+            <p style="margin-top: 30px;">Warm regards,<br><strong>Genesis Learning Academy of Kennesaw</strong></p>
           </div>
           <div style="background-color: #edf2f7; padding: 15px; text-align: center; font-size: 12px; color: #718096;">
-            <p>Genesis Learning Academy of Killeen<br>4604 Westcliff Rd, Killeen, TX 76543 | (254) 213-5005</p>
+            <p>Genesis Learning Academy of Kennesaw<br>2098 Carruth St NW, Kennesaw, GA 30144 | (770) 672-4255</p>
           </div>
         </div>
       `,
@@ -518,11 +583,11 @@ app.post('/api/enroll', async (req, res) => {
           <div style="padding: 20px;">
             <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
               <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Child</td><td style="padding:8px;">${childFullName}</td></tr>
-              <tr><td style="padding:8px; font-weight:bold;">DOB</td><td style="padding:8px;">${child.dateOfBirth || '—'}</td></tr>
-              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Age Group</td><td style="padding:8px;">${child.ageGroup || child.childAge || '—'}</td></tr>
+              <tr><td style="padding:8px; font-weight:bold;">DOB</td><td style="padding:8px;">${child.childBirthDate || '—'}</td></tr>
+              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Sex</td><td style="padding:8px;">${child.childSex || '—'}</td></tr>
               <tr><td style="padding:8px; font-weight:bold;">Parent</td><td style="padding:8px;">${parentName}</td></tr>
               <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Email</td><td style="padding:8px;"><a href="mailto:${parentEmail}">${parentEmail}</a></td></tr>
-              <tr><td style="padding:8px; font-weight:bold;">Phone</td><td style="padding:8px;">${mother.cellPhone || mother.phone || data.phone || '—'}</td></tr>
+              <tr><td style="padding:8px; font-weight:bold;">Phone</td><td style="padding:8px;">${parent1.cellPhone || parent1.homePhone || '—'}</td></tr>
               <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Start Date</td><td style="padding:8px;">${child.preferredStartDate || child.startDate || '—'}</td></tr>
               <tr><td style="padding:8px; font-weight:bold;">Enrollment Type</td><td style="padding:8px;">${child.enrollmentType || '—'}</td></tr>
             </table>
@@ -554,6 +619,105 @@ app.post('/api/enroll', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to process enrollment',
+      details: error.message,
+    });
+  }
+});
+
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ─── Contact / Visit Request Endpoint ─────────────────────────────────────────
+
+app.post('/api/contact', async (req, res) => {
+  try {
+    const data = req.body || {};
+    const parentName = String(data.parentName || '').trim();
+    const email = String(data.email || '').trim();
+    const phone = String(data.phone || '').trim();
+    const childAge = String(data.childAge || '').trim();
+    const interest = String(data.interest || '').trim();
+    const message = String(data.message || '').trim();
+
+    if (!parentName || !email || !interest || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please include your name, email, reason for reaching out, and message.',
+      });
+    }
+
+    const safe = {
+      parentName: escapeHtml(parentName),
+      email: escapeHtml(email),
+      phone: escapeHtml(phone || '—'),
+      childAge: escapeHtml(childAge || '—'),
+      interest: escapeHtml(interest),
+      message: escapeHtml(message).replace(/\n/g, '<br>'),
+    };
+
+    const staffEmailResult = await resend.emails.send({
+      from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
+      to: ['jay@brogrammers.agency'],
+      subject: `New Genesis inquiry: ${interest} — ${parentName}`,
+      replyTo: email,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #1a202c;">
+          <div style="background-color: #1a365d; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 20px;">New Genesis Learning Academy Inquiry</h1>
+          </div>
+          <div style="padding: 22px;">
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Parent/Guardian</td><td style="padding:8px;">${safe.parentName}</td></tr>
+              <tr><td style="padding:8px; font-weight:bold;">Email</td><td style="padding:8px;"><a href="mailto:${safe.email}">${safe.email}</a></td></tr>
+              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Phone</td><td style="padding:8px;">${safe.phone}</td></tr>
+              <tr><td style="padding:8px; font-weight:bold;">Child Age / Program</td><td style="padding:8px;">${safe.childAge}</td></tr>
+              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Interest</td><td style="padding:8px;">${safe.interest}</td></tr>
+            </table>
+            <h2 style="font-size:16px; color:#1a365d;">Message</h2>
+            <p style="line-height:1.6;">${safe.message}</p>
+            <p style="color:#718096; font-size:12px; margin-top:24px;">Reply to this email to contact the parent directly at ${safe.email}.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (staffEmailResult.error) {
+      console.error('Contact email error:', staffEmailResult.error);
+      return res.status(500).json({ success: false, error: 'Failed to send contact request' });
+    }
+
+    await resend.emails.send({
+      from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
+      to: [email],
+      subject: 'We received your Genesis Learning Academy message',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a202c;">
+          <div style="background-color: #1a365d; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 22px;">Genesis Learning Academy of Kennesaw</h1>
+          </div>
+          <div style="padding: 30px 20px;">
+            <p>Dear ${safe.parentName},</p>
+            <p>Thank you for reaching out to Genesis Learning Academy. We received your message and will follow up with you shortly.</p>
+            <p>If you would like to speak with us sooner, please call <strong>(770) 672-4255</strong>.</p>
+            <p>Warm regards,<br><strong>Genesis Learning Academy of Kennesaw</strong></p>
+          </div>
+        </div>
+      `,
+    });
+
+    res.json({ success: true, message: 'Contact request submitted successfully.' });
+  } catch (error) {
+    console.error('Contact request error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process contact request',
       details: error.message,
     });
   }

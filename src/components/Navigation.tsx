@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import genesisLogo from "@/assets/genesis-logo-clean.png";
@@ -15,6 +15,7 @@ const Navigation = () => {
     { href: "/about", label: "About Us" },
     { href: "/gallery", label: "Gallery" },
     { href: "/resources", label: "Parent Resources" },
+    { href: "/contact", label: "Contact" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -22,11 +23,24 @@ const Navigation = () => {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 pt-2">
-        {/* Logo Section */}
-        <div className="flex justify-center pb-2">
+        {/* Logo + Header CTA Section */}
+        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 pb-2">
           <Link to="/" className="flex items-center">
             <img src={genesisLogo} alt="Genesis Learning Academy" className="h-24 md:h-32 w-auto object-contain" />
           </Link>
+          <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3">
+            <a
+              href="tel:770-672-4255"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 transition-colors"
+              aria-label="Call Genesis Learning Academy at 770-672-4255"
+            >
+              <Phone className="h-4 w-4" />
+              (770) 672-4255
+            </a>
+            <Button asChild variant="cta" size="default">
+              <Link to="/contact">Schedule a Visit</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Desktop Navigation */}
@@ -46,7 +60,7 @@ const Navigation = () => {
             </Link>
           ))}
           <Button asChild variant="cta" size="default" className="ml-4">
-            <Link to="/enroll">Get Started</Link>
+            <Link to="/contact">Ask a Question</Link>
           </Button>
         </div>
 
@@ -79,11 +93,16 @@ const Navigation = () => {
                 {link.label}
               </Link>
             ))}
-            <div className="px-4 pt-2">
+            <div className="px-4 pt-2 space-y-2">
               <Button asChild variant="cta" size="lg" className="w-full">
-                <Link to="/enroll" onClick={() => setIsOpen(false)}>
-                  Get Started
+                <Link to="/contact" onClick={() => setIsOpen(false)}>
+                  Schedule a Visit
                 </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full">
+                <a href="tel:770-672-4255" onClick={() => setIsOpen(false)}>
+                  Call: (770) 672-4255
+                </a>
               </Button>
             </div>
           </div>

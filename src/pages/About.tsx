@@ -203,7 +203,7 @@ const About = () => {
                 </p>
               </div>
               <Button asChild variant="cta" size="lg" className="mt-4">
-                <Link to="/enroll">Join Our Community</Link>
+                <Link to="/contact">Schedule a Visit</Link>
               </Button>
             </div>
             <div className="relative h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-xl">
@@ -225,11 +225,11 @@ const About = () => {
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
             We'd love to meet you and show you why families trust Genesis Learning Academy. 
-            Schedule a tour or start enrollment today.
+            Schedule a visit or call with any questions — we can help with enrollment when you are ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild variant="cta" size="lg" className="w-full sm:w-auto min-w-[200px]">
-              <Link to="/enroll">Start Enrollment</Link>
+              <Link to="/contact">Schedule a Visit</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white w-full sm:w-auto min-w-[200px]">
               <a href="tel:770-672-4255">Call: (770) 672-4255</a>

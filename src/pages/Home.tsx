@@ -57,10 +57,10 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild variant="cta" size="lg">
-                <Link to="/enroll">Get Started <ArrowRight className="ml-2" /></Link>
+                <Link to="/contact">Schedule a Visit <ArrowRight className="ml-2" /></Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white">
-                <Link to="/programs">Explore Programs</Link>
+                <a href="tel:770-672-4255">Call: (770) 672-4255</a>
               </Button>
             </div>
           </div>
@@ -210,9 +210,9 @@ const Home = () => {
                   How do I start enrollment?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed">
-                  Getting started is easy! Simply submit our online enrollment form and our team will follow up with you to discuss next steps and schedule a tour.{" "}
-                  <Link to="/enroll" className="text-primary font-medium hover:underline">
-                    Start Enrollment →
+                  The easiest first step is to call us, ask a question, or schedule a visit. When your family is ready, we can help you with enrollment next steps.{" "}
+                  <Link to="/contact" className="text-primary font-medium hover:underline">
+                    Schedule a visit or ask a question →
                   </Link>
                 </AccordionContent>
               </AccordionItem>
@@ -261,15 +261,19 @@ const Home = () => {
       <section className="py-20 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Join Our Family?
+            Have Questions or Want to Visit?
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
-            Give your child the gift of quality education in a loving, inclusive environment. 
-            Enroll today and become part of the Genesis family.
+            We would love to learn about your family, answer your questions, and show you around Genesis Learning Academy.
           </p>
-          <Button asChild variant="cta" size="lg" className="min-w-[200px]">
-            <Link to="/enroll">Submit Enrollment Request</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild variant="cta" size="lg" className="min-w-[200px]">
+              <Link to="/contact">Schedule a Visit</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white min-w-[200px]">
+              <a href="tel:770-672-4255">Call: (770) 672-4255</a>
+            </Button>
+          </div>
         </div>
       </section>
     </div>

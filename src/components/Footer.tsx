@@ -88,6 +88,9 @@ const Footer = () => {
               <Link to="/about" className="block hover:text-accent transition-colors">
                 About Our Teachers
               </Link>
+              <Link to="/contact" className="block hover:text-accent transition-colors">
+                Schedule a Visit
+              </Link>
               <Link to="/enroll" className="block hover:text-accent transition-colors">
                 Enrollment Form
               </Link>

@@ -246,7 +246,7 @@ const Programs = () => {
                     {program.description}
                   </p>
                   <Button asChild variant="cta" size="sm" className="w-full">
-                    <Link to="/enroll">Get Started</Link>
+                    <Link to="/contact">Ask About This Program</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -325,7 +325,7 @@ const Programs = () => {
             {/* Enrollment Button - Bottom */}
             <div className="text-center">
               <Button asChild variant="cta" size="lg">
-                <Link to="/enroll">Enroll in Junior Achievers</Link>
+                <Link to="/contact">Ask About Junior Achievers</Link>
               </Button>
             </div>
           </div>
@@ -336,14 +336,14 @@ const Programs = () => {
       <section className="py-20 bg-background border-t">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
-            Ready to Get Started?
+            Want to See If We’re the Right Fit?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Join our Kennesaw daycare family and give your child the foundation for lifelong success
+            Call us or schedule a visit so we can answer your questions and help you choose the right program
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild variant="cta" size="lg" className="w-full sm:w-auto min-w-[160px]">
-              <Link to="/enroll">Enroll Now</Link>
+              <Link to="/contact">Schedule a Visit</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full sm:w-auto min-w-[160px]">
               <a href="tel:770-672-4255">Call: (770) 672-4255</a>
