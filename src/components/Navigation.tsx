@@ -15,7 +15,6 @@ const Navigation = () => {
     { href: "/about", label: "About Us" },
     { href: "/gallery", label: "Gallery" },
     { href: "/resources", label: "Parent Resources" },
-    { href: "/contact", label: "Contact" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -31,11 +30,11 @@ const Navigation = () => {
           <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3">
             <a
               href="tel:770-672-4255"
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/15 transition-colors"
               aria-label="Call Genesis Learning Academy at 770-672-4255"
             >
               <Phone className="h-4 w-4" />
-              (770) 672-4255
+              Call Us: (770) 672-4255
             </a>
             <Button asChild variant="cta" size="default">
               <Link to="/contact">Schedule a Visit</Link>
@@ -59,9 +58,14 @@ const Navigation = () => {
               {link.label}
             </Link>
           ))}
-          <Button asChild variant="cta" size="default" className="ml-4">
-            <Link to="/contact">Ask a Question</Link>
-          </Button>
+          <div className="ml-4 flex items-center gap-2">
+            <Button asChild variant="outline" size="default">
+              <Link to="/contact">Ask a Question</Link>
+            </Button>
+            <Button asChild variant="cta" size="default">
+              <Link to="/contact">Schedule a Visit</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
@@ -100,8 +104,13 @@ const Navigation = () => {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full">
+                <Link to="/contact" onClick={() => setIsOpen(false)}>
+                  Ask a Question
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full">
                 <a href="tel:770-672-4255" onClick={() => setIsOpen(false)}>
-                  Call: (770) 672-4255
+                  Call Us: (770) 672-4255
                 </a>
               </Button>
             </div>
