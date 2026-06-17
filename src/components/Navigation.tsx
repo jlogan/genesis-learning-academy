@@ -23,10 +23,28 @@ const Navigation = () => {
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 pt-2">
         {/* Logo + Header CTA Section */}
-        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 pb-2">
+        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 pb-3">
           <Link to="/" className="flex items-center">
-            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-24 md:h-32 w-auto object-contain" />
+            <img src={genesisLogo} alt="Genesis Learning Academy" className="h-24 lg:h-28 w-auto object-contain" />
           </Link>
+
+          <div className="hidden lg:flex items-center justify-center gap-1">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  "px-3 py-1.5 text-sm font-bold transition-colors",
+                  isActive(link.href)
+                    ? "text-primary underline underline-offset-4 decoration-2"
+                    : "text-foreground hover:text-primary hover:underline hover:underline-offset-4 hover:decoration-2"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3">
             <a
               href="tel:770-672-4255"
@@ -42,34 +60,8 @@ const Navigation = () => {
           </div>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center justify-center gap-1 pb-4 border-t border-border pt-4">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={cn(
-                "px-3.5 py-1.5 text-sm font-bold transition-colors",
-                isActive(link.href)
-                  ? "text-primary underline underline-offset-4 decoration-2"
-                  : "text-foreground hover:text-primary hover:underline hover:underline-offset-4 hover:decoration-2"
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="ml-4 flex items-center gap-2">
-            <Button asChild variant="outline" size="default">
-              <Link to="/contact">Ask a Question</Link>
-            </Button>
-            <Button asChild variant="cta" size="default">
-              <Link to="/contact">Schedule a Visit</Link>
-            </Button>
-          </div>
-        </div>
-
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex justify-center pb-4 border-t border-border pt-4">
+        <div className="lg:hidden flex justify-center pb-4 border-t border-border pt-4">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="p-1.5 rounded-md hover:bg-secondary"
@@ -81,7 +73,7 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-border animate-in slide-in-from-top-2 duration-200">
+          <div className="lg:hidden py-4 space-y-2 border-t border-border animate-in slide-in-from-top-2 duration-200">
             {links.map((link) => (
               <Link
                 key={link.href}
