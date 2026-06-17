@@ -191,15 +191,6 @@ const Gallery = () => {
         {/* Program Gallery */}
         <section className="py-20 bg-warmBg/50">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Photos by Program
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Browse classroom moments grouped by the same program names used across Genesis Learning Academy.
-              </p>
-            </div>
-
             <Tabs defaultValue={programGalleries[0].id} className="max-w-7xl mx-auto">
               <TabsList className="h-auto w-full flex flex-wrap justify-center gap-2 bg-background/80 p-2 rounded-2xl shadow-sm">
                 {programGalleries.map((program) => (
