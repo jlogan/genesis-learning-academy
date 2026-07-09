@@ -113,14 +113,17 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT}" -o BatchMode=yes -o IdentitiesOnly=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "set -euo pipefail; cd '${DEPLOY_PATH}'; npm ci --omit=dev; \
-            if systemctl is-active --quiet glak-api 2>/dev/null; then \
-              sudo systemctl restart glak-api; \
+            if sudo -n systemctl is-active --quiet glak-api 2>/dev/null; then \
+              sudo -n systemctl restart glak-api; \
             elif command -v pm2 >/dev/null 2>&1; then \
               pm2 restart glak-api 2>/dev/null || pm2 start server.js --name glak-api; \
             else \
               pkill -f 'node server.js' 2>/dev/null || true; \
-              nohup env NODE_ENV=production node server.js >> glak-api.log 2>&1 & \
-            fi"
+              if [ -f /etc/glak-api.env ]; then set -a; . /etc/glak-api.env; set +a; fi; \
+              nohup env NODE_ENV=production PORT=\"\${PORT:-3001}\" STAFF_EMAIL=\"\${STAFF_EMAIL:-jay@brogrammers.agency}\" RESEND_API_KEY=\"\${RESEND_API_KEY:-}\" node server.js >> glak-api.log 2>&1 < /dev/null & \
+            fi; \
+            sleep 2; \
+            curl -fsS http://127.0.0.1:3001/api/health >/dev/null"
 
       - name: Post-deploy health check
         run: |
