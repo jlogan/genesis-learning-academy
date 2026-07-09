@@ -1419,7 +1419,7 @@ const Enroll = () => {
       </section>
 
       {/* Form Section */}
-      <section className="py-10">
+      <section className="pt-4 pb-8">
         <div className="container mx-auto px-4 max-w-4xl">
           <Card className="shadow-lg border-border/50">
             <CardContent className="p-6 md:p-10">
