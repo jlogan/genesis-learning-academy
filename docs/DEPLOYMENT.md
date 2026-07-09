@@ -76,7 +76,7 @@ DB_USER=genesisleads
 DB_PASSWORD=your-generated-password
 ```
 
-`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. When `DB_*` variables are present, contact, enrollment, and Twilio call records are saved to MySQL before notifications/reporting events are finalized. `/api/health` returns `database: "connected"` only after a successful database ping.
+`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. When `DB_*` variables are present, contact, enrollment, Twilio call, and inbound SMS records are saved to MySQL before notifications/reporting events are finalized. `/api/health` returns `database: "connected"` only after a successful database ping.
 
 For the Twilio marketing number, configure **Voice & Fax → A call comes in** as a webhook using `HTTP POST` to:
 
@@ -85,6 +85,14 @@ https://genesislearningacademyofkennesaw.com/api/twilio/voice/inbound
 ```
 
 The API returns TwiML that forwards to `TWILIO_FORWARD_TO_NUMBER`, records the bridged call, and posts dial/recording callbacks back to `/api/twilio/voice/status`. `TWILIO_AUTH_TOKEN` is required so the API can reject unsigned/spoofed Twilio requests. `PUBLIC_SITE_URL` must be the public HTTPS origin Twilio can reach for status and recording callbacks.
+
+For inbound SMS on the same Twilio number, configure **Messaging → A message comes in** as a webhook using `HTTP POST` to:
+
+```text
+https://genesislearningacademyofkennesaw.com/api/twilio/sms/inbound
+```
+
+The API stores each message in MySQL, emails staff at `STAFF_EMAIL`, and returns TwiML with an automatic SMS reply. If `TWILIO_MARKETING_NUMBER` is set, SMS webhooks for other numbers are ignored (empty TwiML response).
 
 ### 2. systemd service (recommended)
 

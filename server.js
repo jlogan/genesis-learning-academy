@@ -97,6 +97,13 @@ function buildTwiml(body) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${body}</Response>`;
 }
 
+const INBOUND_SMS_AUTO_REPLY =
+  "Thanks for texting Genesis Learning Academy. We don't actively respond to messages sent to this number but you can call us for more information.";
+
+function buildInboundSmsReplyTwiml() {
+  return buildTwiml(`<Message>${escapeHtml(INBOUND_SMS_AUTO_REPLY)}</Message>`);
+}
+
 function buildInboundCallTwiml({ forwardTo, baseUrl }) {
   const statusUrl = `${baseUrl}/api/twilio/voice/status`;
   const recordingStatusUrl = `${baseUrl}/api/twilio/voice/status?kind=recording`;
@@ -222,6 +229,24 @@ async function ensureLeadTables() {
       INDEX idx_inbound_calls_answered (answered)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS inbound_sms (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      twilio_message_sid VARCHAR(64) NOT NULL,
+      from_number VARCHAR(32) NULL,
+      to_number VARCHAR(32) NULL,
+      body TEXT NULL,
+      num_media INT UNSIGNED NOT NULL DEFAULT 0,
+      staff_email_id VARCHAR(255) NULL,
+      notification_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+      raw_payload JSON NULL,
+      UNIQUE KEY uk_inbound_sms_message_sid (twilio_message_sid),
+      INDEX idx_inbound_sms_created_at (created_at),
+      INDEX idx_inbound_sms_from_number (from_number)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
 }
 
 async function upsertInboundCall({
@@ -284,6 +309,74 @@ async function upsertInboundCall({
     { twilioCallSid }
   );
   return rows[0]?.id || null;
+}
+
+async function saveInboundSms({ twilioMessageSid, fromNumber, toNumber, body, numMedia, rawPayload }) {
+  const pool = getDbPool();
+  if (!pool || !twilioMessageSid) return null;
+
+  await pool.execute(
+    `INSERT INTO inbound_sms
+      (twilio_message_sid, from_number, to_number, body, num_media, raw_payload)
+     VALUES
+      (:twilioMessageSid, :fromNumber, :toNumber, :body, :numMedia, CAST(:rawPayload AS JSON))
+     ON DUPLICATE KEY UPDATE
+       from_number = COALESCE(VALUES(from_number), from_number),
+       to_number = COALESCE(VALUES(to_number), to_number),
+       body = COALESCE(VALUES(body), body),
+       num_media = COALESCE(VALUES(num_media), num_media),
+       raw_payload = COALESCE(VALUES(raw_payload), raw_payload)`,
+    {
+      twilioMessageSid,
+      fromNumber: fromNumber || null,
+      toNumber: toNumber || null,
+      body: body || null,
+      numMedia: numMedia ?? 0,
+      rawPayload: rawPayload ? JSON.stringify(rawPayload) : null,
+    }
+  );
+
+  const [rows] = await pool.execute(
+    `SELECT id, notification_status FROM inbound_sms WHERE twilio_message_sid = :twilioMessageSid LIMIT 1`,
+    { twilioMessageSid }
+  );
+  const smsId = rows[0]?.id;
+  if (!smsId) return null;
+
+  await pool.execute(
+    `INSERT INTO lead_events (event_type, source, source_id, lead_phone, metadata)
+     SELECT 'inbound_sms', 'twilio', :sourceId, :phone, CAST(:metadata AS JSON)
+     WHERE NOT EXISTS (
+       SELECT 1 FROM lead_events
+       WHERE event_type = 'inbound_sms'
+         AND source = 'twilio'
+         AND source_id = :sourceId
+     )`,
+    {
+      sourceId: smsId,
+      phone: fromNumber || null,
+      metadata: JSON.stringify({
+        twilioMessageSid,
+        fromNumber: fromNumber || null,
+        toNumber: toNumber || null,
+        body: body || null,
+        numMedia: numMedia ?? 0,
+      }),
+    }
+  );
+
+  return { id: smsId, notificationStatus: rows[0].notification_status };
+}
+
+async function updateInboundSmsNotificationStatus(id, { staffEmailId, status }) {
+  const pool = getDbPool();
+  if (!pool || !id) return;
+  await pool.execute(
+    `UPDATE inbound_sms
+     SET staff_email_id = :staffEmailId, notification_status = :status
+     WHERE id = :id`,
+    { id, staffEmailId: staffEmailId || null, status }
+  );
 }
 
 async function maybeInsertInboundCallLeadEvent(callId) {
@@ -1285,6 +1378,91 @@ app.post('/api/twilio/voice/status', async (req, res) => {
   }
 
   return res.status(200).send('OK');
+});
+
+// ─── Twilio Inbound SMS Endpoint ─────────────────────────────────────────────
+
+app.post('/api/twilio/sms/inbound', async (req, res) => {
+  if (!validateTwilioRequest(req)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const body = req.body || {};
+  const { MessageSid, From, To, Body, NumMedia } = body;
+  const expectedMarketingNumber = String(process.env.TWILIO_MARKETING_NUMBER || '').trim();
+  if (expectedMarketingNumber && To !== expectedMarketingNumber) {
+    console.warn(`Rejected Twilio SMS for unexpected number: ${To}`);
+    return twilioXml(res, buildTwiml('<Message/>'));
+  }
+
+  let smsRecord = null;
+  try {
+    smsRecord = await saveInboundSms({
+      twilioMessageSid: MessageSid,
+      fromNumber: From,
+      toNumber: To,
+      body: Body,
+      numMedia: toNullableNumber(NumMedia) ?? 0,
+      rawPayload: body,
+    });
+  } catch (dbError) {
+    console.error('Failed to save inbound Twilio SMS; returning auto-reply anyway:', dbError);
+  }
+
+  const smsId = smsRecord?.id || null;
+  const shouldNotifyStaff = smsRecord?.notificationStatus !== 'sent';
+
+  if (shouldNotifyStaff) {
+    try {
+      const safeFrom = escapeHtml(From || 'Unknown');
+      const safeTo = escapeHtml(To || '—');
+      const safeBody = escapeHtml(Body || '(empty)').replace(/\n/g, '<br>');
+      const staffEmailResult = await getResend().emails.send({
+        from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
+        to: [STAFF_EMAIL],
+        subject: `New inbound SMS from ${From || 'unknown number'}`,
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #1a202c;">
+          <div style="background-color: #1a365d; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 20px;">New Inbound SMS</h1>
+          </div>
+          <div style="padding: 22px;">
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">From</td><td style="padding:8px;">${safeFrom}</td></tr>
+              <tr><td style="padding:8px; font-weight:bold;">To</td><td style="padding:8px;">${safeTo}</td></tr>
+              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Message SID</td><td style="padding:8px;">${escapeHtml(MessageSid || '—')}</td></tr>
+              <tr><td style="padding:8px; font-weight:bold;">Media attachments</td><td style="padding:8px;">${escapeHtml(String(NumMedia || '0'))}</td></tr>
+            </table>
+            <h2 style="font-size:16px; color:#1a365d;">Message</h2>
+            <p style="line-height:1.6;">${safeBody}</p>
+            <p style="color:#718096; font-size:12px; margin-top:24px;">An automatic SMS reply was sent to the sender. Staff can follow up by calling ${safeFrom}.</p>
+          </div>
+        </div>
+      `,
+      });
+
+      if (staffEmailResult.error) {
+        console.error('Inbound SMS staff email error:', staffEmailResult.error);
+        await updateInboundSmsNotificationStatus(smsId, {
+          staffEmailId: staffEmailResult.data?.id,
+          status: 'staff_email_error',
+        });
+      } else {
+        await updateInboundSmsNotificationStatus(smsId, {
+          staffEmailId: staffEmailResult.data?.id,
+          status: 'sent',
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send inbound SMS staff notification; returning auto-reply anyway:', emailError);
+      await updateInboundSmsNotificationStatus(smsId, {
+        staffEmailId: null,
+        status: 'staff_email_error',
+      });
+    }
+  }
+
+  return twilioXml(res, buildInboundSmsReplyTwiml());
 });
 
 // ─── Contact / Visit Request Endpoint ─────────────────────────────────────────

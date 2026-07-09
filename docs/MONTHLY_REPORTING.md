@@ -69,7 +69,48 @@ GROUP BY event_type;
 
 **Notes:** Many parents call instead of using the web form. Compare call volume to form submissions to understand channel mix. Recording URLs/SIDs are stored for reporting, but Twilio may require authenticated Console/API access to play or download recordings.
 
-## 4. Facebook engagement
+## 4. Twilio (inbound SMS)
+
+**Where:**
+
+- **MySQL** — `inbound_sms` and matching `lead_events` rows created by the Twilio webhook at `/api/twilio/sms/inbound`
+- **Staff inbox** — notification emails (subject: `New inbound SMS from …`) sent to `STAFF_EMAIL`
+- **Twilio Console** — Monitor → Logs → Messaging as the fallback/source-of-truth for reconciliation
+
+**What to pull:**
+
+```sql
+-- Monthly inbound SMS summary
+SELECT
+  COUNT(*) AS total_sms,
+  COUNT(DISTINCT from_number) AS unique_senders,
+  SUM(num_media > 0) AS messages_with_media
+FROM inbound_sms
+WHERE created_at >= '2026-06-01' AND created_at < '2026-07-01';
+
+-- Recent inbound SMS with message preview
+SELECT
+  created_at,
+  from_number,
+  to_number,
+  LEFT(body, 120) AS message_preview,
+  num_media,
+  notification_status
+FROM inbound_sms
+WHERE created_at >= '2026-06-01' AND created_at < '2026-07-01'
+ORDER BY created_at DESC;
+
+-- Lead channel mix, including SMS
+SELECT event_type, COUNT(*) AS count
+FROM lead_events
+WHERE created_at >= '2026-06-01' AND created_at < '2026-07-01'
+  AND event_type IN ('contact_form_submission', 'enrollment_form_submission', 'inbound_phone_call', 'inbound_sms')
+GROUP BY event_type;
+```
+
+**Notes:** Inbound texts receive an automatic reply directing callers to phone support; staff follow up manually using the notification email and stored message body.
+
+## 5. Facebook engagement
 
 **Where:** Meta Business Suite / Facebook Page Insights for the GLAK page
 
@@ -85,10 +126,11 @@ GROUP BY event_type;
 ## Suggested monthly checklist
 
 1. Export or screenshot GA4 traffic + `contact_form_submit` + `enrollment_form_submit` for the month.
-2. Count staff notification emails (contact + enrollment) from Resend or inbox search.
+2. Count staff notification emails (contact + enrollment + inbound SMS) from Resend or inbox search.
 3. Summarize Twilio inbound calls (total, answered, missed).
-4. Summarize Facebook reach, engagement, and notable posts or messages.
-5. Record totals in a single row: site sessions, contact leads, enrollment leads, phone calls, Facebook reach.
+4. Summarize Twilio inbound SMS (total, unique senders).
+5. Summarize Facebook reach, engagement, and notable posts or messages.
+6. Record totals in a single row: site sessions, contact leads, enrollment leads, phone calls, inbound SMS, Facebook reach.
 
 ## Related docs
 
