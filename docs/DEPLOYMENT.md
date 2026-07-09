@@ -10,7 +10,7 @@ A legacy GitHub Actions workflow also exists at [`.github/workflows/deploy.yml`]
 | --- | --- |
 | Server | Dozer `67.205.186.58` |
 | SSH user | `glak` |
-| Docroot | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |
+| Docroot | `/home/glak/htdocs/genesislearningacademyofkennesaw.com` |
 | API service | `glak-api` (systemd) on `127.0.0.1:3002` |
 | nginx | Proxies `/api/*` → `http://127.0.0.1:3002` |
 
@@ -43,7 +43,7 @@ Configure these under the project variables for this site:
 | Variable | Required | Description |
 | --- | --- | --- |
 | `PROD_SSH_USER` | Yes | `glak` |
-| `PROD_DEPLOY_PATH` | Yes | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |
+| `PROD_DEPLOY_PATH` | Yes | `/home/glak/htdocs/genesislearningacademyofkennesaw.com` |
 | `PROD_SITE_URL` | Yes | `https://genesislearningacademyofkennesaw.com` |
 | `PROD_APP_PORT` | No | API port for local health check (default: `3002`) |
 | `PROD_HEALTH_URL` | No | Static page fingerprint check (default: gallery URL) |
@@ -69,7 +69,7 @@ PORT=3002
 Adjust `WorkingDirectory` in [`deploy/glak-api.service`](../deploy/glak-api.service) if the docroot changes, then on the server:
 
 ```bash
-sudo cp /home/glak/htdocs/genesislearningacademyofkennesaw.com/public/glak-api.service /etc/systemd/system/
+sudo cp /home/glak/htdocs/genesislearningacademyofkennesaw.com/glak-api.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now glak-api
 ```
@@ -115,4 +115,4 @@ If using the GitHub workflow instead of Buddy:
 | `DEPLOY_HOST` | `67.205.186.58` |
 | `DEPLOY_USER` | `glak` |
 | `DEPLOY_SSH_KEY` or `DEPLOY_SSH_KEY_B64` | Deploy private key |
-| `DEPLOY_PATH` | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |
+| `DEPLOY_PATH` | `/home/glak/htdocs/genesislearningacademyofkennesaw.com` |

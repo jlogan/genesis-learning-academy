@@ -21,7 +21,7 @@
 #        BROBOT_SSH_KEY      deploy SSH private key (type: SSH key, encrypted)
 #   3. Add these encrypted project variables:
 #        PROD_SSH_USER       glak
-#        PROD_DEPLOY_PATH    /home/glak/htdocs/genesislearningacademyofkennesaw.com/public
+#        PROD_DEPLOY_PATH    /home/glak/htdocs/genesislearningacademyofkennesaw.com
 #        PROD_SITE_URL       https://genesislearningacademyofkennesaw.com
 #
 #   Optional project variables:

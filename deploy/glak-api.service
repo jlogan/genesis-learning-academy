@@ -4,7 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/glak/htdocs/genesislearningacademyofkennesaw.com/public
+User=glak
+Group=glak
+WorkingDirectory=/home/glak/htdocs/genesislearningacademyofkennesaw.com
 Environment=NODE_ENV=production
 Environment=PORT=3002
 EnvironmentFile=-/etc/glak-api.env
