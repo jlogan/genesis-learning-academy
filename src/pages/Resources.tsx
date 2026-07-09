@@ -80,8 +80,8 @@ const Resources = () => {
                     </div>
                     <div className="text-center sm:text-left">
                       <h3 className="font-semibold text-foreground mb-1">Phone</h3>
-                      <a href="tel:770-672-4255" className="text-accent text-lg hover:underline">
-                        (770) 672-4255
+                      <a href="tel:6782934937" className="text-accent text-lg hover:underline">
+                        678-293-4937
                       </a>
                       <p className="text-muted-foreground text-sm mt-1">Call us anytime during business hours</p>
                     </div>
@@ -423,7 +423,7 @@ const Resources = () => {
               <a href="/contact">Ask a Question / Schedule a Visit</a>
             </Button>
             <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white w-full sm:w-auto">
-              <a href="tel:770-672-4255">Call: (770) 672-4255</a>
+              <a href="tel:6782934937">Call: 678-293-4937</a>
             </Button>
           </div>
         </div>

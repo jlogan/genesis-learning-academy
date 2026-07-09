@@ -232,7 +232,7 @@ const About = () => {
               <Link to="/contact">Schedule a Visit</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="bg-white hover:bg-white/90 text-primary border-white w-full sm:w-auto min-w-[200px]">
-              <a href="tel:770-672-4255">Call: (770) 672-4255</a>
+              <a href="tel:6782934937">Call: 678-293-4937</a>
             </Button>
           </div>
         </div>

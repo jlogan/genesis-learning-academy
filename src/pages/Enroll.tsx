@@ -1276,7 +1276,7 @@ const Enroll = () => {
       setIsSubmitted(true);
     } catch (error) {
       console.error("Enrollment submission error:", error);
-      let errorMessage = "Failed to submit enrollment request. Please try again or call us at (770) 672-4255.";
+      let errorMessage = "Failed to submit enrollment request. Please try again or call us at 678-293-4937.";
       if (error instanceof TypeError && error.message.includes("fetch")) {
         errorMessage = "Unable to connect to server. Please check your connection and try again.";
       } else if (error instanceof Error) {
@@ -1476,10 +1476,10 @@ const Enroll = () => {
           <div className="mt-6 p-6 bg-muted/30 rounded-lg border border-border/50 text-center">
             <p className="text-muted-foreground mb-3">Questions about enrollment?</p>
             <a
-              href="tel:770-672-4255"
+              href="tel:6782934937"
               className="text-primary font-semibold text-xl hover:text-accent transition-colors"
             >
-              (770) 672-4255
+              678-293-4937
             </a>
           </div>
         </div>

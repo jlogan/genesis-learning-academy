@@ -525,7 +525,7 @@ async function updateEnrollmentEmailStatus(id, { parentEmailId, staffEmailId, st
 const BRAND = {
   name: 'Genesis Learning Academy of Kennesaw',
   address: '2098 Carruth St NW, Kennesaw, GA 30144',
-  phone: '(770) 672-4255',
+  phone: '678-293-4937',
 };
 
 const COLORS = {
@@ -1209,12 +1209,12 @@ app.post('/api/enroll', async (req, res) => {
               <li>Photo ID of parent/guardian</li>
               <li>Court orders (if applicable)</li>
             </ul>
-            <p>If you have any questions, please call us at <strong>(770) 672-4255</strong>.</p>
+            <p>If you have any questions, please call us at <strong>678-293-4937</strong>.</p>
             <p>We look forward to welcoming ${childFullName} to our GLAK family!</p>
             <p style="margin-top: 30px;">Warm regards,<br><strong>Genesis Learning Academy of Kennesaw</strong></p>
           </div>
           <div style="background-color: #edf2f7; padding: 15px; text-align: center; font-size: 12px; color: #718096;">
-            <p>Genesis Learning Academy of Kennesaw<br>2098 Carruth St NW, Kennesaw, GA 30144 | (770) 672-4255</p>
+            <p>Genesis Learning Academy of Kennesaw<br>2098 Carruth St NW, Kennesaw, GA 30144 | 678-293-4937</p>
           </div>
         </div>
       `,
@@ -1552,7 +1552,7 @@ app.post('/api/contact', async (req, res) => {
           <div style="padding: 30px 20px;">
             <p>Dear ${safe.parentName},</p>
             <p>Thank you for reaching out to Genesis Learning Academy. We received your message and will follow up with you shortly.</p>
-            <p>If you would like to speak with us sooner, please call <strong>(770) 672-4255</strong>.</p>
+            <p>If you would like to speak with us sooner, please call <strong>678-293-4937</strong>.</p>
             <p>Warm regards,<br><strong>Genesis Learning Academy of Kennesaw</strong></p>
           </div>
         </div>

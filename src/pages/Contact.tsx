@@ -64,8 +64,8 @@ const Contact = () => {
         title: "Message not sent",
         description:
           error instanceof Error
-            ? `${error.message} Please call us at (770) 672-4255.`
-            : "Please call us at (770) 672-4255.",
+            ? `${error.message} Please call us at 678-293-4937.`
+            : "Please call us at 678-293-4937.",
         variant: "destructive",
       });
     } finally {
@@ -91,9 +91,9 @@ const Contact = () => {
               <Card className="shadow-lg border-none">
                 <CardContent className="p-6 space-y-5">
                   <h2 className="text-2xl font-bold text-primary">Contact Genesis</h2>
-                  <a href="tel:770-672-4255" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+                  <a href="tel:6782934937" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
                     <Phone className="h-5 w-5 text-accent" />
-                    <span className="font-semibold">(770) 672-4255</span>
+                    <span className="font-semibold">678-293-4937</span>
                   </a>
                   <div className="flex items-start gap-3 text-muted-foreground">
                     <MapPin className="h-5 w-5 text-accent mt-1" />
@@ -202,7 +202,7 @@ const Contact = () => {
                       <Send className="ml-2 h-4 w-4" />
                     </Button>
                     <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                      <a href="tel:770-672-4255">Call Instead</a>
+                      <a href="tel:6782934937">Call Instead</a>
                     </Button>
                   </div>
                 </form>

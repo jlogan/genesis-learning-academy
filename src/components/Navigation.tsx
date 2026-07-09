@@ -47,12 +47,12 @@ const Navigation = () => {
 
           <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3">
             <a
-              href="tel:770-672-4255"
+              href="tel:6782934937"
               className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/15 transition-colors"
-              aria-label="Call Genesis Learning Academy at 770-672-4255"
+              aria-label="Call Genesis Learning Academy at 678-293-4937"
             >
               <Phone className="h-4 w-4" />
-              Call Us: (770) 672-4255
+              Call Us: 678-293-4937
             </a>
             <Button asChild variant="cta" size="default">
               <Link to="/contact">Schedule a Visit</Link>
@@ -101,8 +101,8 @@ const Navigation = () => {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full">
-                <a href="tel:770-672-4255" onClick={() => setIsOpen(false)}>
-                  Call Us: (770) 672-4255
+                <a href="tel:6782934937" onClick={() => setIsOpen(false)}>
+                  Call Us: 678-293-4937
                 </a>
               </Button>
             </div>

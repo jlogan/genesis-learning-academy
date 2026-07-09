@@ -16,7 +16,7 @@ const Footer = () => {
             </p>
             {/* Quality Rated Badge */}
             <a
-              href="https://families.decal.ga.gov/Provider/Details/48020"
+              href="https://families.decal.ga.gov/provider/48020"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block hover:opacity-80 transition-opacity"
@@ -47,8 +47,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <a href="tel:770-672-4255" className="hover:text-accent transition-colors">
-                  (770) 672-4255
+                <a href="tel:6782934937" className="hover:text-accent transition-colors">
+                  678-293-4937
                 </a>
               </div>
               <div className="flex items-start gap-2">
