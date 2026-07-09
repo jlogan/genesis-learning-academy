@@ -36,15 +36,38 @@ Use these sources together for a monthly Genesis Learning Academy (GLAK) engagem
 
 ## 3. Twilio (phone calls)
 
-**Where:** Twilio Console → Monitor → Logs → Calls (and any configured Twilio number for GLAK)
+**Where:**
+
+- **MySQL** — `inbound_calls` and matching `lead_events` rows created by the Twilio webhook at `/api/twilio/voice/inbound`
+- **Twilio Console** — Monitor → Logs → Calls as the fallback/source-of-truth for reconciliation and recording playback
 
 **What to pull:**
 
-- Inbound call count and total minutes for the month
-- Missed / unanswered calls
-- Peak call times (helps staffing for tour requests)
+```sql
+-- Monthly call summary
+SELECT
+  COUNT(*) AS total_calls,
+  SUM(answered = 1) AS answered,
+  SUM(answered = 0 OR answered IS NULL) AS missed,
+  SUM(COALESCE(duration_seconds, 0)) AS talk_seconds
+FROM inbound_calls
+WHERE created_at >= '2026-06-01' AND created_at < '2026-07-01';
 
-**Notes:** Many parents call instead of using the web form. Compare call volume to form submissions to understand channel mix. Document the Twilio number and account owner in your internal runbook.
+-- Peak call hours (UTC)
+SELECT HOUR(created_at) AS hour_utc, COUNT(*) AS calls
+FROM inbound_calls
+WHERE created_at >= '2026-06-01' AND created_at < '2026-07-01'
+GROUP BY hour_utc
+ORDER BY calls DESC;
+
+-- Lead channel mix, including calls
+SELECT event_type, COUNT(*) AS count
+FROM lead_events
+WHERE created_at >= '2026-06-01' AND created_at < '2026-07-01'
+GROUP BY event_type;
+```
+
+**Notes:** Many parents call instead of using the web form. Compare call volume to form submissions to understand channel mix. Recording URLs/SIDs are stored for reporting, but Twilio may require authenticated Console/API access to play or download recordings.
 
 ## 4. Facebook engagement
 

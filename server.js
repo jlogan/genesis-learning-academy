@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import PDFDocument from 'pdfkit';
 import mysql from 'mysql2/promise';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.set('trust proxy', true);
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false }));
 
 // Initialize Resend lazily so local PDF preview/imports can run without email credentials.
 let resend;
@@ -62,6 +64,63 @@ function getRequestMeta(req) {
     userAgent: String(req.headers['user-agent'] || '').slice(0, 500) || null,
     referrer: String(req.headers.referer || req.headers.referrer || '').slice(0, 1000) || null,
   };
+}
+
+function getPublicSiteUrl(req) {
+  return String(process.env.PUBLIC_SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+}
+
+function validateTwilioRequest(req) {
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (!authToken) {
+    console.error('TWILIO_AUTH_TOKEN is not set; rejecting Twilio webhook.');
+    return false;
+  }
+
+  const signature = req.get('X-Twilio-Signature') || '';
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  const params = req.body || {};
+  let data = url;
+  Object.keys(params).sort().forEach((key) => {
+    data += key + params[key];
+  });
+
+  const expected = crypto.createHmac('sha1', authToken).update(data, 'utf8').digest('base64');
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  } catch {
+    return false;
+  }
+}
+
+function buildTwiml(body) {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${body}</Response>`;
+}
+
+function buildInboundCallTwiml({ forwardTo, baseUrl }) {
+  const statusUrl = `${baseUrl}/api/twilio/voice/status`;
+  const recordingStatusUrl = `${baseUrl}/api/twilio/voice/status?kind=recording`;
+  return buildTwiml(`
+  <Say voice="alice">This call may be recorded for quality and reporting purposes.</Say>
+  <Dial answerOnBridge="true" record="record-from-answer-dual" recordingStatusCallback="${escapeHtml(recordingStatusUrl)}" recordingStatusCallbackEvent="completed" action="${escapeHtml(statusUrl)}" method="POST">
+    <Number>${escapeHtml(forwardTo)}</Number>
+  </Dial>`);
+}
+
+function twilioXml(res, body) {
+  return res.status(200).type('text/xml').send(body);
+}
+
+function toNullableNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function getAnsweredFromDialStatus(status, durationSeconds) {
+  if (!status) return null;
+  if (status === 'completed' && (durationSeconds || 0) > 0) return 1;
+  if (['busy', 'failed', 'no-answer', 'canceled'].includes(status)) return 0;
+  return null;
 }
 
 async function ensureLeadTables() {
@@ -138,6 +197,124 @@ async function ensureLeadTables() {
       INDEX idx_events_phone (lead_phone)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS inbound_calls (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      twilio_call_sid VARCHAR(64) NOT NULL,
+      parent_call_sid VARCHAR(64) NULL,
+      from_number VARCHAR(32) NULL,
+      to_number VARCHAR(32) NULL,
+      forwarded_to VARCHAR(32) NULL,
+      call_status VARCHAR(50) NULL,
+      dial_call_status VARCHAR(50) NULL,
+      duration_seconds INT UNSIGNED NULL,
+      recording_url VARCHAR(1000) NULL,
+      recording_sid VARCHAR(64) NULL,
+      recording_duration_seconds INT UNSIGNED NULL,
+      answered TINYINT(1) NULL,
+      raw_payload JSON NULL,
+      UNIQUE KEY uk_inbound_calls_call_sid (twilio_call_sid),
+      INDEX idx_inbound_calls_created_at (created_at),
+      INDEX idx_inbound_calls_from_number (from_number),
+      INDEX idx_inbound_calls_answered (answered)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+}
+
+async function upsertInboundCall({
+  twilioCallSid,
+  parentCallSid,
+  fromNumber,
+  toNumber,
+  forwardedTo,
+  callStatus,
+  dialCallStatus,
+  durationSeconds,
+  recordingUrl,
+  recordingSid,
+  recordingDurationSeconds,
+  answered,
+  rawPayload,
+}) {
+  const pool = getDbPool();
+  if (!pool || !twilioCallSid) return null;
+
+  await pool.execute(
+    `INSERT INTO inbound_calls
+      (twilio_call_sid, parent_call_sid, from_number, to_number, forwarded_to, call_status, dial_call_status,
+       duration_seconds, recording_url, recording_sid, recording_duration_seconds, answered, raw_payload)
+     VALUES
+      (:twilioCallSid, :parentCallSid, :fromNumber, :toNumber, :forwardedTo, :callStatus, :dialCallStatus,
+       :durationSeconds, :recordingUrl, :recordingSid, :recordingDurationSeconds, :answered, CAST(:rawPayload AS JSON))
+     ON DUPLICATE KEY UPDATE
+       parent_call_sid = COALESCE(VALUES(parent_call_sid), parent_call_sid),
+       from_number = COALESCE(VALUES(from_number), from_number),
+       to_number = COALESCE(VALUES(to_number), to_number),
+       forwarded_to = COALESCE(VALUES(forwarded_to), forwarded_to),
+       call_status = COALESCE(VALUES(call_status), call_status),
+       dial_call_status = COALESCE(VALUES(dial_call_status), dial_call_status),
+       duration_seconds = COALESCE(VALUES(duration_seconds), duration_seconds),
+       recording_url = COALESCE(VALUES(recording_url), recording_url),
+       recording_sid = COALESCE(VALUES(recording_sid), recording_sid),
+       recording_duration_seconds = COALESCE(VALUES(recording_duration_seconds), recording_duration_seconds),
+       answered = COALESCE(VALUES(answered), answered),
+       raw_payload = COALESCE(VALUES(raw_payload), raw_payload)`,
+    {
+      twilioCallSid,
+      parentCallSid: parentCallSid || null,
+      fromNumber: fromNumber || null,
+      toNumber: toNumber || null,
+      forwardedTo: forwardedTo || null,
+      callStatus: callStatus || null,
+      dialCallStatus: dialCallStatus || null,
+      durationSeconds: durationSeconds ?? null,
+      recordingUrl: recordingUrl || null,
+      recordingSid: recordingSid || null,
+      recordingDurationSeconds: recordingDurationSeconds ?? null,
+      answered: answered ?? null,
+      rawPayload: rawPayload ? JSON.stringify(rawPayload) : null,
+    }
+  );
+
+  const [rows] = await pool.execute(
+    `SELECT id FROM inbound_calls WHERE twilio_call_sid = :twilioCallSid LIMIT 1`,
+    { twilioCallSid }
+  );
+  return rows[0]?.id || null;
+}
+
+async function maybeInsertInboundCallLeadEvent(callId) {
+  const pool = getDbPool();
+  if (!pool || !callId) return;
+
+  await pool.execute(
+    `INSERT INTO lead_events (event_type, source, source_id, lead_phone, metadata)
+     SELECT 'inbound_phone_call', 'twilio', id, from_number,
+       JSON_OBJECT(
+         'twilioCallSid', twilio_call_sid,
+         'fromNumber', from_number,
+         'toNumber', to_number,
+         'forwardedTo', forwarded_to,
+         'answered', answered,
+         'dialCallStatus', dial_call_status,
+         'durationSeconds', duration_seconds,
+         'recordingUrl', recording_url,
+         'recordingSid', recording_sid
+       )
+     FROM inbound_calls
+     WHERE id = :callId
+       AND dial_call_status IS NOT NULL
+       AND NOT EXISTS (
+         SELECT 1 FROM lead_events
+         WHERE event_type = 'inbound_phone_call'
+           AND source = 'twilio'
+           AND source_id = inbound_calls.id
+       )`,
+    { callId }
+  );
 }
 
 async function saveContactSubmission({ data, meta }) {
@@ -1033,6 +1210,82 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// ─── Twilio Voice Marketing Call Endpoints ───────────────────────────────────
+
+app.post('/api/twilio/voice/inbound', async (req, res) => {
+  if (!validateTwilioRequest(req)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const forwardTo = String(process.env.TWILIO_FORWARD_TO_NUMBER || '').trim();
+  if (!forwardTo) {
+    console.error('TWILIO_FORWARD_TO_NUMBER is not set; cannot forward inbound Twilio call.');
+    return twilioXml(res, buildTwiml('<Say voice="alice">We are unable to connect your call right now. Please try again later.</Say>'));
+  }
+
+  const { CallSid, From, To, CallStatus } = req.body || {};
+  const expectedMarketingNumber = String(process.env.TWILIO_MARKETING_NUMBER || '').trim();
+  if (expectedMarketingNumber && To !== expectedMarketingNumber) {
+    console.warn(`Rejected Twilio call for unexpected number: ${To}`);
+    return twilioXml(res, buildTwiml('<Hangup/>'));
+  }
+
+  try {
+    await upsertInboundCall({
+      twilioCallSid: CallSid,
+      fromNumber: From,
+      toNumber: To,
+      forwardedTo: forwardTo,
+      callStatus: CallStatus || 'ringing',
+      rawPayload: req.body,
+    });
+  } catch (dbError) {
+    console.error('Failed to save inbound Twilio call; forwarding call anyway:', dbError);
+  }
+
+  return twilioXml(res, buildInboundCallTwiml({ forwardTo, baseUrl: getPublicSiteUrl(req) }));
+});
+
+app.post('/api/twilio/voice/status', async (req, res) => {
+  if (!validateTwilioRequest(req)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const body = req.body || {};
+  const isRecordingCallback = req.query.kind === 'recording';
+  const parentCallSid = body.ParentCallSid || null;
+  const twilioCallSid = parentCallSid || body.CallSid;
+  const durationSeconds = toNullableNumber(body.DialCallDuration || body.CallDuration);
+  const recordingDurationSeconds = toNullableNumber(body.RecordingDuration);
+  const dialCallStatus = body.DialCallStatus || null;
+  const answered = getAnsweredFromDialStatus(dialCallStatus, durationSeconds);
+
+  try {
+    const callId = await upsertInboundCall({
+      twilioCallSid,
+      parentCallSid,
+      fromNumber: body.From,
+      toNumber: body.To,
+      callStatus: body.CallStatus,
+      dialCallStatus: isRecordingCallback ? null : dialCallStatus,
+      durationSeconds: isRecordingCallback ? null : durationSeconds,
+      answered: isRecordingCallback ? null : answered,
+      recordingUrl: isRecordingCallback ? body.RecordingUrl : null,
+      recordingSid: isRecordingCallback ? body.RecordingSid : null,
+      recordingDurationSeconds: isRecordingCallback ? recordingDurationSeconds : null,
+      rawPayload: body,
+    });
+
+    if (!isRecordingCallback) {
+      await maybeInsertInboundCallLeadEvent(callId);
+    }
+  } catch (dbError) {
+    console.error('Failed to save Twilio call status:', dbError);
+  }
+
+  return res.status(200).send('OK');
+});
 
 // ─── Contact / Visit Request Endpoint ─────────────────────────────────────────
 
