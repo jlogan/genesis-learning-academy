@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { trackContactSubmission } from "@/utils/analytics";
 import { CalendarDays, Clock, MapPin, Phone, Send } from "lucide-react";
 
 type ContactFormState = {
@@ -46,6 +47,12 @@ const Contact = () => {
         const errorData = await response.json().catch(() => null);
         throw new Error(errorData?.error || "Unable to send your message right now.");
       }
+
+      trackContactSubmission({
+        parentName: formData.parentName,
+        email: formData.email,
+        interest: formData.interest,
+      });
 
       toast({
         title: "Thanks — we received your message.",

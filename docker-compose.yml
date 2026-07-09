@@ -30,7 +30,8 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - RESEND_API_KEY=${RESEND_API_KEY:-re_fxbYnt43_MAAExytzt2fHoExxH7ksT1Fc}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - STAFF_EMAIL=${STAFF_EMAIL:-jay@brogrammers.agency}
     networks:
       - genesis-network
     depends_on:

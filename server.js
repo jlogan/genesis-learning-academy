@@ -4,17 +4,25 @@ import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
+const STAFF_EMAIL = process.env.STAFF_EMAIL || 'jay@brogrammers.agency';
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Initialize Resend
+if (!process.env.RESEND_API_KEY) {
+  console.warn('RESEND_API_KEY is not set; email endpoints will fail until configured.');
+}
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ─── PDF Generation ───────────────────────────────────────────────────────────
@@ -572,7 +580,7 @@ app.post('/api/enroll', async (req, res) => {
     // Email to staff
     const staffEmailResult = await resend.emails.send({
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
-      to: ['jay@brogrammers.agency'],
+      to: [STAFF_EMAIL],
       subject: `New Enrollment: ${parentName} for ${childFullName}`,
       replyTo: parentEmail,
       html: `
@@ -664,7 +672,7 @@ app.post('/api/contact', async (req, res) => {
 
     const staffEmailResult = await resend.emails.send({
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
-      to: ['jay@brogrammers.agency'],
+      to: [STAFF_EMAIL],
       subject: `New Genesis inquiry: ${interest} — ${parentName}`,
       replyTo: email,
       html: `
@@ -728,6 +736,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Serve built frontend when running as the production app server (optional fallback).
+if (isProduction) {
+  const staticDir = process.env.STATIC_DIR || __dirname;
+  app.use(express.static(staticDir, { index: false }));
+  app.get(/^(?!\/api\/).*/, (req, res) => {
+    res.sendFile(path.join(staticDir, 'index.html'));
+  });
+}
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on http://0.0.0.0:${PORT}`);
+  console.log(`Staff notification email: ${STAFF_EMAIL}`);
 });

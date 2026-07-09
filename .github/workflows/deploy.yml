@@ -24,6 +24,7 @@ jobs:
       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
       DEPLOY_HEALTH_URL: ${{ secrets.DEPLOY_HEALTH_URL || 'https://genesislearningacademyofkennesaw.com/gallery' }}
+      DEPLOY_API_HEALTH_URL: ${{ secrets.DEPLOY_API_HEALTH_URL || 'https://genesislearningacademyofkennesaw.com/api/health' }}
 
     steps:
       - name: Checkout
@@ -98,6 +99,29 @@ jobs:
             dist/ \
             "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
 
+      - name: Deploy API server files
+        run: |
+          set -euo pipefail
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p ${DEPLOY_PORT} -o BatchMode=yes -o IdentitiesOnly=yes" \
+            server.js package.json package-lock.json deploy/glak-api.service deploy/nginx-api-proxy.conf \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+
+      - name: Install API dependencies and restart
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT}" -o BatchMode=yes -o IdentitiesOnly=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "set -euo pipefail; cd '${DEPLOY_PATH}'; npm ci --omit=dev; \
+            if systemctl is-active --quiet glak-api 2>/dev/null; then \
+              sudo systemctl restart glak-api; \
+            elif command -v pm2 >/dev/null 2>&1; then \
+              pm2 restart glak-api 2>/dev/null || pm2 start server.js --name glak-api; \
+            else \
+              pkill -f 'node server.js' 2>/dev/null || true; \
+              nohup env NODE_ENV=production node server.js >> glak-api.log 2>&1 & \
+            fi"
+
       - name: Post-deploy health check
         run: |
           set -euo pipefail
@@ -124,3 +148,21 @@ jobs:
           echo "::warning::Health check failed: ${DEPLOY_HEALTH_URL} does not appear to serve ${BUILD_FINGERPRINT}."
           echo "::warning::The deployment may be stale, cached, or still propagating."
           exit 1
+
+      - name: Post-deploy API health check
+        run: |
+          set -euo pipefail
+          echo "Checking ${DEPLOY_API_HEALTH_URL}"
+
+          for attempt in 1 2 3 4 5; do
+            echo "API health check attempt ${attempt}/5..."
+            sleep $((attempt * 2))
+
+            if curl -fsSL "${DEPLOY_API_HEALTH_URL}" | grep -q '"status":"ok"'; then
+              echo "API health check passed."
+              exit 0
+            fi
+          done
+
+          echo "::warning::API health check failed: ${DEPLOY_API_HEALTH_URL} is not reachable."
+          echo "::warning::Static site deployed, but /api routes may be down until nginx proxy and glak-api service are configured."

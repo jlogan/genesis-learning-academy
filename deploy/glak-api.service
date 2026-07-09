@@ -1,0 +1,16 @@
+[Unit]
+Description=Genesis Learning Academy API (contact + enrollment forms)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/genesislearningacademyofkennesaw.com/public
+Environment=NODE_ENV=production
+Environment=PORT=3001
+EnvironmentFile=-/etc/glak-api.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

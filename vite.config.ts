@@ -37,6 +37,13 @@ export default defineConfig(({ mode }) => {
       port: 4173,
       strictPort: true,
       allowedHosts, // Also apply to preview server for production testing
+      proxy: {
+        '/api': {
+          target: process.env.DOCKER_ENV === 'true' ? 'http://api:3001' : 'http://localhost:3001',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {
