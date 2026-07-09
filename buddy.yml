@@ -1,0 +1,191 @@
+# Buddy.works pipeline-as-code — https://buddy.works/docs/yaml
+#
+# Genesis Learning Academy production deploy
+# - pushes to `main` deploy the Vite static site plus Express API to Dozer.
+#
+# Runtime model:
+#   CloudPanel/nginx serves static files from PROD_DEPLOY_PATH. Express runs as
+#   the system `glak-api` service on 127.0.0.1:3002; nginx proxies /api/* there.
+#   Buddy builds in CI, rsyncs dist + API files, runs `npm ci --omit=dev` on the
+#   server, restarts glak-api, then verifies the public site and /api/health.
+#
+# Server-only secrets are preserved:
+#   `/etc/glak-api.env` is never transferred. Transfer actions exclude `.env`
+#   files and keep `deletion_disabled: true` for API payloads so node_modules and
+#   any docroot `.env` are not removed.
+#
+# One-time Buddy project setup:
+#   1. Switch the Buddy project to YAML configuration so it reads this root file.
+#   2. Add these encrypted project variables:
+#        PROD_SSH_HOST       67.205.186.58
+#        PROD_SSH_USER       glak
+#        PROD_SSH_KEY        deploy SSH private key (type: SSH key, encrypted)
+#        PROD_DEPLOY_PATH    /home/glak/htdocs/genesislearningacademyofkennesaw.com/public
+#        PROD_SITE_URL       https://genesislearningacademyofkennesaw.com
+#
+#   Optional variables:
+#        PROD_APP_PORT       API port for local health check (default: 3002)
+#        PROD_HEALTH_URL     static page fingerprint check (default: gallery URL)
+
+- pipeline: "Deploy To Production"
+  name: "Deploy To Production"
+  events:
+    - type: PUSH
+      refs:
+        - refs/heads/main
+  terminate_stale_runs: true
+  actions:
+    - action: "Build static site and stage API payload"
+      type: "BUILD"
+      docker_image_name: "node"
+      docker_image_tag: "22"
+      shell: "BASH"
+      execute_commands:
+        - "npm ci"
+        - "npm run build"
+        - 'test -f dist/index.html && test -d dist/assets || { echo "ERROR: expected dist/index.html and dist/assets after build"; exit 1; }'
+        - "rm -rf buddy-deploy"
+        - "mkdir -p buddy-deploy"
+        - "cp server.js package.json package-lock.json buddy-deploy/"
+        - "cp deploy/glak-api.service deploy/nginx-api-proxy.conf buddy-deploy/"
+
+    - action: "Transfer static site (SFTP)"
+      type: "TRANSFER"
+      input_type: "BUILD_ARTIFACTS"
+      local_path: "/dist/"
+      remote_path: "$PROD_DEPLOY_PATH"
+      use_temporary_files: true
+      deletion_disabled: false
+      deployment_excludes:
+        - ".DS_Store"
+        - "*.map"
+      targets:
+        - target: "production-cloudpanel"
+          type: "SSH"
+          name: "CloudPanel Production"
+          host: "$PROD_SSH_HOST"
+          port: "22"
+          path: "$PROD_DEPLOY_PATH"
+          auth:
+            method: "SSH_KEY"
+            username: "$PROD_SSH_USER"
+            key: "$PROD_SSH_KEY"
+
+    - action: "Transfer API files (SFTP)"
+      type: "TRANSFER"
+      input_type: "BUILD_ARTIFACTS"
+      local_path: "/buddy-deploy/"
+      remote_path: "$PROD_DEPLOY_PATH"
+      use_temporary_files: true
+      deletion_disabled: true
+      deployment_excludes:
+        - ".env"
+        - ".env.*"
+        - "node_modules/**"
+        - "*.log"
+        - ".DS_Store"
+      targets:
+        - target: "production-cloudpanel"
+          type: "SSH"
+          name: "CloudPanel Production"
+          host: "$PROD_SSH_HOST"
+          port: "22"
+          path: "$PROD_DEPLOY_PATH"
+          auth:
+            method: "SSH_KEY"
+            username: "$PROD_SSH_USER"
+            key: "$PROD_SSH_KEY"
+
+    - action: "Install deps, restart API, verify production"
+      type: "SSH_COMMAND"
+      shell: "BASH"
+      run_as_script: true
+      working_directory: "$PROD_DEPLOY_PATH"
+      commands: |-
+        set -euo pipefail
+        cd "$PROD_DEPLOY_PATH"
+
+        test -f index.html || { echo "ERROR: index.html missing in $PROD_DEPLOY_PATH"; exit 1; }
+        test -f server.js || { echo "ERROR: server.js missing in $PROD_DEPLOY_PATH"; exit 1; }
+        test -f package.json || { echo "ERROR: package.json missing in $PROD_DEPLOY_PATH"; exit 1; }
+
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        nvm use default >/dev/null 2>&1 || true
+        command -v node >/dev/null 2>&1 || export PATH="$(ls -d "$NVM_DIR"/versions/node/*/bin 2>/dev/null | sort -V | tail -1):$PATH"
+        echo "node: $(node -v)"
+        echo "npm: $(npm -v)"
+
+        npm ci --omit=dev
+
+        if sudo -n systemctl is-active --quiet glak-api 2>/dev/null; then
+          sudo -n systemctl restart glak-api
+        elif sudo -n systemctl list-unit-files glak-api.service >/dev/null 2>&1; then
+          sudo -n systemctl enable --now glak-api
+        else
+          echo "ERROR: glak-api systemd unit is not installed on the server"
+          exit 1
+        fi
+
+        PORT="${PROD_APP_PORT:-3002}"
+        SITE_URL="${PROD_SITE_URL:-https://genesislearningacademyofkennesaw.com}"
+        HEALTH_URL="${PROD_HEALTH_URL:-${SITE_URL}/gallery}"
+
+        for i in $(seq 1 15); do
+          if curl -fsS --connect-timeout 2 --max-time 5 "http://127.0.0.1:${PORT}/api/health" | grep -q '"status":"ok"'; then
+            echo "Local API health check passed after ${i}s"
+            break
+          fi
+          if [ "$i" = "15" ]; then
+            echo "Local API health check failed on port ${PORT}"
+            sudo -n systemctl status glak-api --no-pager || true
+            sudo -n journalctl -u glak-api -n 80 --no-pager || true
+            exit 1
+          fi
+          sleep 2
+        done
+
+        BUILD_FINGERPRINT="$(grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' index.html | head -1 || true)"
+        if [ -z "$BUILD_FINGERPRINT" ]; then
+          echo "ERROR: could not extract build fingerprint from index.html"
+          exit 1
+        fi
+        echo "Expected build fingerprint: $BUILD_FINGERPRINT"
+
+        for i in $(seq 1 5); do
+          echo "Public site check attempt ${i}/5..."
+          sleep $((i * 2))
+          if response="$(curl -fsSL --connect-timeout 5 --max-time 20 "$HEALTH_URL" 2>/dev/null)" && \
+             printf '%s' "$response" | grep -qF "$BUILD_FINGERPRINT"; then
+            echo "Public site health check passed: $HEALTH_URL"
+            break
+          fi
+          if [ "$i" = "5" ]; then
+            echo "Public site health check failed: $HEALTH_URL"
+            exit 1
+          fi
+        done
+
+        for i in $(seq 1 5); do
+          echo "Public API check attempt ${i}/5..."
+          sleep $((i * 2))
+          if curl -fsSL --connect-timeout 5 --max-time 20 "${SITE_URL}/api/health" | grep -q '"status":"ok"'; then
+            echo "Public API health check passed: ${SITE_URL}/api/health"
+            exit 0
+          fi
+          if [ "$i" = "5" ]; then
+            echo "Public API health check failed: ${SITE_URL}/api/health"
+            exit 1
+          fi
+        done
+      targets:
+        - target: "production-cloudpanel"
+          type: "SSH"
+          name: "CloudPanel Production"
+          host: "$PROD_SSH_HOST"
+          port: "22"
+          path: "$PROD_DEPLOY_PATH"
+          auth:
+            method: "SSH_KEY"
+            username: "$PROD_SSH_USER"
+            key: "$PROD_SSH_KEY"

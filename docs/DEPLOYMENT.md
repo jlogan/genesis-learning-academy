@@ -1,55 +1,68 @@
 # Deployment
 
-Production deploys run automatically on pushes to `main` via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml).
+Production deploys run automatically on pushes to `main` via root [`buddy.yml`](../buddy.yml) (Buddy.works / CloudPanel on Dozer).
 
-## Flow
+A legacy GitHub Actions workflow also exists at [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml); Buddy is the primary path.
+
+## Production host
+
+| Setting | Value |
+| --- | --- |
+| Server | Dozer `67.205.186.58` |
+| SSH user | `glak` |
+| Docroot | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |
+| API service | `glak-api` (systemd) on `127.0.0.1:3002` |
+| nginx | Proxies `/api/*` → `http://127.0.0.1:3002` |
+
+Static files are served by nginx from the docroot. Only `/api/*` hits the Node process.
+
+## Buddy pipeline flow
 
 1. `npm ci` and `npm run build`
-2. Verify `dist/index.html` exists
-3. Validate and load the SSH private key
-4. `rsync` the contents of `dist/` to the remote web root (`--delete` removes old hashed assets)
-5. `rsync` API files (`server.js`, `package.json`, `package-lock.json`, deploy templates) to the same web root
-6. SSH: `npm ci --omit=dev` and restart the API process (`systemd`, `pm2`, or `nohup` fallback)
-7. Health check the gallery URL for the new Vite asset fingerprint
-8. Warn if `/api/health` is unreachable (usually means nginx proxy or `glak-api` service is not configured yet)
+2. Verify `dist/index.html` and `dist/assets/`
+3. Stage API payload (`server.js`, `package.json`, `package-lock.json`, deploy templates)
+4. SFTP `dist/` to docroot (`deletion` enabled so old hashed assets are removed)
+5. SFTP API payload to docroot (`deletion` disabled; excludes `.env` / `node_modules`)
+6. SSH: `npm ci --omit=dev`, restart `glak-api`, verify local and public `/api/health`, fingerprint-check the gallery URL
 
 Concurrent pushes cancel in-progress deploys so only the latest commit reaches production.
 
-## GitHub secrets
+## Buddy project variables
 
-Configure these under **Settings → Secrets and variables → Actions**:
+Configure under **Project → Variables** (encrypt secrets; store the key as type **SSH key**):
 
-| Secret | Required | Description |
+| Variable | Required | Description |
 | --- | --- | --- |
-| `DEPLOY_HOST` | Yes | Server hostname or IP |
-| `DEPLOY_USER` | Yes | SSH user |
-| `DEPLOY_SSH_KEY` | Yes* | Private key (PEM). Raw multiline key; optional if `DEPLOY_SSH_KEY_B64` is set. |
-| `DEPLOY_SSH_KEY_B64` | Yes* | Base64-encoded private key. Preferred because it avoids multiline secret formatting issues. |
-| `DEPLOY_PATH` | Yes | Remote directory for static files (e.g. `/var/www/genesislearningacademyofkennesaw.com/public`) |
-| `DEPLOY_PORT` | No | SSH port (default: `22`) |
-| `DEPLOY_HEALTH_URL` | No | URL checked after deploy (default: `https://genesislearningacademyofkennesaw.com/gallery`) |
-| `DEPLOY_API_HEALTH_URL` | No | API health URL (default: `https://genesislearningacademyofkennesaw.com/api/health`) |
+| `PROD_SSH_HOST` | Yes | `67.205.186.58` |
+| `PROD_SSH_USER` | Yes | `glak` |
+| `PROD_SSH_KEY` | Yes | Deploy SSH private key |
+| `PROD_DEPLOY_PATH` | Yes | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |
+| `PROD_SITE_URL` | Yes | `https://genesislearningacademyofkennesaw.com` |
+| `PROD_APP_PORT` | No | API port for local health check (default: `3002`) |
+| `PROD_HEALTH_URL` | No | Static page fingerprint check (default: gallery URL) |
+
+Switch the Buddy project to **YAML configuration** so it reads the root `buddy.yml`.
 
 ## Server setup (one-time)
 
 ### 1. API environment
 
-Create `/etc/glak-api.env` on the server (readable by the deploy/service user):
+Create `/etc/glak-api.env` on the server (readable by the `glak` user / service):
 
 ```bash
 RESEND_API_KEY=re_your_key_here
 STAFF_EMAIL=jay@brogrammers.agency
-PORT=3001
+PORT=3002
 ```
 
-`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. Set it to the GLAK staff inbox when ready.
+`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset.
 
 ### 2. systemd service (recommended)
 
-Adjust `WorkingDirectory` in [`deploy/glak-api.service`](../deploy/glak-api.service) to match `DEPLOY_PATH`, then on the server:
+Adjust `WorkingDirectory` in [`deploy/glak-api.service`](../deploy/glak-api.service) if the docroot changes, then on the server:
 
 ```bash
-sudo cp /var/www/genesislearningacademyofkennesaw.com/public/glak-api.service /etc/systemd/system/
+sudo cp /home/glak/htdocs/genesislearningacademyofkennesaw.com/public/glak-api.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now glak-api
 ```
@@ -62,24 +75,37 @@ Add the snippet from [`deploy/nginx-api-proxy.conf`](../deploy/nginx-api-proxy.c
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Static files continue to be served by nginx from `DEPLOY_PATH`. Only `/api/*` is proxied to `http://127.0.0.1:3001`.
+Static files continue to be served by nginx from the docroot. Only `/api/*` is proxied to `http://127.0.0.1:3002`.
 
 ### 4. SSH and permissions
 
-- Install the matching **public** key for `DEPLOY_USER` on the server.
-- Ensure `DEPLOY_PATH` exists and is writable by the deploy user.
-- The deploy user needs permission to restart `glak-api` (`sudo systemctl restart glak-api` without password, or run the service as the deploy user).
+- Install the matching **public** key for `glak` on Dozer.
+- Ensure the docroot exists and is writable by `glak`.
+- Grant passwordless `sudo systemctl restart glak-api` (and `status`/`journalctl`) for the deploy user.
 
 ## Local development
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev:all` | Vite frontend + Express API (proxied via Vite) |
-| `npm run server` | API only on port 3001 |
+| `npm run dev:all` | Vite frontend + Express API (proxied via Vite on port 3001) |
+| `npm run server` | API only on port 3001 (local default) |
 | `docker-compose up` | Vite + API + nginx with `/api` proxy |
+
+Local dev uses port **3001** by default. Production uses **3002** via `/etc/glak-api.env` and `deploy/glak-api.service`.
 
 ## Health checks
 
-After rsync, the workflow fetches the hashed JS bundle name from `dist/index.html` and confirms that fingerprint appears in the HTML served at `DEPLOY_HEALTH_URL`. If the live site still serves an older bundle after several retries, the job fails with a warning that the site may be stale or cached.
+After deploy, Buddy extracts the hashed JS bundle name from `index.html` and confirms that fingerprint appears in the HTML served at `PROD_HEALTH_URL` (gallery by default).
 
-The API health check calls `GET /api/health` and expects `{"status":"ok"}`. A failure logs a warning but does not fail the deploy job, so the static site can ship while nginx/systemd are being configured.
+The API health check calls `GET /api/health` locally on port 3002 and publicly at `PROD_SITE_URL/api/health`, expecting `{"status":"ok"}`.
+
+## GitHub Actions secrets (legacy)
+
+If using the GitHub workflow instead of Buddy:
+
+| Secret | Description |
+| --- | --- |
+| `DEPLOY_HOST` | `67.205.186.58` |
+| `DEPLOY_USER` | `glak` |
+| `DEPLOY_SSH_KEY` or `DEPLOY_SSH_KEY_B64` | Deploy private key |
+| `DEPLOY_PATH` | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |

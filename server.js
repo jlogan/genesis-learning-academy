@@ -3,7 +3,6 @@ import cors from 'cors';
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import PDFDocument from 'pdfkit';
-import { PassThrough } from 'stream';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -41,15 +40,26 @@ const COLORS = {
   line: '#cbd5e0',
 };
 
+const PDF_GENERATION_TIMEOUT_MS = 30_000;
+
 function generateEnrollmentPDF(data) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'LETTER', margin: 50, bufferPages: true });
-    const chunks = [];
-    const stream = new PassThrough();
-    doc.pipe(stream);
-    stream.on('data', chunk => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks)));
-    stream.on('error', reject);
+    const timeout = setTimeout(() => {
+      reject(new Error(`PDF generation timed out after ${PDF_GENERATION_TIMEOUT_MS}ms`));
+    }, PDF_GENERATION_TIMEOUT_MS);
+
+    const finish = (error, buffer) => {
+      clearTimeout(timeout);
+      if (error) reject(error);
+      else resolve(buffer);
+    };
+
+    try {
+      const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+      const chunks = [];
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => finish(null, Buffer.concat(chunks)));
+      doc.on('error', (error) => finish(error));
 
     const pageWidth = doc.page.width - 100; // minus margins
     let y; // track vertical position
@@ -474,27 +484,13 @@ function generateEnrollmentPDF(data) {
     fieldRow('Rate', '');
     fieldRow('Notes', '');
 
-    // ── Footer on every page ──
-    // PDFKit's switchToPage + text near bottom margin creates ghost pages.
-    // Fix: track real page count, pop any extra pages from the buffer.
-    const pages = doc.bufferedPageRange();
-    const realPageCount = pages.count;
-    for (let i = 0; i < realPageCount; i++) {
-      doc.switchToPage(i);
-      doc.fontSize(7).font('Helvetica').fill(COLORS.muted)
-        .text(
-          `${BRAND.name}  •  Enrollment Application  •  Page ${i + 1} of ${realPageCount}`,
-          50, doc.page.height - 35,
-          { width: pageWidth, align: 'center', lineBreak: false }
-        );
-    }
-
-    // Remove ghost pages created by switchToPage + text writes
-    const extra = doc.bufferedPageRange().count - realPageCount;
-    for (let i = 0; i < extra; i++) doc._pageBuffer.pop();
-    doc.switchToPage(realPageCount - 1);
-
     doc.end();
+    } catch (error) {
+      finish(error);
+    }
+  }).catch((error) => {
+    console.error('PDF generation failed:', error);
+    throw error;
   });
 }
 
@@ -529,8 +525,7 @@ app.post('/api/enroll', async (req, res) => {
 
     const attachmentFilename = `GLAK_Enrollment_${filenameSafe}.pdf`;
 
-    // Email to parent
-    const parentEmailResult = await resend.emails.send({
+    const parentEmailPayload = {
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
       to: [parentEmail],
       subject: 'Your Genesis Learning Academy Enrollment Packet',
@@ -571,14 +566,9 @@ app.post('/api/enroll', async (req, res) => {
         filename: attachmentFilename,
         content: pdfBuffer,
       }],
-    });
+    };
 
-    if (parentEmailResult.error) {
-      console.error('Parent email error:', parentEmailResult.error);
-    }
-
-    // Email to staff
-    const staffEmailResult = await resend.emails.send({
+    const staffEmailPayload = {
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
       to: [STAFF_EMAIL],
       subject: `New Enrollment: ${parentName} for ${childFullName}`,
@@ -608,8 +598,16 @@ app.post('/api/enroll', async (req, res) => {
         filename: attachmentFilename,
         content: pdfBuffer,
       }],
-    });
+    };
 
+    const [parentEmailResult, staffEmailResult] = await Promise.all([
+      resend.emails.send(parentEmailPayload),
+      resend.emails.send(staffEmailPayload),
+    ]);
+
+    if (parentEmailResult.error) {
+      console.error('Parent email error:', parentEmailResult.error);
+    }
     if (staffEmailResult.error) {
       console.error('Staff email error:', staffEmailResult.error);
     }
