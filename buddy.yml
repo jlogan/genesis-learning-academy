@@ -16,14 +16,15 @@
 #
 # One-time Buddy project setup:
 #   1. Switch the Buddy project to YAML configuration so it reads this root file.
-#   2. Add these encrypted project variables:
-#        PROD_SSH_HOST       67.205.186.58
+#   2. Ensure BA Buddy global variables are set (workspace/account level):
+#        DOZER_HOST          production server host (e.g. 67.205.186.58)
+#        BROBOT_SSH_KEY      deploy SSH private key (type: SSH key, encrypted)
+#   3. Add these encrypted project variables:
 #        PROD_SSH_USER       glak
-#        PROD_SSH_KEY        deploy SSH private key (type: SSH key, encrypted)
 #        PROD_DEPLOY_PATH    /home/glak/htdocs/genesislearningacademyofkennesaw.com/public
 #        PROD_SITE_URL       https://genesislearningacademyofkennesaw.com
 #
-#   Optional variables:
+#   Optional project variables:
 #        PROD_APP_PORT       API port for local health check (default: 3002)
 #        PROD_HEALTH_URL     static page fingerprint check (default: gallery URL)
 
@@ -63,13 +64,13 @@
         - target: "production-cloudpanel"
           type: "SSH"
           name: "CloudPanel Production"
-          host: "$PROD_SSH_HOST"
+          host: "$DOZER_HOST"
           port: "22"
           path: "$PROD_DEPLOY_PATH"
           auth:
             method: "SSH_KEY"
             username: "$PROD_SSH_USER"
-            key: "$PROD_SSH_KEY"
+            key: "$BROBOT_SSH_KEY"
 
     - action: "Transfer API files (SFTP)"
       type: "TRANSFER"
@@ -88,13 +89,13 @@
         - target: "production-cloudpanel"
           type: "SSH"
           name: "CloudPanel Production"
-          host: "$PROD_SSH_HOST"
+          host: "$DOZER_HOST"
           port: "22"
           path: "$PROD_DEPLOY_PATH"
           auth:
             method: "SSH_KEY"
             username: "$PROD_SSH_USER"
-            key: "$PROD_SSH_KEY"
+            key: "$BROBOT_SSH_KEY"
 
     - action: "Install deps, restart API, verify production"
       type: "SSH_COMMAND"
@@ -182,10 +183,10 @@
         - target: "production-cloudpanel"
           type: "SSH"
           name: "CloudPanel Production"
-          host: "$PROD_SSH_HOST"
+          host: "$DOZER_HOST"
           port: "22"
           path: "$PROD_DEPLOY_PATH"
           auth:
             method: "SSH_KEY"
             username: "$PROD_SSH_USER"
-            key: "$PROD_SSH_KEY"
+            key: "$BROBOT_SSH_KEY"

@@ -27,21 +27,28 @@ Static files are served by nginx from the docroot. Only `/api/*` hits the Node p
 
 Concurrent pushes cancel in-progress deploys so only the latest commit reaches production.
 
-## Buddy project variables
+## Buddy variables
 
-Configure under **Project → Variables** (encrypt secrets; store the key as type **SSH key**):
+Switch the Buddy project to **YAML configuration** so it reads the root `buddy.yml`.
+
+Use BA workspace/global variables for shared infrastructure:
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `PROD_SSH_HOST` | Yes | `67.205.186.58` |
+| `DOZER_HOST` | Yes | Production CloudPanel host |
+| `BROBOT_SSH_KEY` | Yes | BA deploy SSH key, type **SSH key** / encrypted |
+
+Configure these under the project variables for this site:
+
+| Variable | Required | Description |
+| --- | --- | --- |
 | `PROD_SSH_USER` | Yes | `glak` |
-| `PROD_SSH_KEY` | Yes | Deploy SSH private key |
 | `PROD_DEPLOY_PATH` | Yes | `/home/glak/htdocs/genesislearningacademyofkennesaw.com/public` |
 | `PROD_SITE_URL` | Yes | `https://genesislearningacademyofkennesaw.com` |
 | `PROD_APP_PORT` | No | API port for local health check (default: `3002`) |
 | `PROD_HEALTH_URL` | No | Static page fingerprint check (default: gallery URL) |
 
-Switch the Buddy project to **YAML configuration** so it reads the root `buddy.yml`.
+Do not add per-project `PROD_SSH_HOST` or `PROD_SSH_KEY` for BA CloudPanel-hosted projects when the global variables are available.
 
 ## Server setup (one-time)
 
