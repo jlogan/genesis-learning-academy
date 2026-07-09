@@ -1364,7 +1364,7 @@ const Enroll = () => {
 
       {/* Progress, remaining steps, and jump navigation (sticky) */}
       <section className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 max-w-4xl py-4">
+        <div className="container mx-auto px-4 max-w-4xl pt-3 pb-2">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-3">
             <div className="flex items-start gap-3 min-w-0">
               <StepIcon className="w-6 h-6 text-primary shrink-0 mt-0.5" aria-hidden />
@@ -1386,7 +1386,7 @@ const Enroll = () => {
               {progressPercent}% complete
             </p>
           </div>
-          <Progress value={progressPercent} className="h-2 mb-4" />
+          <Progress value={progressPercent} className="h-2 mb-2" />
           <nav aria-label="Jump to a step" className="-mx-1 px-1">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-2">
               Go to step
@@ -1419,10 +1419,10 @@ const Enroll = () => {
       </section>
 
       {/* Form Section */}
-      <section className="pt-4 pb-8">
+      <section className="pt-2 pb-6">
         <div className="container mx-auto px-4 max-w-4xl">
           <Card className="shadow-lg border-border/50">
-            <CardContent className="p-6 md:p-10">
+            <CardContent className="p-5 md:p-8">
               <Form {...form}>
                 <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                   {renderStep()}
