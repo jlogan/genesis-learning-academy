@@ -1353,7 +1353,7 @@ const Enroll = () => {
   return (
     <div className="min-h-screen bg-warmBg">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-12">
+      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-8">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">Enrollment Application</h1>
           <p className="text-primary-foreground/95 leading-relaxed">
