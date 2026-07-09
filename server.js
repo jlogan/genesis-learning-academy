@@ -108,7 +108,6 @@ function buildInboundCallTwiml({ forwardTo, baseUrl }) {
   const statusUrl = `${baseUrl}/api/twilio/voice/status`;
   const recordingStatusUrl = `${baseUrl}/api/twilio/voice/status?kind=recording`;
   return buildTwiml(`
-  <Say voice="alice">This call may be recorded for quality and reporting purposes.</Say>
   <Dial answerOnBridge="true" record="record-from-answer-dual" recordingStatusCallback="${escapeHtml(recordingStatusUrl)}" recordingStatusCallbackEvent="completed" action="${escapeHtml(statusUrl)}" method="POST">
     <Number>${escapeHtml(forwardTo)}</Number>
   </Dial>`);
