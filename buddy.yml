@@ -18,7 +18,7 @@
 #   1. Switch the Buddy project to YAML configuration so it reads this root file.
 #   2. Ensure BA Buddy global variables are set (workspace/account level):
 #        DOZER_HOST          production server host (e.g. 67.205.186.58)
-#        BROBOT_SSH_KEY      deploy SSH private key (type: SSH key, encrypted)
+#        BROBOT_SSH_KEY      deploy SSH key asset in Variables, Keys & Assets
 #   3. Add these encrypted project variables:
 #        PROD_SSH_USER       glak
 #        PROD_DEPLOY_PATH    /home/glak/htdocs/genesislearningacademyofkennesaw.com
@@ -68,9 +68,9 @@
           port: "22"
           path: "$PROD_DEPLOY_PATH"
           auth:
-            method: "SSH_KEY"
+            method: "ASSETS_KEY"
             username: "$PROD_SSH_USER"
-            key: "$BROBOT_SSH_KEY"
+            asset: "BROBOT_SSH_KEY"
 
     - action: "Transfer API files (SFTP)"
       type: "TRANSFER"
@@ -93,9 +93,9 @@
           port: "22"
           path: "$PROD_DEPLOY_PATH"
           auth:
-            method: "SSH_KEY"
+            method: "ASSETS_KEY"
             username: "$PROD_SSH_USER"
-            key: "$BROBOT_SSH_KEY"
+            asset: "BROBOT_SSH_KEY"
 
     - action: "Install deps, restart API, verify production"
       type: "SSH_COMMAND"
@@ -187,6 +187,6 @@
           port: "22"
           path: "$PROD_DEPLOY_PATH"
           auth:
-            method: "SSH_KEY"
+            method: "ASSETS_KEY"
             username: "$PROD_SSH_USER"
-            key: "$BROBOT_SSH_KEY"
+            asset: "BROBOT_SSH_KEY"
