@@ -21,11 +21,17 @@ app.set('trust proxy', true);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Initialize Resend
-if (!process.env.RESEND_API_KEY) {
-  console.warn('RESEND_API_KEY is not set; email endpoints will fail until configured.');
+// Initialize Resend lazily so local PDF preview/imports can run without email credentials.
+let resend;
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not set; email endpoints cannot send until configured.');
+  }
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
 }
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 const dbConfig = process.env.DB_NAME && process.env.DB_USER && process.env.DB_PASSWORD
@@ -282,88 +288,212 @@ function generateEnrollmentPDF(data) {
       doc.on('end', () => finish(null, Buffer.concat(chunks)));
       doc.on('error', (error) => finish(error));
 
-    const pageWidth = doc.page.width - 100; // minus margins
-    let y; // track vertical position
+    const MARGIN = 50;
+    const CONTENT_WIDTH = doc.page.width - MARGIN * 2;
+    const LABEL_WIDTH = 130;
+    const VALUE_X = MARGIN + LABEL_WIDTH;
+    const VALUE_WIDTH = CONTENT_WIDTH - LABEL_WIDTH;
+    const HALF_WIDTH = CONTENT_WIDTH / 2;
+    const HALF_LABEL_WIDTH = 88;
+    const HALF_VALUE_WIDTH = HALF_WIDTH - HALF_LABEL_WIDTH - 8;
+    const HALF_COL2_X = MARGIN + HALF_WIDTH;
+    const SECTION_TITLE_HEIGHT = 40;
+    const SUBHEADING_HEIGHT = 16;
+    const SEPARATOR_HEIGHT = 12;
 
-    // ── Helper Functions ──
+    let y;
+
+    function pageBottom() {
+      return doc.page.height - MARGIN;
+    }
+
+    function formatValue(value) {
+      return value != null && value !== '' ? String(value) : '—';
+    }
 
     function drawHeader() {
       doc.rect(0, 0, doc.page.width, 80).fill(COLORS.primary);
       doc.fill('#ffffff')
         .fontSize(18).font('Helvetica-Bold')
-        .text(BRAND.name, 50, 20, { width: pageWidth, align: 'center' });
+        .text(BRAND.name, MARGIN, 20, { width: CONTENT_WIDTH, align: 'center' });
       doc.fontSize(9).font('Helvetica')
-        .text(`${BRAND.address}  |  ${BRAND.phone}`, 50, 45, { width: pageWidth, align: 'center' });
+        .text(`${BRAND.address}  |  ${BRAND.phone}`, MARGIN, 45, { width: CONTENT_WIDTH, align: 'center' });
       doc.fill(COLORS.text);
       return 95;
     }
 
-    function checkPage(needed = 60) {
-      if (y + needed > doc.page.height - 60) {
+    function ensureSpace(needed) {
+      if (y + needed > pageBottom()) {
         doc.addPage();
         y = drawHeader();
       }
     }
 
-    function sectionTitle(title) {
-      checkPage(50);
+    function measureFieldRow(label, value) {
+      const val = formatValue(value);
+      doc.fontSize(9).font('Helvetica-Bold');
+      const labelH = doc.heightOfString(`${label}:`, { width: LABEL_WIDTH });
+      doc.font('Helvetica');
+      const valueH = doc.heightOfString(val, { width: VALUE_WIDTH });
+      return Math.max(labelH, valueH, 14) + 4;
+    }
+
+    function drawFieldRow(label, value) {
+      const val = formatValue(value);
+      const rowH = measureFieldRow(label, value);
+      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
+        .text(`${label}:`, MARGIN, y, { width: LABEL_WIDTH });
+      doc.font('Helvetica').fill(COLORS.text)
+        .text(val, VALUE_X, y, { width: VALUE_WIDTH });
+      y += rowH;
+    }
+
+    function measureFieldRowHalf(label1, val1, label2, val2) {
+      const v1 = formatValue(val1);
+      const v2 = formatValue(val2);
+      doc.fontSize(9).font('Helvetica-Bold');
+      const leftLabelH = doc.heightOfString(`${label1}:`, { width: HALF_LABEL_WIDTH });
+      doc.font('Helvetica');
+      const leftValueH = doc.heightOfString(v1, { width: HALF_VALUE_WIDTH });
+      const leftH = Math.max(leftLabelH, leftValueH);
+
+      doc.fontSize(9).font('Helvetica-Bold');
+      const rightLabelH = doc.heightOfString(`${label2}:`, { width: HALF_LABEL_WIDTH });
+      doc.font('Helvetica');
+      const rightValueH = doc.heightOfString(v2, { width: HALF_VALUE_WIDTH });
+      const rightH = Math.max(rightLabelH, rightValueH);
+
+      return Math.max(leftH, rightH, 14) + 4;
+    }
+
+    function drawFieldRowHalf(label1, val1, label2, val2) {
+      const v1 = formatValue(val1);
+      const v2 = formatValue(val2);
+      const rowH = measureFieldRowHalf(label1, val1, label2, val2);
+
+      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
+        .text(`${label1}:`, MARGIN, y, { width: HALF_LABEL_WIDTH });
+      doc.font('Helvetica').fill(COLORS.text)
+        .text(v1, MARGIN + HALF_LABEL_WIDTH, y, { width: HALF_VALUE_WIDTH });
+
+      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
+        .text(`${label2}:`, HALF_COL2_X, y, { width: HALF_LABEL_WIDTH });
+      doc.font('Helvetica').fill(COLORS.text)
+        .text(v2, HALF_COL2_X + HALF_LABEL_WIDTH, y, { width: HALF_VALUE_WIDTH });
+
+      y += rowH;
+    }
+
+    function measureBullet(text) {
+      doc.fontSize(9).font('Helvetica');
+      const h = doc.heightOfString(`•  ${text}`, { width: CONTENT_WIDTH - 10 });
+      return Math.max(h, 14) + 2;
+    }
+
+    function drawBullet(text) {
+      const rowH = measureBullet(text);
+      doc.fontSize(9).font('Helvetica').fill(COLORS.text)
+        .text(`•  ${text}`, MARGIN + 10, y, { width: CONTENT_WIDTH - 10 });
+      y += rowH;
+    }
+
+    function measureRows(rows) {
+      let height = 0;
+      for (const row of rows) {
+        switch (row.type) {
+          case 'field':
+            height += measureFieldRow(row.label, row.value);
+            break;
+          case 'half':
+            height += measureFieldRowHalf(row.label1, row.val1, row.label2, row.val2);
+            break;
+          case 'bullet':
+            height += measureBullet(row.text);
+            break;
+          case 'subheading':
+            height += SUBHEADING_HEIGHT;
+            break;
+          case 'separator':
+            height += SEPARATOR_HEIGHT;
+            break;
+          default:
+            break;
+        }
+      }
+      return height;
+    }
+
+    function drawRows(rows) {
+      for (const row of rows) {
+        switch (row.type) {
+          case 'field':
+            drawFieldRow(row.label, row.value);
+            break;
+          case 'half':
+            drawFieldRowHalf(row.label1, row.val1, row.label2, row.val2);
+            break;
+          case 'bullet':
+            drawBullet(row.text);
+            break;
+          case 'subheading':
+            doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
+              .text(row.text, MARGIN, y);
+            y += SUBHEADING_HEIGHT;
+            break;
+          case 'separator':
+            y += 4;
+            doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.line).lineWidth(0.5).stroke();
+            y += 8;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    function drawSectionTitle(title) {
       y += 8;
-      doc.rect(50, y, pageWidth, 24).fill(COLORS.accent);
+      doc.rect(MARGIN, y, CONTENT_WIDTH, 24).fill(COLORS.accent);
       doc.fill('#ffffff').fontSize(12).font('Helvetica-Bold')
-        .text(title.toUpperCase(), 58, y + 6, { width: pageWidth - 16 });
+        .text(title.toUpperCase(), MARGIN + 8, y + 6, { width: CONTENT_WIDTH - 16 });
       doc.fill(COLORS.text);
       y += 32;
     }
 
-    function fieldRow(label, value, opts = {}) {
-      checkPage(28);
-      const val = value != null && value !== '' ? String(value) : '—';
-      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(label + ':', 55, y, { continued: false });
-      doc.font('Helvetica').fill(COLORS.text)
-        .text(val, 200, y, { width: pageWidth - 155 });
-      const textHeight = doc.heightOfString(val, { width: pageWidth - 155 });
-      y += Math.max(textHeight, 14) + 4;
+    function renderSection(title, rows) {
+      if (!rows || rows.length === 0) return;
+      const bodyHeight = measureRows(rows);
+      ensureSpace(SECTION_TITLE_HEIGHT + bodyHeight);
+      drawSectionTitle(title);
+      drawRows(rows);
+    }
+
+    function fieldRow(label, value) {
+      const rowH = measureFieldRow(label, value);
+      ensureSpace(rowH);
+      drawFieldRow(label, value);
     }
 
     function fieldRowHalf(label1, val1, label2, val2) {
-      checkPage(28);
-      const half = pageWidth / 2;
-      const v1 = val1 != null && val1 !== '' ? String(val1) : '—';
-      const v2 = val2 != null && val2 !== '' ? String(val2) : '—';
-      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(label1 + ':', 55, y);
-      doc.font('Helvetica').fill(COLORS.text)
-        .text(v1, 170, y);
-      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(label2 + ':', 50 + half + 5, y);
-      doc.font('Helvetica').fill(COLORS.text)
-        .text(v2, 50 + half + 120, y);
-      y += 18;
-    }
-
-    function bulletItem(text) {
-      checkPage(22);
-      doc.fontSize(9).font('Helvetica').fill(COLORS.text)
-        .text('•  ' + text, 60, y, { width: pageWidth - 20 });
-      const h = doc.heightOfString('•  ' + text, { width: pageWidth - 20 });
-      y += Math.max(h, 14) + 2;
+      const rowH = measureFieldRowHalf(label1, val1, label2, val2);
+      ensureSpace(rowH);
+      drawFieldRowHalf(label1, val1, label2, val2);
     }
 
     function separator() {
-      checkPage(12);
+      ensureSpace(SEPARATOR_HEIGHT);
       y += 4;
-      doc.moveTo(50, y).lineTo(50 + pageWidth, y).strokeColor(COLORS.line).lineWidth(0.5).stroke();
+      doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.line).lineWidth(0.5).stroke();
       y += 8;
     }
 
     function signatureLine(label) {
-      checkPage(50);
+      ensureSpace(50);
       y += 10;
-      doc.moveTo(55, y + 20).lineTo(350, y + 20).strokeColor(COLORS.text).lineWidth(0.8).stroke();
+      doc.moveTo(MARGIN + 5, y + 20).lineTo(350, y + 20).strokeColor(COLORS.text).lineWidth(0.8).stroke();
       doc.moveTo(370, y + 20).lineTo(500, y + 20).stroke();
       doc.fontSize(8).font('Helvetica').fill(COLORS.muted)
-        .text(label, 55, y + 24)
+        .text(label, MARGIN + 5, y + 24)
         .text('Date', 370, y + 24);
       y += 45;
     }
@@ -389,131 +519,124 @@ function generateEnrollmentPDF(data) {
     y = drawHeader();
 
     // Title banner
-    doc.rect(50, y, pageWidth, 30).fill('#edf2f7');
+    doc.rect(MARGIN, y, CONTENT_WIDTH, 30).fill('#edf2f7');
     doc.fill(COLORS.primary).fontSize(11).font('Helvetica-Bold')
-      .text('ENROLLMENT APPLICATION — Print and bring to center for signatures', 55, y + 9, { width: pageWidth - 10, align: 'center' });
+      .text('ENROLLMENT APPLICATION — Print and bring to center for signatures', MARGIN + 5, y + 9, { width: CONTENT_WIDTH - 10, align: 'center' });
     doc.fill(COLORS.text);
     y += 40;
 
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     doc.fontSize(9).font('Helvetica').fill(COLORS.muted)
-      .text(`Generated: ${today}`, 55, y, { width: pageWidth - 10, align: 'right' });
+      .text(`Generated: ${today}`, MARGIN, y, { width: CONTENT_WIDTH - 10, align: 'right' });
     y += 18;
 
-    // ── A. Child Information ──
-    sectionTitle('Child Information');
-    fieldRow('Full Name', child.childFullName);
-    fieldRowHalf('Birth Date', child.childBirthDate, 'Sex', child.childSex);
-    fieldRow('Nick Name', child.childNickName);
-    fieldRow('Home Address', child.childHomeAddress);
-    fieldRowHalf('City', child.childCity, 'State', child.childState);
-    fieldRow('Zip Code', child.childZipCode);
-    fieldRow('Home Phone', child.childHomePhone);
+    renderSection('Child Information', [
+      { type: 'field', label: 'Full Name', value: child.childFullName },
+      { type: 'half', label1: 'Birth Date', val1: child.childBirthDate, label2: 'Sex', val2: child.childSex },
+      { type: 'field', label: 'Nick Name', value: child.childNickName },
+      { type: 'field', label: 'Home Address', value: child.childHomeAddress },
+      { type: 'half', label1: 'City', val1: child.childCity, label2: 'State', val2: child.childState },
+      { type: 'field', label: 'Zip Code', value: child.childZipCode },
+      { type: 'field', label: 'Home Phone', value: child.childHomePhone },
+    ]);
 
-    // ── B. Parent/Guardian #1 ──
-    sectionTitle('1st Parent/Guardian');
-    fieldRow('Full Name', parent1.fullName);
-    fieldRow('Birth Date', parent1.birthDate);
-    fieldRow('Home Address', parent1.homeAddress);
-    fieldRowHalf('City', parent1.city, 'State', parent1.state);
-    fieldRow('Zip Code', parent1.zipCode);
-    fieldRowHalf('Home Phone', parent1.homePhone, 'Cell Phone', parent1.cellPhone);
-    fieldRow('Email', parent1.email);
-    fieldRow('Occupation', parent1.occupation);
-    fieldRow('Employer', parent1.employerName);
-    fieldRow('Employer Address', parent1.employerAddress);
-    fieldRowHalf('Work Phone', parent1.workPhone, 'Work Hours', parent1.workHours);
+    renderSection('1st Parent/Guardian', [
+      { type: 'field', label: 'Full Name', value: parent1.fullName },
+      { type: 'field', label: 'Birth Date', value: parent1.birthDate },
+      { type: 'field', label: 'Home Address', value: parent1.homeAddress },
+      { type: 'half', label1: 'City', val1: parent1.city, label2: 'State', val2: parent1.state },
+      { type: 'field', label: 'Zip Code', value: parent1.zipCode },
+      { type: 'half', label1: 'Home Phone', val1: parent1.homePhone, label2: 'Cell Phone', val2: parent1.cellPhone },
+      { type: 'field', label: 'Email', value: parent1.email },
+      { type: 'field', label: 'Occupation', value: parent1.occupation },
+      { type: 'field', label: 'Employer', value: parent1.employerName },
+      { type: 'field', label: 'Employer Address', value: parent1.employerAddress },
+      { type: 'half', label1: 'Work Phone', val1: parent1.workPhone, label2: 'Work Hours', val2: parent1.workHours },
+    ]);
 
-    // ── C. Parent/Guardian #2 ──
     const hasParent2 = parent2.fullName || parent2.cellPhone || parent2.email;
     if (hasParent2) {
-      sectionTitle('2nd Parent/Guardian');
-      fieldRow('Full Name', parent2.fullName);
-      fieldRow('Birth Date', parent2.birthDate);
-      fieldRow('Home Address', parent2.homeAddress);
-      fieldRowHalf('City', parent2.city, 'State', parent2.state);
-      fieldRow('Zip Code', parent2.zipCode);
-      fieldRowHalf('Home Phone', parent2.homePhone, 'Cell Phone', parent2.cellPhone);
-      fieldRow('Email', parent2.email);
-      fieldRow('Occupation', parent2.occupation);
-      fieldRow('Employer', parent2.employerName);
-      fieldRow('Employer Address', parent2.employerAddress);
-      fieldRowHalf('Work Phone', parent2.workPhone, 'Work Hours', parent2.workHours);
+      renderSection('2nd Parent/Guardian', [
+        { type: 'field', label: 'Full Name', value: parent2.fullName },
+        { type: 'field', label: 'Birth Date', value: parent2.birthDate },
+        { type: 'field', label: 'Home Address', value: parent2.homeAddress },
+        { type: 'half', label1: 'City', val1: parent2.city, label2: 'State', val2: parent2.state },
+        { type: 'field', label: 'Zip Code', value: parent2.zipCode },
+        { type: 'half', label1: 'Home Phone', val1: parent2.homePhone, label2: 'Cell Phone', val2: parent2.cellPhone },
+        { type: 'field', label: 'Email', value: parent2.email },
+        { type: 'field', label: 'Occupation', value: parent2.occupation },
+        { type: 'field', label: 'Employer', value: parent2.employerName },
+        { type: 'field', label: 'Employer Address', value: parent2.employerAddress },
+        { type: 'half', label1: 'Work Phone', val1: parent2.workPhone, label2: 'Work Hours', val2: parent2.workHours },
+      ]);
     }
-    fieldRow('Legal Custody Parent', guardian.legalCustodyParent);
-    fieldRow('Parental Status', guardian.parentalStatus);
-    // Household members
+
     const members = guardian.otherHouseholdMembers || [];
     const filledMembers = members.filter(m => m && m.name);
+    const custodyRows = [
+      { type: 'field', label: 'Legal Custody Parent', value: guardian.legalCustodyParent },
+      { type: 'field', label: 'Parental Status', value: guardian.parentalStatus },
+    ];
     if (filledMembers.length > 0) {
-      checkPage(30);
-      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-        .text('Other Household Members', 55, y);
-      y += 16;
+      custodyRows.push({ type: 'subheading', text: 'Other Household Members' });
       filledMembers.forEach(m => {
-        fieldRow(m.name, `Age: ${m.age || '—'}, Relationship: ${m.relationship || '—'}`);
+        custodyRows.push({
+          type: 'field',
+          label: m.name,
+          value: `Age: ${m.age || '—'}, Relationship: ${m.relationship || '—'}`,
+        });
       });
     }
+    renderSection('Custody & Household', custodyRows);
 
-    // ── D. Emergency Contacts & Authorized Pickup ──
-    sectionTitle('Emergency Contacts & Authorized Pickup');
     const ec1 = emergency.emergencyContact1 || {};
     const ec2 = emergency.emergencyContact2 || {};
-    checkPage(60);
-    doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-      .text('Emergency Contact #1', 55, y);
-    y += 16;
-    fieldRow('Name', ec1.name);
-    fieldRowHalf('Home/Cell', ec1.homeCell, 'Work Phone', ec1.workPhone);
-    fieldRow('Relationship', ec1.relationship);
-    fieldRow('Address', ec1.address);
-    fieldRow('City/State/Zip', ec1.cityStateZip);
-    separator();
-    if (ec2.name) {
-      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-        .text('Emergency Contact #2', 55, y);
-      y += 16;
-      fieldRow('Name', ec2.name);
-      fieldRowHalf('Home/Cell', ec2.homeCell, 'Work Phone', ec2.workPhone);
-      fieldRow('Relationship', ec2.relationship);
-      fieldRow('Address', ec2.address);
-      fieldRow('City/State/Zip', ec2.cityStateZip);
-      separator();
-    }
-    fieldRow('Kid Code (Secret Pickup Word)', emergency.kidCode);
+    renderSection('Emergency Contact #1', [
+      { type: 'field', label: 'Name', value: ec1.name },
+      { type: 'half', label1: 'Home/Cell', val1: ec1.homeCell, label2: 'Work Phone', val2: ec1.workPhone },
+      { type: 'field', label: 'Relationship', value: ec1.relationship },
+      { type: 'field', label: 'Address', value: ec1.address },
+      { type: 'field', label: 'City/State/Zip', value: ec1.cityStateZip },
+    ]);
 
-    // Authorized Pickup
+    if (ec2.name) {
+      renderSection('Emergency Contact #2', [
+        { type: 'field', label: 'Name', value: ec2.name },
+        { type: 'half', label1: 'Home/Cell', val1: ec2.homeCell, label2: 'Work Phone', val2: ec2.workPhone },
+        { type: 'field', label: 'Relationship', value: ec2.relationship },
+        { type: 'field', label: 'Address', value: ec2.address },
+        { type: 'field', label: 'City/State/Zip', value: ec2.cityStateZip },
+      ]);
+    }
+
     const ap1 = emergency.authorizedPickup1 || {};
     const ap2 = emergency.authorizedPickup2 || {};
     if (ap1.name || ap2.name) {
-      checkPage(30);
-      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-        .text('Authorized Pickup Persons', 55, y);
-      y += 16;
+      const authorizedRows = [];
       if (ap1.name) {
-        fieldRow(ap1.name, `${ap1.relationship || '—'} — ${ap1.homeCell || '—'}`);
-        if (ap1.address) fieldRow('Address', ap1.address);
+        authorizedRows.push({ type: 'field', label: ap1.name, value: `${ap1.relationship || '—'} — ${ap1.homeCell || '—'}` });
+        if (ap1.address) authorizedRows.push({ type: 'field', label: 'Address', value: ap1.address });
       }
       if (ap2.name) {
-        fieldRow(ap2.name, `${ap2.relationship || '—'} — ${ap2.homeCell || '—'}`);
-        if (ap2.address) fieldRow('Address', ap2.address);
+        authorizedRows.push({ type: 'field', label: ap2.name, value: `${ap2.relationship || '—'} — ${ap2.homeCell || '—'}` });
+        if (ap2.address) authorizedRows.push({ type: 'field', label: 'Address', value: ap2.address });
       }
+      renderSection('Authorized Pickup Persons', authorizedRows);
     }
 
-    // Unauthorized Pickup
     const up1 = emergency.unauthorizedPickup1 || {};
     const up2 = emergency.unauthorizedPickup2 || {};
     if (up1.name || up2.name) {
-      checkPage(30);
-      doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-        .text('NOT Authorized for Pickup', 55, y);
-      y += 16;
-      if (up1.name) fieldRow(up1.name, up1.comment);
-      if (up2.name) fieldRow(up2.name, up2.comment);
+      const unauthorizedRows = [];
+      if (up1.name) unauthorizedRows.push({ type: 'field', label: up1.name, value: up1.comment });
+      if (up2.name) unauthorizedRows.push({ type: 'field', label: up2.name, value: up2.comment });
+      renderSection('NOT Authorized for Pickup', unauthorizedRows);
     }
 
-    // ── E. Payment Policy ──
-    sectionTitle('Payment Policy Acknowledgments');
+    renderSection('Secret Pickup Word', [
+      { type: 'field', label: 'Kid Code', value: emergency.kidCode },
+    ]);
+
     const paymentAcks = [
       ['ackHoursOvertime', 'Hours & overtime policy acknowledged'],
       ['ackPaymentDeadline', 'Payment deadline policy acknowledged'],
@@ -526,30 +649,27 @@ function generateEnrollmentPDF(data) {
       ['ackTransportationFee', 'Transportation fee acknowledged'],
       ['ackDayServicePayment', 'Day service payment acknowledged'],
     ];
-    paymentAcks.forEach(([key, label]) => {
-      if (payment[key]) bulletItem(`✓ ${label}`);
-    });
-    if (payment.isAfterSchool) fieldRow('After School Program', 'Yes');
+    const paymentRows = paymentAcks
+      .filter(([key]) => payment[key])
+      .map(([, label]) => ({ type: 'bullet', text: `✓ ${label}` }));
+    if (payment.isAfterSchool) paymentRows.push({ type: 'field', label: 'After School Program', value: 'Yes' });
+    renderSection('Payment Policy Acknowledgments', paymentRows);
 
-    // ── F. Medical & Emergency Information ──
-    sectionTitle('Medical & Emergency Information');
-    fieldRow('Physician Name', medical.physicianName);
-    fieldRow('Physician Phone', medical.physicianPhone);
-    fieldRow('Preferred Hospital', medical.preferredHospital);
-    fieldRow('Hospital Phone', medical.hospitalPhone);
-    fieldRow('Blood Type', medical.bloodType);
-    fieldRow('Regular Medications', medical.regularMedications);
-    fieldRow('Medical Allergies', medical.medicalAllergies);
-    fieldRow('Food Allergies', medical.foodAllergies);
-    fieldRow('Other Allergies', medical.otherAllergies);
-    fieldRow('Special Health Conditions', medical.specialHealthConditions);
-    if (medical.ackEmergencyMedicalCare) bulletItem('✓ Emergency medical care authorized');
+    const medicalRows = [
+      { type: 'field', label: 'Physician Name', value: medical.physicianName },
+      { type: 'field', label: 'Physician Phone', value: medical.physicianPhone },
+      { type: 'field', label: 'Preferred Hospital', value: medical.preferredHospital },
+      { type: 'field', label: 'Hospital Phone', value: medical.hospitalPhone },
+      { type: 'field', label: 'Blood Type', value: medical.bloodType },
+      { type: 'field', label: 'Regular Medications', value: medical.regularMedications },
+      { type: 'field', label: 'Medical Allergies', value: medical.medicalAllergies },
+      { type: 'field', label: 'Food Allergies', value: medical.foodAllergies },
+      { type: 'field', label: 'Other Allergies', value: medical.otherAllergies },
+      { type: 'field', label: 'Special Health Conditions', value: medical.specialHealthConditions },
+    ];
+    if (medical.ackEmergencyMedicalCare) medicalRows.push({ type: 'bullet', text: '✓ Emergency medical care authorized' });
+    renderSection('Medical & Emergency Information', medicalRows);
 
-    // ── G. Policies & Consent ──
-    sectionTitle('Policies & Consent Forms');
-    if (policies.ackNoLiabilityInsurance) bulletItem('✓ No liability insurance policy acknowledged');
-    if (policies.ackChildCombination) bulletItem('✓ Child combination/mixed age group policy acknowledged');
-    // Topical preparations
     const topicals = [
       ['topicalBabyWipes', 'Baby Wipes'], ['topicalBandAids', 'Band-Aids'],
       ['topicalNeosporin', 'Neosporin'], ['topicalBactine', 'Bactine'],
@@ -558,129 +678,150 @@ function generateEnrollmentPDF(data) {
       ['topicalOther', 'Other'],
     ];
     const approvedTopicals = topicals.filter(([key]) => policies[key]).map(([, label]) => label);
+    const policyRows = [];
+    if (policies.ackNoLiabilityInsurance) policyRows.push({ type: 'bullet', text: '✓ No liability insurance policy acknowledged' });
+    if (policies.ackChildCombination) policyRows.push({ type: 'bullet', text: '✓ Child combination/mixed age group policy acknowledged' });
     if (approvedTopicals.length > 0) {
-      fieldRow('Topical Preparations Authorized', approvedTopicals.join(', '));
+      policyRows.push({ type: 'field', label: 'Topical Preparations Authorized', value: approvedTopicals.join(', ') });
     }
-    if (policies.topicalOtherSpecify) fieldRow('Other Topical', policies.topicalOtherSpecify);
+    if (policies.topicalOtherSpecify) policyRows.push({ type: 'field', label: 'Other Topical', value: policies.topicalOtherSpecify });
+    renderSection('Policies & Consent Forms', policyRows);
 
-    // ── H. Photo/Media Authorization ──
-    sectionTitle('Photo/Media Authorization');
-    fieldRow('Photo Authorization', photo.photoAuthorization);
+    renderSection('Photo/Media Authorization', [
+      { type: 'field', label: 'Photo Authorization', value: photo.photoAuthorization },
+    ]);
 
-    // ── I. Infant Information (if applicable) ──
     const hasInfant = infant && (infant.ackSafeSleep || infant.takesBottle || infant.formulaType);
     if (hasInfant) {
-      sectionTitle('Infant Information');
-      if (infant.ackSafeSleep) bulletItem('✓ Safe sleep policy acknowledged');
-      fieldRow('Takes Bottle', infant.takesBottle);
-      fieldRow('Bottle Warmed', infant.bottleWarmed);
-      fieldRow('Holds Own Bottle', infant.holdsOwnBottle);
-      fieldRow('Feeds Self', infant.feedsSelf);
-      // Food types
       const foodTypes = [
         ['foodStrained', 'Strained'], ['foodBaby', 'Baby Food'], ['foodFormula', 'Formula'],
         ['foodWholeMilk', 'Whole Milk'], ['foodTable', 'Table Food'], ['foodOther', 'Other'],
       ];
       const selectedFoods = foodTypes.filter(([key]) => infant[key]).map(([, label]) => label);
-      if (selectedFoods.length > 0) fieldRow('Food Types', selectedFoods.join(', '));
-      if (infant.foodOtherSpecify) fieldRow('Other Food', infant.foodOtherSpecify);
-      fieldRow('Formula Type', infant.formulaType);
-      fieldRow('Formula Amount', infant.formulaAmount);
-      fieldRow('Formula Schedule', infant.formulaSchedule);
-      fieldRow('Formula Option', infant.formulaOption);
-      fieldRow('Pacifier Use', infant.pacifierUse);
-      fieldRow('Pacifier When', infant.pacifierWhen);
-      // Developmental milestones
+      const infantRows = [];
+      if (infant.ackSafeSleep) infantRows.push({ type: 'bullet', text: '✓ Safe sleep policy acknowledged' });
+      infantRows.push(
+        { type: 'field', label: 'Takes Bottle', value: infant.takesBottle },
+        { type: 'field', label: 'Bottle Warmed', value: infant.bottleWarmed },
+        { type: 'field', label: 'Holds Own Bottle', value: infant.holdsOwnBottle },
+        { type: 'field', label: 'Feeds Self', value: infant.feedsSelf },
+      );
+      if (selectedFoods.length > 0) infantRows.push({ type: 'field', label: 'Food Types', value: selectedFoods.join(', ') });
+      if (infant.foodOtherSpecify) infantRows.push({ type: 'field', label: 'Other Food', value: infant.foodOtherSpecify });
+      infantRows.push(
+        { type: 'field', label: 'Formula Type', value: infant.formulaType },
+        { type: 'field', label: 'Formula Amount', value: infant.formulaAmount },
+        { type: 'field', label: 'Formula Schedule', value: infant.formulaSchedule },
+        { type: 'field', label: 'Formula Option', value: infant.formulaOption },
+        { type: 'field', label: 'Pacifier Use', value: infant.pacifierUse },
+        { type: 'field', label: 'Pacifier When', value: infant.pacifierWhen },
+      );
       if (infant.devRollOver || infant.devSitAlone || infant.devCrawl || infant.devWalk) {
-        fieldRowHalf('Roll Over', infant.devRollOver, 'Sit Alone', infant.devSitAlone);
-        fieldRowHalf('Crawl', infant.devCrawl, 'Walk', infant.devWalk);
+        infantRows.push({
+          type: 'half',
+          label1: 'Roll Over',
+          val1: infant.devRollOver,
+          label2: 'Sit Alone',
+          val2: infant.devSitAlone,
+        });
+        infantRows.push({
+          type: 'half',
+          label1: 'Crawl',
+          val1: infant.devCrawl,
+          label2: 'Walk',
+          val2: infant.devWalk,
+        });
       }
-      fieldRow('Food Likes', infant.foodLikes);
-      fieldRow('Food Dislikes', infant.foodDislikes);
-      fieldRow('Food Allergies', infant.foodAllergiesInfant);
-      fieldRow('Solid Foods Instructions', infant.solidFoodsInstructions);
+      infantRows.push(
+        { type: 'field', label: 'Food Likes', value: infant.foodLikes },
+        { type: 'field', label: 'Food Dislikes', value: infant.foodDislikes },
+        { type: 'field', label: 'Food Allergies', value: infant.foodAllergiesInfant },
+        { type: 'field', label: 'Solid Foods Instructions', value: infant.solidFoodsInstructions },
+      );
+      renderSection('Infant Information', infantRows);
     }
 
-    // ── J. CACFP/Medicaid ──
-    sectionTitle('CACFP / Medicaid Information');
-    if (cacfp.optOutMedicaidSharing) bulletItem('Opted out of Medicaid sharing');
-    fieldRow('SNAP/TANF Case #', cacfp.snapTanfCase);
-    // Categories
     const categories = [
       ['catHeadStart', 'Head Start'], ['catFosterChild', 'Foster Child'],
       ['catMigrant', 'Migrant'], ['catRunaway', 'Runaway'], ['catHomeless', 'Homeless'],
     ];
     const selectedCats = categories.filter(([key]) => cacfp[key]).map(([, label]) => label);
-    if (selectedCats.length > 0) fieldRow('Categories', selectedCats.join(', '));
-    fieldRow('Household Income', cacfp.householdIncome);
-    fieldRow('Household Size', cacfp.householdSize);
-    fieldRow('Hispanic/Latino', cacfp.ethnicHispanic);
-    // Race
     const races = [
       ['raceAmericanIndian', 'American Indian/Alaska Native'], ['raceAsian', 'Asian'],
       ['raceBlack', 'Black/African American'], ['raceHawaiian', 'Native Hawaiian/Pacific Islander'],
       ['raceWhite', 'White'],
     ];
     const selectedRaces = races.filter(([key]) => cacfp[key]).map(([, label]) => label);
-    if (selectedRaces.length > 0) fieldRow('Race', selectedRaces.join(', '));
-    // Meals
     const meals = [
       ['mealBreakfast', 'Breakfast'], ['mealAMSnack', 'AM Snack'], ['mealLunch', 'Lunch'],
       ['mealPMSnack', 'PM Snack'], ['mealSupper', 'Supper'], ['mealEveningSnack', 'Evening Snack'],
     ];
     const selectedMeals = meals.filter(([key]) => cacfp[key]).map(([, label]) => label);
-    if (selectedMeals.length > 0) fieldRow('Meals', selectedMeals.join(', '));
-    // Days
     const days = [
       ['dayMon', 'Mon'], ['dayTue', 'Tue'], ['dayWed', 'Wed'],
       ['dayThu', 'Thu'], ['dayFri', 'Fri'], ['daySat', 'Sat'],
     ];
     const selectedDays = days.filter(([key]) => cacfp[key]).map(([, label]) => label);
-    if (selectedDays.length > 0) fieldRow('Days of Attendance', selectedDays.join(', '));
-    fieldRow('Hours of Attendance', cacfp.hoursOfAttendance);
+    const cacfpRows = [];
+    if (cacfp.optOutMedicaidSharing) cacfpRows.push({ type: 'bullet', text: 'Opted out of Medicaid sharing' });
+    cacfpRows.push({ type: 'field', label: 'SNAP/TANF Case #', value: cacfp.snapTanfCase });
+    if (selectedCats.length > 0) cacfpRows.push({ type: 'field', label: 'Categories', value: selectedCats.join(', ') });
+    cacfpRows.push(
+      { type: 'field', label: 'Household Income', value: cacfp.householdIncome },
+      { type: 'field', label: 'Household Size', value: cacfp.householdSize },
+      { type: 'field', label: 'Hispanic/Latino', value: cacfp.ethnicHispanic },
+    );
+    if (selectedRaces.length > 0) cacfpRows.push({ type: 'field', label: 'Race', value: selectedRaces.join(', ') });
+    if (selectedMeals.length > 0) cacfpRows.push({ type: 'field', label: 'Meals', value: selectedMeals.join(', ') });
+    if (selectedDays.length > 0) cacfpRows.push({ type: 'field', label: 'Days of Attendance', value: selectedDays.join(', ') });
+    cacfpRows.push({ type: 'field', label: 'Hours of Attendance', value: cacfp.hoursOfAttendance });
+    renderSection('CACFP / Medicaid Information', cacfpRows);
 
-    // ── K. Transportation ──
     const hasTransport = transport && (transport.transFatherName || transport.transMotherName || transport.transPickupLocation);
     if (hasTransport) {
-      sectionTitle('Transportation Information');
-      fieldRowHalf('Father Name', transport.transFatherName, 'Father Phone', transport.transFatherPhone);
-      fieldRowHalf('Mother Name', transport.transMotherName, 'Mother Phone', transport.transMotherPhone);
-      fieldRowHalf('Emergency Contact', transport.transEmergencyContact, 'Emergency Phone', transport.transEmergencyPhone);
-      fieldRowHalf('Doctor Name', transport.transDoctorName, 'Doctor Phone', transport.transDoctorPhone);
-      fieldRow('Pickup Location', transport.transPickupLocation);
-      fieldRow('Delivery Location', transport.transDeliveryLocation);
-      fieldRowHalf('Pickup Time', transport.transPickupTime, 'Delivery Time', transport.transDeliveryTime);
       const transDays = [
         ['transDayMon', 'Mon'], ['transDayTue', 'Tue'], ['transDayWed', 'Wed'],
         ['transDayThu', 'Thu'], ['transDayFri', 'Fri'],
       ];
       const selectedTransDays = transDays.filter(([key]) => transport[key]).map(([, label]) => label);
-      if (selectedTransDays.length > 0) fieldRow('Transportation Days', selectedTransDays.join(', '));
-      fieldRow('Authorized Person', transport.transAuthorizedPerson);
+      const transportRows = [
+        { type: 'half', label1: 'Father Name', val1: transport.transFatherName, label2: 'Father Phone', val2: transport.transFatherPhone },
+        { type: 'half', label1: 'Mother Name', val1: transport.transMotherName, label2: 'Mother Phone', val2: transport.transMotherPhone },
+        { type: 'half', label1: 'Emergency Contact', val1: transport.transEmergencyContact, label2: 'Emergency Phone', val2: transport.transEmergencyPhone },
+        { type: 'half', label1: 'Doctor Name', val1: transport.transDoctorName, label2: 'Doctor Phone', val2: transport.transDoctorPhone },
+        { type: 'field', label: 'Pickup Location', value: transport.transPickupLocation },
+        { type: 'field', label: 'Delivery Location', value: transport.transDeliveryLocation },
+        { type: 'half', label1: 'Pickup Time', val1: transport.transPickupTime, label2: 'Delivery Time', val2: transport.transDeliveryTime },
+      ];
+      if (selectedTransDays.length > 0) transportRows.push({ type: 'field', label: 'Transportation Days', value: selectedTransDays.join(', ') });
+      transportRows.push({ type: 'field', label: 'Authorized Person', value: transport.transAuthorizedPerson });
+      renderSection('Transportation Information', transportRows);
     }
 
-    // ── L. About Your Family ──
-    sectionTitle('About Your Family');
-    fieldRow('Family Members', family.familyMembers);
-    fieldRow('Birthday', family.familyBirthday);
-    fieldRow('Activities', family.familyActivities);
-    fieldRow('Strengths', family.familyStrengths);
-    fieldRow('Areas to Work On', family.familyWorkOn);
-    fieldRow('Medical Needs', family.familyMedicalNeeds);
-    fieldRow('Other Information', family.familyOtherInfo);
+    renderSection('About Your Family', [
+      { type: 'field', label: 'Family Members', value: family.familyMembers },
+      { type: 'field', label: 'Birthday', value: family.familyBirthday },
+      { type: 'field', label: 'Activities', value: family.familyActivities },
+    ]);
+    renderSection('About Your Family — Additional', [
+      { type: 'field', label: 'Strengths', value: family.familyStrengths },
+      { type: 'field', label: 'Areas to Work On', value: family.familyWorkOn },
+      { type: 'field', label: 'Medical Needs', value: family.familyMedicalNeeds },
+      { type: 'field', label: 'Other Information', value: family.familyOtherInfo },
+    ]);
 
     // ── Signature Pages ──
     doc.addPage();
     y = drawHeader();
 
-    doc.rect(50, y, pageWidth, 30).fill('#edf2f7');
+    doc.rect(MARGIN, y, CONTENT_WIDTH, 30).fill('#edf2f7');
     doc.fill(COLORS.primary).fontSize(12).font('Helvetica-Bold')
-      .text('SIGNATURES — Required Before Enrollment', 55, y + 8, { width: pageWidth - 10, align: 'center' });
+      .text('SIGNATURES — Required Before Enrollment', MARGIN + 5, y + 8, { width: CONTENT_WIDTH - 10, align: 'center' });
     doc.fill(COLORS.text);
     y += 45;
 
     doc.fontSize(10).font('Helvetica').fill(COLORS.text)
-      .text('By signing below, I acknowledge that I have read and agree to all policies and information contained in this enrollment packet. I certify that all information provided is true and accurate to the best of my knowledge.', 55, y, { width: pageWidth - 10 });
+      .text('By signing below, I acknowledge that I have read and agree to all policies and information contained in this enrollment packet. I certify that all information provided is true and accurate to the best of my knowledge.', MARGIN, y, { width: CONTENT_WIDTH - 10 });
     y += 55;
 
     separator();
@@ -694,7 +835,7 @@ function generateEnrollmentPDF(data) {
     y += 10;
 
     doc.fontSize(10).font('Helvetica').fill(COLORS.muted)
-      .text('FOR OFFICE USE ONLY', 55, y, { width: pageWidth - 10, align: 'center' });
+      .text('FOR OFFICE USE ONLY', MARGIN, y, { width: CONTENT_WIDTH - 10, align: 'center' });
     y += 25;
 
     signatureLine('Director / Assistant Director');
@@ -847,8 +988,8 @@ app.post('/api/enroll', async (req, res) => {
     };
 
     const [parentEmailResult, staffEmailResult] = await Promise.all([
-      resend.emails.send(parentEmailPayload),
-      resend.emails.send(staffEmailPayload),
+      getResend().emails.send(parentEmailPayload),
+      getResend().emails.send(staffEmailPayload),
     ]);
 
     if (parentEmailResult.error) {
@@ -933,7 +1074,7 @@ app.post('/api/contact', async (req, res) => {
       message: escapeHtml(message).replace(/\n/g, '<br>'),
     };
 
-    const staffEmailResult = await resend.emails.send({
+    const staffEmailResult = await getResend().emails.send({
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
       to: [STAFF_EMAIL],
       subject: `New Genesis inquiry: ${interest} — ${parentName}`,
@@ -969,7 +1110,7 @@ app.post('/api/contact', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Failed to send contact request' });
     }
 
-    const autoReplyEmailResult = await resend.emails.send({
+    const autoReplyEmailResult = await getResend().emails.send({
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
       to: [email],
       subject: 'We received your Genesis Learning Academy message',
@@ -1039,7 +1180,13 @@ async function startServer() {
   });
 }
 
-startServer().catch((error) => {
-  console.error('Lead database initialization failed:', error);
-  process.exit(1);
-});
+export { generateEnrollmentPDF };
+
+const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+
+if (isMainModule) {
+  startServer().catch((error) => {
+    console.error('Lead database initialization failed:', error);
+    process.exit(1);
+  });
+}

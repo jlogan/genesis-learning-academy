@@ -1,0 +1,217 @@
+{
+  "childInfo": {
+    "childFullName": "Emma Johnson-Smith",
+    "childBirthDate": "2022-03-15",
+    "childSex": "Female",
+    "childNickName": "Emmy",
+    "childHomeAddress": "1234 Very Long Street Name Boulevard, Apartment 567, Building C",
+    "childCity": "Kennesaw",
+    "childState": "GA",
+    "childZipCode": "30144",
+    "childHomePhone": "(770) 555-0101"
+  },
+  "parentGuardian": {
+    "parent1": {
+      "fullName": "Sarah Johnson",
+      "birthDate": "1988-07-22",
+      "homePhone": "(770) 555-0102",
+      "cellPhone": "(770) 555-0103",
+      "homeAddress": "1234 Very Long Street Name Boulevard, Apartment 567, Building C",
+      "city": "Kennesaw",
+      "state": "GA",
+      "zipCode": "30144",
+      "occupation": "Software Engineer",
+      "workPhone": "(404) 555-0104",
+      "workHours": "9am-5pm Mon-Fri",
+      "employerName": "Acme Technology Solutions LLC",
+      "employerAddress": "5000 Corporate Center Parkway, Suite 1200, Atlanta, GA 30339",
+      "email": "sarah.johnson@example.com"
+    },
+    "parent2": {
+      "fullName": "Michael Johnson",
+      "birthDate": "1986-11-03",
+      "homePhone": "(770) 555-0105",
+      "cellPhone": "(770) 555-0106",
+      "homeAddress": "1234 Very Long Street Name Boulevard, Apartment 567, Building C",
+      "city": "Kennesaw",
+      "state": "GA",
+      "zipCode": "30144",
+      "occupation": "Teacher",
+      "workPhone": "(770) 555-0107",
+      "workHours": "7:30am-3:30pm",
+      "employerName": "Cobb County School District",
+      "employerAddress": "514 Glover Street, Marietta, GA 30060",
+      "email": "michael.johnson@example.com"
+    },
+    "legalCustodyParent": "Both parents",
+    "parentalStatus": "Married",
+    "otherHouseholdMembers": [
+      { "name": "Grandma Rose", "age": "72", "relationship": "Grandmother" },
+      { "name": "Buddy", "age": "8", "relationship": "Dog" }
+    ]
+  },
+  "emergencyContacts": {
+    "emergencyContact1": {
+      "name": "Jennifer Williams",
+      "homeCell": "(770) 555-0201",
+      "workPhone": "(404) 555-0202",
+      "relationship": "Aunt",
+      "address": "789 Oak Lane, Kennesaw, GA 30144",
+      "cityStateZip": "Kennesaw, GA 30144"
+    },
+    "emergencyContact2": {
+      "name": "Robert Williams",
+      "homeCell": "(770) 555-0203",
+      "workPhone": "",
+      "relationship": "Uncle",
+      "address": "321 Pine Street, Marietta, GA 30062",
+      "cityStateZip": "Marietta, GA 30062"
+    },
+    "authorizedPickup1": {
+      "name": "Jennifer Williams",
+      "relationship": "Aunt",
+      "homeCell": "(770) 555-0201",
+      "address": "789 Oak Lane, Kennesaw, GA 30144"
+    },
+    "authorizedPickup2": {
+      "name": "Robert Williams",
+      "relationship": "Uncle",
+      "homeCell": "(770) 555-0203",
+      "address": ""
+    },
+    "kidCode": "Sunshine42",
+    "unauthorizedPickup1": {
+      "name": "John Smith",
+      "comment": "Estranged relative — no pickup authorization per court order dated 2024-01-15"
+    },
+    "unauthorizedPickup2": {
+      "name": "",
+      "comment": ""
+    }
+  },
+  "paymentPolicies": {
+    "ackHoursOvertime": true,
+    "ackPaymentDeadline": true,
+    "ackRegistrationFee": true,
+    "ackVacationPolicy": true,
+    "ackNoAbsenceDiscounts": true,
+    "ackDisenrollmentNotice": true,
+    "ackAgeGrouping": true,
+    "ackEscortPolicy": true,
+    "isAfterSchool": true,
+    "ackTransportationFee": true,
+    "ackDayServicePayment": true
+  },
+  "medicalInfo": {
+    "physicianName": "Dr. Amy Patel",
+    "physicianPhone": "(770) 555-0301",
+    "preferredHospital": "Wellstar Kennestone Hospital",
+    "hospitalPhone": "(770) 555-0302",
+    "regularMedications": "Children's multivitamin daily; albuterol inhaler as needed for exercise-induced asthma",
+    "bloodType": "O+",
+    "medicalAllergies": "Penicillin — causes rash",
+    "foodAllergies": "Peanuts, tree nuts (carry EpiPen)",
+    "otherAllergies": "Latex sensitivity",
+    "specialHealthConditions": "Mild asthma, monitored during physical activity",
+    "ackEmergencyMedicalCare": true
+  },
+  "policiesConsent": {
+    "ackNoLiabilityInsurance": true,
+    "ackChildCombination": true,
+    "topicalBabyWipes": true,
+    "topicalBandAids": true,
+    "topicalSunscreen": true,
+    "topicalOther": true,
+    "topicalOtherSpecify": "Calendula cream for diaper rash"
+  },
+  "photoMedia": {
+    "photoAuthorization": "Yes — classroom and website use"
+  },
+  "infantInfo": {
+    "ackSafeSleep": true,
+    "takesBottle": "No",
+    "bottleWarmed": "",
+    "holdsOwnBottle": "",
+    "feedsSelf": "Yes",
+    "foodStrained": false,
+    "foodBaby": false,
+    "foodFormula": false,
+    "foodWholeMilk": true,
+    "foodTable": true,
+    "foodOther": false,
+    "foodOtherSpecify": "",
+    "formulaType": "",
+    "formulaAmount": "",
+    "formulaSchedule": "",
+    "pacifierUse": "Occasionally",
+    "pacifierWhen": "Nap time only",
+    "devRollOver": "Yes",
+    "devSitAlone": "Yes",
+    "devCrawl": "Yes",
+    "devWalk": "Yes",
+    "foodLikes": "Bananas, cheese, pasta",
+    "foodDislikes": "Green beans, mushrooms",
+    "foodAllergiesInfant": "Peanuts",
+    "solidFoodsInstructions": "Cut grapes and hot dogs lengthwise; no whole nuts",
+    "formulaOption": ""
+  },
+  "cacfp": {
+    "optOutMedicaidSharing": false,
+    "snapTanfCase": "",
+    "catHeadStart": false,
+    "catFosterChild": false,
+    "catMigrant": false,
+    "catRunaway": false,
+    "catHomeless": false,
+    "householdIncome": "$85,000",
+    "householdSize": "4",
+    "ethnicHispanic": "No",
+    "raceAmericanIndian": false,
+    "raceAsian": false,
+    "raceBlack": true,
+    "raceHawaiian": false,
+    "raceWhite": true,
+    "mealBreakfast": true,
+    "mealAMSnack": true,
+    "mealLunch": true,
+    "mealPMSnack": true,
+    "mealSupper": false,
+    "mealEveningSnack": false,
+    "dayMon": true,
+    "dayTue": true,
+    "dayWed": true,
+    "dayThu": true,
+    "dayFri": true,
+    "daySat": false,
+    "hoursOfAttendance": "7:30 AM – 5:30 PM"
+  },
+  "transportation": {
+    "transFatherName": "Michael Johnson",
+    "transFatherPhone": "(770) 555-0106",
+    "transMotherName": "Sarah Johnson",
+    "transMotherPhone": "(770) 555-0103",
+    "transEmergencyContact": "Jennifer Williams",
+    "transEmergencyPhone": "(770) 555-0201",
+    "transDoctorName": "Dr. Amy Patel",
+    "transDoctorPhone": "(770) 555-0301",
+    "transPickupLocation": "Johnson residence — 1234 Very Long Street Name Boulevard",
+    "transDeliveryLocation": "Genesis Learning Academy of Kennesaw, 2098 Carruth St NW",
+    "transPickupTime": "7:15 AM",
+    "transDeliveryTime": "8:00 AM",
+    "transDayMon": true,
+    "transDayTue": true,
+    "transDayWed": true,
+    "transDayThu": true,
+    "transDayFri": true,
+    "transAuthorizedPerson": "Jennifer Williams (grandmother pickup Fridays only)"
+  },
+  "aboutFamily": {
+    "familyMembers": "Sarah (mom), Michael (dad), Emma (child), Grandma Rose visits weekly. We enjoy hiking, reading, and cooking together as a family on weekends.",
+    "familyBirthday": "Emma — March 15; Sarah — July 22; Michael — November 3",
+    "familyActivities": "Soccer on Saturdays, library story time, church on Sundays, occasional trips to Tellus Science Museum",
+    "familyStrengths": "Strong communication, consistent routines, supportive extended family network",
+    "familyWorkOn": "Balancing work schedules with school pickup; helping Emma with sharing skills",
+    "familyMedicalNeeds": "Emma carries EpiPen for nut allergy; asthma action plan on file with pediatrician",
+    "familyOtherInfo": "Emma is potty trained. Preferred nap time 1:00–2:30 PM. Comfort item: small blue blanket."
+  }
+}
