@@ -3,6 +3,7 @@ import cors from 'cors';
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import PDFDocument from 'pdfkit';
+import mysql from 'mysql2/promise';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -14,6 +15,8 @@ const PORT = process.env.PORT || 3001;
 const STAFF_EMAIL = process.env.STAFF_EMAIL || 'jay@brogrammers.agency';
 const isProduction = process.env.NODE_ENV === 'production';
 
+app.set('trust proxy', true);
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -23,6 +26,224 @@ if (!process.env.RESEND_API_KEY) {
   console.warn('RESEND_API_KEY is not set; email endpoints will fail until configured.');
 }
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+
+const dbConfig = process.env.DB_NAME && process.env.DB_USER && process.env.DB_PASSWORD
+  ? {
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 3306),
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      waitForConnections: true,
+      connectionLimit: 5,
+      namedPlaceholders: true,
+      timezone: 'Z',
+    }
+  : null;
+
+let dbPool;
+function getDbPool() {
+  if (!dbConfig) return null;
+  if (!dbPool) dbPool = mysql.createPool(dbConfig);
+  return dbPool;
+}
+
+function getRequestMeta(req) {
+  const forwardedFor = String(req.headers['x-forwarded-for'] || '');
+  return {
+    ipAddress: forwardedFor.split(',')[0].trim() || req.ip || req.socket?.remoteAddress || null,
+    userAgent: String(req.headers['user-agent'] || '').slice(0, 500) || null,
+    referrer: String(req.headers.referer || req.headers.referrer || '').slice(0, 1000) || null,
+  };
+}
+
+async function ensureLeadTables() {
+  const pool = getDbPool();
+  if (!pool) {
+    console.warn('Database env vars are not set; lead persistence is disabled.');
+    return;
+  }
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS contact_submissions (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      parent_name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      phone VARCHAR(100) NULL,
+      child_age VARCHAR(100) NULL,
+      interest VARCHAR(255) NULL,
+      message TEXT NULL,
+      ip_address VARCHAR(100) NULL,
+      user_agent VARCHAR(500) NULL,
+      referrer VARCHAR(1000) NULL,
+      staff_email_id VARCHAR(255) NULL,
+      auto_reply_email_id VARCHAR(255) NULL,
+      email_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+      raw_payload JSON NULL,
+      INDEX idx_contact_created_at (created_at),
+      INDEX idx_contact_email (email),
+      INDEX idx_contact_phone (phone)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS enrollment_submissions (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      parent_name VARCHAR(255) NULL,
+      parent_email VARCHAR(255) NOT NULL,
+      parent_phone VARCHAR(100) NULL,
+      child_full_name VARCHAR(255) NULL,
+      child_birth_date VARCHAR(100) NULL,
+      child_age VARCHAR(100) NULL,
+      preferred_start_date VARCHAR(100) NULL,
+      enrollment_type VARCHAR(255) NULL,
+      ip_address VARCHAR(100) NULL,
+      user_agent VARCHAR(500) NULL,
+      referrer VARCHAR(1000) NULL,
+      parent_email_id VARCHAR(255) NULL,
+      staff_email_id VARCHAR(255) NULL,
+      email_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+      pdf_size_bytes INT UNSIGNED NULL,
+      raw_payload JSON NULL,
+      INDEX idx_enrollment_created_at (created_at),
+      INDEX idx_enrollment_parent_email (parent_email),
+      INDEX idx_enrollment_parent_phone (parent_phone),
+      INDEX idx_enrollment_child (child_full_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS lead_events (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      event_type VARCHAR(100) NOT NULL,
+      source VARCHAR(100) NOT NULL,
+      source_id BIGINT UNSIGNED NULL,
+      lead_email VARCHAR(255) NULL,
+      lead_phone VARCHAR(100) NULL,
+      lead_name VARCHAR(255) NULL,
+      metadata JSON NULL,
+      INDEX idx_events_created_at (created_at),
+      INDEX idx_events_type (event_type),
+      INDEX idx_events_email (lead_email),
+      INDEX idx_events_phone (lead_phone)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+}
+
+async function saveContactSubmission({ data, meta }) {
+  const pool = getDbPool();
+  if (!pool) return null;
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [result] = await connection.execute(
+      `INSERT INTO contact_submissions
+        (parent_name, email, phone, child_age, interest, message, ip_address, user_agent, referrer, raw_payload)
+       VALUES (:parentName, :email, :phone, :childAge, :interest, :message, :ipAddress, :userAgent, :referrer, CAST(:rawPayload AS JSON))`,
+      {
+        parentName: data.parentName,
+        email: data.email,
+        phone: data.phone || null,
+        childAge: data.childAge || null,
+        interest: data.interest || null,
+        message: data.message || null,
+        ...meta,
+        rawPayload: JSON.stringify(data),
+      }
+    );
+    await connection.execute(
+      `INSERT INTO lead_events (event_type, source, source_id, lead_email, lead_phone, lead_name, metadata)
+       VALUES ('contact_form_submission', 'contact_form', :sourceId, :email, :phone, :leadName, CAST(:metadata AS JSON))`,
+      {
+        sourceId: result.insertId,
+        email: data.email,
+        phone: data.phone || null,
+        leadName: data.parentName,
+        metadata: JSON.stringify({ interest: data.interest, childAge: data.childAge }),
+      }
+    );
+    await connection.commit();
+    return result.insertId;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+async function updateContactEmailStatus(id, { staffEmailId, autoReplyEmailId, status }) {
+  const pool = getDbPool();
+  if (!pool || !id) return;
+  await pool.execute(
+    `UPDATE contact_submissions
+     SET staff_email_id = :staffEmailId, auto_reply_email_id = :autoReplyEmailId, email_status = :status
+     WHERE id = :id`,
+    { id, staffEmailId: staffEmailId || null, autoReplyEmailId: autoReplyEmailId || null, status }
+  );
+}
+
+async function saveEnrollmentSubmission({ data, meta, derived, pdfSizeBytes }) {
+  const pool = getDbPool();
+  if (!pool) return null;
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [result] = await connection.execute(
+      `INSERT INTO enrollment_submissions
+        (parent_name, parent_email, parent_phone, child_full_name, child_birth_date, child_age,
+         preferred_start_date, enrollment_type, ip_address, user_agent, referrer, pdf_size_bytes, raw_payload)
+       VALUES (:parentName, :parentEmail, :parentPhone, :childFullName, :childBirthDate, :childAge,
+         :preferredStartDate, :enrollmentType, :ipAddress, :userAgent, :referrer, :pdfSizeBytes, CAST(:rawPayload AS JSON))`,
+      {
+        parentName: derived.parentName || null,
+        parentEmail: derived.parentEmail,
+        parentPhone: derived.parentPhone || null,
+        childFullName: derived.childFullName || null,
+        childBirthDate: derived.childBirthDate || null,
+        childAge: derived.childAge || null,
+        preferredStartDate: derived.preferredStartDate || null,
+        enrollmentType: derived.enrollmentType || null,
+        ...meta,
+        pdfSizeBytes,
+        rawPayload: JSON.stringify(data),
+      }
+    );
+    await connection.execute(
+      `INSERT INTO lead_events (event_type, source, source_id, lead_email, lead_phone, lead_name, metadata)
+       VALUES ('enrollment_form_submission', 'enrollment_form', :sourceId, :email, :phone, :leadName, CAST(:metadata AS JSON))`,
+      {
+        sourceId: result.insertId,
+        email: derived.parentEmail,
+        phone: derived.parentPhone || null,
+        leadName: derived.parentName || null,
+        metadata: JSON.stringify({ childFullName: derived.childFullName, enrollmentType: derived.enrollmentType }),
+      }
+    );
+    await connection.commit();
+    return result.insertId;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+async function updateEnrollmentEmailStatus(id, { parentEmailId, staffEmailId, status }) {
+  const pool = getDbPool();
+  if (!pool || !id) return;
+  await pool.execute(
+    `UPDATE enrollment_submissions
+     SET parent_email_id = :parentEmailId, staff_email_id = :staffEmailId, email_status = :status
+     WHERE id = :id`,
+    { id, parentEmailId: parentEmailId || null, staffEmailId: staffEmailId || null, status }
+  );
+}
 
 // ─── PDF Generation ───────────────────────────────────────────────────────────
 
@@ -523,6 +744,31 @@ app.post('/api/enroll', async (req, res) => {
     const pdfBuffer = await generateEnrollmentPDF(data);
     console.log(`PDF generated: ${(pdfBuffer.length / 1024).toFixed(1)} KB`);
 
+    const meta = getRequestMeta(req);
+    const parentPhone = parent1.cellPhone || parent1.homePhone || '';
+    const derivedSubmission = {
+      parentName,
+      parentEmail,
+      parentPhone,
+      childFullName,
+      childBirthDate: child.childBirthDate || '',
+      childAge: child.childAge || '',
+      preferredStartDate: child.preferredStartDate || child.startDate || '',
+      enrollmentType: child.enrollmentType || '',
+    };
+    let enrollmentSubmissionId = null;
+    try {
+      enrollmentSubmissionId = await saveEnrollmentSubmission({
+        data,
+        meta,
+        derived: derivedSubmission,
+        pdfSizeBytes: pdfBuffer.length,
+      });
+    } catch (dbError) {
+      console.error('Failed to save enrollment submission:', dbError);
+      return res.status(500).json({ success: false, error: 'Failed to save enrollment request' });
+    }
+
     const attachmentFilename = `GLAK_Enrollment_${filenameSafe}.pdf`;
 
     const parentEmailPayload = {
@@ -612,6 +858,12 @@ app.post('/api/enroll', async (req, res) => {
       console.error('Staff email error:', staffEmailResult.error);
     }
 
+    await updateEnrollmentEmailStatus(enrollmentSubmissionId, {
+      parentEmailId: parentEmailResult.data?.id,
+      staffEmailId: staffEmailResult.data?.id,
+      status: parentEmailResult.error || staffEmailResult.error ? 'partial_error' : 'sent',
+    });
+
     console.log(`Enrollment emails sent for ${childFullName}`);
 
     res.json({
@@ -619,6 +871,7 @@ app.post('/api/enroll', async (req, res) => {
       message: 'Enrollment submitted successfully. Check your email for the enrollment packet.',
       emailId: parentEmailResult.data?.id,
       staffEmailId: staffEmailResult.data?.id,
+      submissionId: enrollmentSubmissionId,
     });
   } catch (error) {
     console.error('Enrollment error:', error);
@@ -659,6 +912,18 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
+    const meta = getRequestMeta(req);
+    let contactSubmissionId = null;
+    try {
+      contactSubmissionId = await saveContactSubmission({
+        data: { parentName, email, phone, childAge, interest, message },
+        meta,
+      });
+    } catch (dbError) {
+      console.error('Failed to save contact submission:', dbError);
+      return res.status(500).json({ success: false, error: 'Failed to save contact request' });
+    }
+
     const safe = {
       parentName: escapeHtml(parentName),
       email: escapeHtml(email),
@@ -696,10 +961,15 @@ app.post('/api/contact', async (req, res) => {
 
     if (staffEmailResult.error) {
       console.error('Contact email error:', staffEmailResult.error);
+      await updateContactEmailStatus(contactSubmissionId, {
+        staffEmailId: staffEmailResult.data?.id,
+        autoReplyEmailId: null,
+        status: 'staff_email_error',
+      });
       return res.status(500).json({ success: false, error: 'Failed to send contact request' });
     }
 
-    await resend.emails.send({
+    const autoReplyEmailResult = await resend.emails.send({
       from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
       to: [email],
       subject: 'We received your Genesis Learning Academy message',
@@ -718,7 +988,13 @@ app.post('/api/contact', async (req, res) => {
       `,
     });
 
-    res.json({ success: true, message: 'Contact request submitted successfully.' });
+    await updateContactEmailStatus(contactSubmissionId, {
+      staffEmailId: staffEmailResult.data?.id,
+      autoReplyEmailId: autoReplyEmailResult.data?.id,
+      status: staffEmailResult.error || autoReplyEmailResult.error ? 'partial_error' : 'sent',
+    });
+
+    res.json({ success: true, message: 'Contact request submitted successfully.', submissionId: contactSubmissionId });
   } catch (error) {
     console.error('Contact request error:', error);
     res.status(500).json({
@@ -730,8 +1006,18 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+app.get('/api/health', async (req, res) => {
+  if (!dbConfig) {
+    return res.json({ status: 'ok', database: 'disabled' });
+  }
+
+  try {
+    await getDbPool().query('SELECT 1');
+    return res.json({ status: 'ok', database: 'connected' });
+  } catch (error) {
+    console.error('Health check database error:', error);
+    return res.status(503).json({ status: 'error', database: 'unavailable' });
+  }
 });
 
 // Serve built frontend when running as the production app server (optional fallback).
@@ -743,7 +1029,17 @@ if (isProduction) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on http://0.0.0.0:${PORT}`);
-  console.log(`Staff notification email: ${STAFF_EMAIL}`);
+async function startServer() {
+  await ensureLeadTables();
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`API server running on http://0.0.0.0:${PORT}`);
+    console.log(`Staff notification email: ${STAFF_EMAIL}`);
+    console.log(`Lead database: ${dbConfig ? `${dbConfig.database}@${dbConfig.host}` : 'disabled'}`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error('Lead database initialization failed:', error);
+  process.exit(1);
 });

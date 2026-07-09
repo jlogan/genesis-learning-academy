@@ -60,9 +60,16 @@ Create `/etc/glak-api.env` on the server (readable by the `glak` user / service)
 RESEND_API_KEY=re_your_key_here
 STAFF_EMAIL=jay@brogrammers.agency
 PORT=3002
+
+# Lead/reporting database
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=genesisleads
+DB_USER=genesisleads
+DB_PASSWORD=your-generated-password
 ```
 
-`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset.
+`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. When `DB_*` variables are present, contact and enrollment submissions are saved to MySQL before emails are sent. `/api/health` returns `database: "connected"` only after a successful database ping.
 
 ### 2. systemd service (recommended)
 
