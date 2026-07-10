@@ -632,9 +632,9 @@ function generateEnrollmentPDF(data) {
       const val = formatValue(value);
       const rowH = measureFieldRow(label, value);
       doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(`${label}:`, MARGIN, y, { width: LABEL_WIDTH });
+        .text(`${label}:`, MARGIN, y, { width: LABEL_WIDTH, lineBreak: true });
       doc.font('Helvetica').fill(COLORS.text)
-        .text(val, VALUE_X, y, { width: VALUE_WIDTH });
+        .text(val, VALUE_X, y, { width: VALUE_WIDTH, lineBreak: true });
       y += rowH;
     }
 
@@ -648,13 +648,13 @@ function generateEnrollmentPDF(data) {
       return Math.max(labelH, valueH, ROW_MIN_HEIGHT);
     }
 
-    function drawHalfColumn(label, value, colX) {
+    function drawHalfColumn(label, value, colX, rowY) {
       const val = formatValue(value);
       const { labelX, labelWidth, valueX, valueWidth } = halfColumnLayout(colX);
       doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(`${label}:`, labelX, y, { width: labelWidth });
+        .text(`${label}:`, labelX, rowY, { width: labelWidth, lineBreak: true });
       doc.font('Helvetica').fill(COLORS.text)
-        .text(val, valueX, y, { width: valueWidth });
+        .text(val, valueX, rowY, { width: valueWidth, lineBreak: true });
     }
 
     function measureFieldRowHalf(label1, val1, label2, val2) {
@@ -665,8 +665,9 @@ function generateEnrollmentPDF(data) {
 
     function drawFieldRowHalf(label1, val1, label2, val2) {
       const rowH = measureFieldRowHalf(label1, val1, label2, val2);
-      drawHalfColumn(label1, val1, HALF_COL1_X);
-      drawHalfColumn(label2, val2, HALF_COL2_X);
+      const rowY = y;
+      drawHalfColumn(label1, val1, HALF_COL1_X, rowY);
+      drawHalfColumn(label2, val2, HALF_COL2_X, rowY);
       y += rowH;
     }
 
@@ -683,9 +684,10 @@ function generateEnrollmentPDF(data) {
     }
 
     function drawBullet(text) {
+      const line = formatBulletText(text);
       const rowH = measureBullet(text);
       doc.fontSize(9).font('Helvetica').fill(COLORS.text)
-        .text(formatBulletText(text), MARGIN + 10, y, { width: CONTENT_WIDTH - 10 });
+        .text(line, MARGIN + 10, y, { width: CONTENT_WIDTH - 10, lineBreak: true });
       y += rowH;
     }
 
@@ -718,21 +720,32 @@ function generateEnrollmentPDF(data) {
     function drawRows(rows) {
       for (const row of rows) {
         switch (row.type) {
-          case 'field':
+          case 'field': {
+            const rowH = measureFieldRow(row.label, row.value);
+            ensureSpace(rowH);
             drawFieldRow(row.label, row.value);
             break;
-          case 'half':
+          }
+          case 'half': {
+            const rowH = measureFieldRowHalf(row.label1, row.val1, row.label2, row.val2);
+            ensureSpace(rowH);
             drawFieldRowHalf(row.label1, row.val1, row.label2, row.val2);
             break;
-          case 'bullet':
+          }
+          case 'bullet': {
+            const rowH = measureBullet(row.text);
+            ensureSpace(rowH);
             drawBullet(row.text);
             break;
+          }
           case 'subheading':
+            ensureSpace(SUBHEADING_HEIGHT);
             doc.fontSize(10).font('Helvetica-Bold').fill(COLORS.accent)
-              .text(row.text, MARGIN, y);
+              .text(row.text, MARGIN, y, { width: CONTENT_WIDTH, lineBreak: true });
             y += SUBHEADING_HEIGHT;
             break;
           case 'separator':
+            ensureSpace(SEPARATOR_HEIGHT);
             y += 4;
             doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.line).lineWidth(0.5).stroke();
             y += 8;
@@ -754,8 +767,8 @@ function generateEnrollmentPDF(data) {
 
     function renderSection(title, rows) {
       if (!rows || rows.length === 0) return;
-      const bodyHeight = measureRows(rows);
-      ensureSpace(SECTION_TITLE_HEIGHT + bodyHeight);
+      const firstRowHeight = measureRows([rows[0]]);
+      ensureSpace(SECTION_TITLE_HEIGHT + firstRowHeight);
       drawSectionTitle(title);
       drawRows(rows);
     }
@@ -871,11 +884,15 @@ function generateEnrollmentPDF(data) {
     ];
     if (filledMembers.length > 0) {
       custodyRows.push({ type: 'subheading', text: 'Other Household Members' });
-      filledMembers.forEach(m => {
+      filledMembers.forEach((m, index) => {
+        custodyRows.push({ type: 'subheading', text: `Member ${index + 1}` });
+        custodyRows.push({ type: 'field', label: 'Name', value: m.name });
         custodyRows.push({
-          type: 'field',
-          label: m.name,
-          value: `Age: ${formatValue(m.age)}, Relationship: ${formatValue(m.relationship)}`,
+          type: 'half',
+          label1: 'Age',
+          val1: m.age,
+          label2: 'Relationship',
+          val2: m.relationship,
         });
       });
     }
@@ -906,11 +923,27 @@ function generateEnrollmentPDF(data) {
     if (ap1.name || ap2.name) {
       const authorizedRows = [];
       if (ap1.name) {
-        authorizedRows.push({ type: 'field', label: ap1.name, value: pdfJoin([ap1.relationship, ap1.homeCell]) });
+        authorizedRows.push({ type: 'subheading', text: 'Authorized Person 1' });
+        authorizedRows.push({ type: 'field', label: 'Name', value: ap1.name });
+        authorizedRows.push({
+          type: 'half',
+          label1: 'Relationship',
+          val1: ap1.relationship,
+          label2: 'Phone',
+          val2: ap1.homeCell,
+        });
         if (ap1.address) authorizedRows.push({ type: 'field', label: 'Address', value: ap1.address });
       }
       if (ap2.name) {
-        authorizedRows.push({ type: 'field', label: ap2.name, value: pdfJoin([ap2.relationship, ap2.homeCell]) });
+        authorizedRows.push({ type: 'subheading', text: 'Authorized Person 2' });
+        authorizedRows.push({ type: 'field', label: 'Name', value: ap2.name });
+        authorizedRows.push({
+          type: 'half',
+          label1: 'Relationship',
+          val1: ap2.relationship,
+          label2: 'Phone',
+          val2: ap2.homeCell,
+        });
         if (ap2.address) authorizedRows.push({ type: 'field', label: 'Address', value: ap2.address });
       }
       renderSection('Authorized Pickup Persons', authorizedRows);
@@ -920,8 +953,16 @@ function generateEnrollmentPDF(data) {
     const up2 = emergency.unauthorizedPickup2 || {};
     if (up1.name || up2.name) {
       const unauthorizedRows = [];
-      if (up1.name) unauthorizedRows.push({ type: 'field', label: up1.name, value: up1.comment });
-      if (up2.name) unauthorizedRows.push({ type: 'field', label: up2.name, value: up2.comment });
+      if (up1.name) {
+        unauthorizedRows.push({ type: 'subheading', text: 'Unauthorized Person 1' });
+        unauthorizedRows.push({ type: 'field', label: 'Name', value: up1.name });
+        unauthorizedRows.push({ type: 'field', label: 'Comment', value: up1.comment });
+      }
+      if (up2.name) {
+        unauthorizedRows.push({ type: 'subheading', text: 'Unauthorized Person 2' });
+        unauthorizedRows.push({ type: 'field', label: 'Name', value: up2.name });
+        unauthorizedRows.push({ type: 'field', label: 'Comment', value: up2.comment });
+      }
       renderSection('NOT Authorized for Pickup', unauthorizedRows);
     }
 
