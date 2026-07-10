@@ -14,6 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 const STAFF_EMAIL = process.env.STAFF_EMAIL || 'jay@brogrammers.agency';
+const LEAD_EMAIL_FROM = 'Genesis Learning Academy <glak@emails.brogrammersagency.com>';
 const isProduction = process.env.NODE_ENV === 'production';
 
 app.set('trust proxy', true);
@@ -222,6 +223,8 @@ async function ensureLeadTables() {
       recording_duration_seconds INT UNSIGNED NULL,
       answered TINYINT(1) NULL,
       raw_payload JSON NULL,
+      staff_email_id VARCHAR(255) NULL,
+      notification_status VARCHAR(50) NOT NULL DEFAULT 'pending',
       UNIQUE KEY uk_inbound_calls_call_sid (twilio_call_sid),
       INDEX idx_inbound_calls_created_at (created_at),
       INDEX idx_inbound_calls_from_number (from_number),
@@ -246,6 +249,19 @@ async function ensureLeadTables() {
       INDEX idx_inbound_sms_from_number (from_number)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
+
+  await ensureInboundCallNotificationColumns(pool);
+}
+
+async function ensureInboundCallNotificationColumns(pool) {
+  const [cols] = await pool.query(`SHOW COLUMNS FROM inbound_calls LIKE 'notification_status'`);
+  if (!cols.length) {
+    await pool.query(`
+      ALTER TABLE inbound_calls
+        ADD COLUMN staff_email_id VARCHAR(255) NULL AFTER raw_payload,
+        ADD COLUMN notification_status VARCHAR(50) NOT NULL DEFAULT 'pending' AFTER staff_email_id
+    `);
+  }
 }
 
 async function upsertInboundCall({
@@ -376,6 +392,34 @@ async function updateInboundSmsNotificationStatus(id, { staffEmailId, status }) 
      WHERE id = :id`,
     { id, staffEmailId: staffEmailId || null, status }
   );
+}
+
+async function getInboundCallById(callId) {
+  const pool = getDbPool();
+  if (!pool || !callId) return null;
+  const [rows] = await pool.execute(
+    `SELECT * FROM inbound_calls WHERE id = :callId LIMIT 1`,
+    { callId }
+  );
+  return rows[0] || null;
+}
+
+async function updateInboundCallNotificationStatus(id, { staffEmailId, status }) {
+  const pool = getDbPool();
+  if (!pool || !id) return;
+  await pool.execute(
+    `UPDATE inbound_calls
+     SET staff_email_id = :staffEmailId, notification_status = :status
+     WHERE id = :id`,
+    { id, staffEmailId: staffEmailId || null, status }
+  );
+}
+
+function isInboundCallReadyForStaffNotification(call, { fromRecordingCallback = false } = {}) {
+  if (!call?.dial_call_status) return false;
+  if (call.notification_status === 'sent') return false;
+  if (call.answered === 1 && !call.recording_url && !fromRecordingCallback) return false;
+  return true;
 }
 
 async function maybeInsertInboundCallLeadEvent(callId) {
@@ -1327,6 +1371,162 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+function buildLeadDetailTable(rows) {
+  return rows
+    .map((row, index) => {
+      const bg = index % 2 === 0 ? 'background:#edf2f7;' : '';
+      return `<tr style="${bg}"><td style="padding:8px; font-weight:bold; width:38%;">${escapeHtml(row.label)}</td><td style="padding:8px;">${row.valueHtml}</td></tr>`;
+    })
+    .join('');
+}
+
+function buildStaffLeadNotificationHtml({ title, rows, extraHtml = '', footerNote = '' }) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #1a202c;">
+      <div style="background-color: #1a365d; padding: 20px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 20px;">${escapeHtml(title)}</h1>
+      </div>
+      <div style="padding: 22px;">
+        <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+          ${buildLeadDetailTable(rows)}
+        </table>
+        ${extraHtml}
+        ${footerNote ? `<p style="color:#718096; font-size:12px; margin-top:24px;">${footerNote}</p>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function formatDurationSeconds(seconds) {
+  const total = Number(seconds) || 0;
+  if (total <= 0) return '0s';
+  const minutes = Math.floor(total / 60);
+  const remainder = total % 60;
+  return minutes > 0 ? `${minutes}m ${remainder}s` : `${remainder}s`;
+}
+
+function formatTimestampForEmail(value) {
+  if (!value) return '—';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return escapeHtml(String(value));
+  return escapeHtml(
+    date.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+  );
+}
+
+function formatAnsweredLabel(answered) {
+  if (answered === 1) return 'Yes';
+  if (answered === 0) return 'No';
+  return 'Unknown';
+}
+
+function buildInboundCallStaffEmailPayload(call) {
+  const fromNumber = call.from_number || 'Unknown';
+  const recordingCell = call.recording_url
+    ? `<a href="${escapeHtml(call.recording_url)}">Listen to recording</a>`
+    : '—';
+
+  const rows = [
+    { label: 'From', valueHtml: `<a href="tel:${escapeHtml(fromNumber)}">${escapeHtml(fromNumber)}</a>` },
+    { label: 'To (Twilio)', valueHtml: escapeHtml(call.to_number || '—') },
+    { label: 'Forwarded to', valueHtml: escapeHtml(call.forwarded_to || '—') },
+    { label: 'Answered', valueHtml: escapeHtml(formatAnsweredLabel(call.answered)) },
+    { label: 'Call status', valueHtml: escapeHtml(call.call_status || '—') },
+    { label: 'Dial status', valueHtml: escapeHtml(call.dial_call_status || '—') },
+    { label: 'Duration', valueHtml: escapeHtml(formatDurationSeconds(call.duration_seconds)) },
+    { label: 'Recording', valueHtml: recordingCell },
+    { label: 'Call SID', valueHtml: escapeHtml(call.twilio_call_sid || '—') },
+    { label: 'Parent call SID', valueHtml: escapeHtml(call.parent_call_sid || '—') },
+    { label: 'Recording SID', valueHtml: escapeHtml(call.recording_sid || '—') },
+    { label: 'Call received', valueHtml: formatTimestampForEmail(call.created_at) },
+    { label: 'Last updated', valueHtml: formatTimestampForEmail(call.updated_at) },
+  ];
+
+  const answeredLabel = call.answered === 1 ? 'answered' : 'missed';
+  return {
+    from: LEAD_EMAIL_FROM,
+    to: [STAFF_EMAIL],
+    subject: `Inbound call (${answeredLabel}): ${fromNumber}`,
+    html: buildStaffLeadNotificationHtml({
+      title: '📞 Inbound Phone Call',
+      rows,
+      footerNote: `Call back ${escapeHtml(fromNumber)} when ready. Recording links may require Twilio Console access.`,
+    }),
+  };
+}
+
+async function trackGa4PhoneCallLead(call) {
+  const measurementId = process.env.GA4_MEASUREMENT_ID;
+  const apiSecret = process.env.GA4_API_SECRET;
+  if (!measurementId || !apiSecret || !call?.twilio_call_sid) return;
+
+  const params = {
+    event_category: 'engagement',
+    event_label: 'phone_call_lead',
+    lead_source: 'twilio_inbound_call',
+    answered: call.answered === 1,
+    dial_call_status: call.dial_call_status || '',
+    duration_seconds: call.duration_seconds || 0,
+    has_recording: Boolean(call.recording_url),
+  };
+
+  try {
+    const response = await fetch(
+      `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: `twilio.${call.twilio_call_sid}`,
+          events: [{ name: 'phone_call_lead', params }],
+        }),
+      }
+    );
+    if (!response.ok) {
+      console.error('GA4 Measurement Protocol error:', response.status, await response.text());
+    }
+  } catch (error) {
+    console.error('GA4 Measurement Protocol request failed:', error);
+  }
+}
+
+async function maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback = false } = {}) {
+  if (!callId) return;
+
+  const call = await getInboundCallById(callId);
+  if (!isInboundCallReadyForStaffNotification(call, { fromRecordingCallback })) return;
+
+  try {
+    const staffEmailResult = await getResend().emails.send(buildInboundCallStaffEmailPayload(call));
+
+    if (staffEmailResult.error) {
+      console.error('Inbound call staff email error:', staffEmailResult.error);
+      await updateInboundCallNotificationStatus(callId, {
+        staffEmailId: staffEmailResult.data?.id || null,
+        status: 'staff_email_error',
+      });
+      return;
+    }
+
+    await updateInboundCallNotificationStatus(callId, {
+      staffEmailId: staffEmailResult.data?.id,
+      status: 'sent',
+    });
+    await trackGa4PhoneCallLead(call);
+    console.log(`Inbound call staff notification sent for ${call.twilio_call_sid}`);
+  } catch (emailError) {
+    console.error('Failed to send inbound call staff notification:', emailError);
+    await updateInboundCallNotificationStatus(callId, {
+      staffEmailId: null,
+      status: 'staff_email_error',
+    });
+  }
+}
+
 // ─── Twilio Voice Marketing Call Endpoints ───────────────────────────────────
 
 app.post('/api/twilio/voice/inbound', async (req, res) => {
@@ -1395,6 +1595,9 @@ app.post('/api/twilio/voice/status', async (req, res) => {
 
     if (!isRecordingCallback) {
       await maybeInsertInboundCallLeadEvent(callId);
+      await maybeSendInboundCallStaffNotification(callId);
+    } else {
+      await maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback: true });
     }
   } catch (dbError) {
     console.error('Failed to save Twilio call status:', dbError);
@@ -1441,27 +1644,20 @@ app.post('/api/twilio/sms/inbound', async (req, res) => {
       const safeTo = escapeHtml(To || '—');
       const safeBody = escapeHtml(Body || '(empty)').replace(/\n/g, '<br>');
       const staffEmailResult = await getResend().emails.send({
-        from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
+        from: LEAD_EMAIL_FROM,
         to: [STAFF_EMAIL],
         subject: `New inbound SMS from ${From || 'unknown number'}`,
-        html: `
-        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #1a202c;">
-          <div style="background-color: #1a365d; padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 20px;">New Inbound SMS</h1>
-          </div>
-          <div style="padding: 22px;">
-            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">From</td><td style="padding:8px;">${safeFrom}</td></tr>
-              <tr><td style="padding:8px; font-weight:bold;">To</td><td style="padding:8px;">${safeTo}</td></tr>
-              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Message SID</td><td style="padding:8px;">${escapeHtml(MessageSid || '—')}</td></tr>
-              <tr><td style="padding:8px; font-weight:bold;">Media attachments</td><td style="padding:8px;">${escapeHtml(String(NumMedia || '0'))}</td></tr>
-            </table>
-            <h2 style="font-size:16px; color:#1a365d;">Message</h2>
-            <p style="line-height:1.6;">${safeBody}</p>
-            <p style="color:#718096; font-size:12px; margin-top:24px;">An automatic SMS reply was sent to the sender. Staff can follow up by calling ${safeFrom}.</p>
-          </div>
-        </div>
-      `,
+        html: buildStaffLeadNotificationHtml({
+          title: 'New Inbound SMS',
+          rows: [
+            { label: 'From', valueHtml: safeFrom },
+            { label: 'To', valueHtml: safeTo },
+            { label: 'Message SID', valueHtml: escapeHtml(MessageSid || '—') },
+            { label: 'Media attachments', valueHtml: escapeHtml(String(NumMedia || '0')) },
+          ],
+          extraHtml: `<h2 style="font-size:16px; color:#1a365d;">Message</h2><p style="line-height:1.6;">${safeBody}</p>`,
+          footerNote: `An automatic SMS reply was sent to the sender. Staff can follow up by calling ${safeFrom}.`,
+        }),
       });
 
       if (staffEmailResult.error) {
@@ -1529,29 +1725,22 @@ app.post('/api/contact', async (req, res) => {
     };
 
     const staffEmailResult = await getResend().emails.send({
-      from: 'Genesis Learning Academy <glak@emails.brogrammersagency.com>',
+      from: LEAD_EMAIL_FROM,
       to: [STAFF_EMAIL],
       subject: `New Genesis inquiry: ${interest} — ${parentName}`,
       replyTo: email,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #1a202c;">
-          <div style="background-color: #1a365d; padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 20px;">New Genesis Learning Academy Inquiry</h1>
-          </div>
-          <div style="padding: 22px;">
-            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Parent/Guardian</td><td style="padding:8px;">${safe.parentName}</td></tr>
-              <tr><td style="padding:8px; font-weight:bold;">Email</td><td style="padding:8px;"><a href="mailto:${safe.email}">${safe.email}</a></td></tr>
-              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Phone</td><td style="padding:8px;">${safe.phone}</td></tr>
-              <tr><td style="padding:8px; font-weight:bold;">Child Age / Program</td><td style="padding:8px;">${safe.childAge}</td></tr>
-              <tr style="background:#edf2f7;"><td style="padding:8px; font-weight:bold;">Interest</td><td style="padding:8px;">${safe.interest}</td></tr>
-            </table>
-            <h2 style="font-size:16px; color:#1a365d;">Message</h2>
-            <p style="line-height:1.6;">${safe.message}</p>
-            <p style="color:#718096; font-size:12px; margin-top:24px;">Reply to this email to contact the parent directly at ${safe.email}.</p>
-          </div>
-        </div>
-      `,
+      html: buildStaffLeadNotificationHtml({
+        title: 'New Genesis Learning Academy Inquiry',
+        rows: [
+          { label: 'Parent/Guardian', valueHtml: safe.parentName },
+          { label: 'Email', valueHtml: `<a href="mailto:${safe.email}">${safe.email}</a>` },
+          { label: 'Phone', valueHtml: safe.phone },
+          { label: 'Child Age / Program', valueHtml: safe.childAge },
+          { label: 'Interest', valueHtml: safe.interest },
+        ],
+        extraHtml: `<h2 style="font-size:16px; color:#1a365d;">Message</h2><p style="line-height:1.6;">${safe.message}</p>`,
+        footerNote: `Reply to this email to contact the parent directly at ${safe.email}.`,
+      }),
     });
 
     if (staffEmailResult.error) {
