@@ -559,16 +559,33 @@ function generateEnrollmentPDF(data) {
 
     const MARGIN = 50;
     const CONTENT_WIDTH = doc.page.width - MARGIN * 2;
-    const LABEL_WIDTH = 130;
-    const VALUE_X = MARGIN + LABEL_WIDTH;
-    const VALUE_WIDTH = CONTENT_WIDTH - LABEL_WIDTH;
-    const HALF_WIDTH = CONTENT_WIDTH / 2;
-    const HALF_LABEL_WIDTH = 88;
-    const HALF_VALUE_WIDTH = HALF_WIDTH - HALF_LABEL_WIDTH - 8;
-    const HALF_COL2_X = MARGIN + HALF_WIDTH;
-    const SECTION_TITLE_HEIGHT = 40;
-    const SUBHEADING_HEIGHT = 16;
-    const SEPARATOR_HEIGHT = 12;
+    const LABEL_GAP = 12;
+    const ROW_MIN_HEIGHT = 16;
+    const ROW_PADDING = 6;
+    const LABEL_WIDTH = 140;
+    const VALUE_X = MARGIN + LABEL_WIDTH + LABEL_GAP;
+    const VALUE_WIDTH = MARGIN + CONTENT_WIDTH - VALUE_X;
+    const HALF_COL_GAP = 14;
+    const HALF_COL_WIDTH = (CONTENT_WIDTH - HALF_COL_GAP) / 2;
+    const HALF_COL1_X = MARGIN;
+    const HALF_COL2_X = MARGIN + HALF_COL_WIDTH + HALF_COL_GAP;
+    const HALF_LABEL_WIDTH = 108;
+    const PDF_EMPTY = '-';
+    const PDF_BULLET = '- ';
+    const PDF_CHECK = '[x] ';
+    const SECTION_TITLE_HEIGHT = 44;
+    const SUBHEADING_HEIGHT = 18;
+    const SEPARATOR_HEIGHT = 14;
+
+    function halfColumnLayout(colX) {
+      const valueX = colX + HALF_LABEL_WIDTH + LABEL_GAP;
+      return {
+        labelX: colX,
+        labelWidth: HALF_LABEL_WIDTH,
+        valueX,
+        valueWidth: colX + HALF_COL_WIDTH - valueX,
+      };
+    }
 
     let y;
 
@@ -577,7 +594,11 @@ function generateEnrollmentPDF(data) {
     }
 
     function formatValue(value) {
-      return value != null && value !== '' ? String(value) : '—';
+      return value != null && value !== '' ? String(value) : PDF_EMPTY;
+    }
+
+    function pdfJoin(parts, separator = ' - ') {
+      return parts.map((part) => formatValue(part)).join(separator);
     }
 
     function drawHeader() {
@@ -604,7 +625,7 @@ function generateEnrollmentPDF(data) {
       const labelH = doc.heightOfString(`${label}:`, { width: LABEL_WIDTH });
       doc.font('Helvetica');
       const valueH = doc.heightOfString(val, { width: VALUE_WIDTH });
-      return Math.max(labelH, valueH, 14) + 4;
+      return Math.max(labelH, valueH, ROW_MIN_HEIGHT) + ROW_PADDING;
     }
 
     function drawFieldRow(label, value) {
@@ -617,52 +638,54 @@ function generateEnrollmentPDF(data) {
       y += rowH;
     }
 
+    function measureHalfColumn(label, value, colX) {
+      const val = formatValue(value);
+      const { labelWidth, valueWidth } = halfColumnLayout(colX);
+      doc.fontSize(9).font('Helvetica-Bold');
+      const labelH = doc.heightOfString(`${label}:`, { width: labelWidth });
+      doc.font('Helvetica');
+      const valueH = doc.heightOfString(val, { width: valueWidth });
+      return Math.max(labelH, valueH, ROW_MIN_HEIGHT);
+    }
+
+    function drawHalfColumn(label, value, colX) {
+      const val = formatValue(value);
+      const { labelX, labelWidth, valueX, valueWidth } = halfColumnLayout(colX);
+      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
+        .text(`${label}:`, labelX, y, { width: labelWidth });
+      doc.font('Helvetica').fill(COLORS.text)
+        .text(val, valueX, y, { width: valueWidth });
+    }
+
     function measureFieldRowHalf(label1, val1, label2, val2) {
-      const v1 = formatValue(val1);
-      const v2 = formatValue(val2);
-      doc.fontSize(9).font('Helvetica-Bold');
-      const leftLabelH = doc.heightOfString(`${label1}:`, { width: HALF_LABEL_WIDTH });
-      doc.font('Helvetica');
-      const leftValueH = doc.heightOfString(v1, { width: HALF_VALUE_WIDTH });
-      const leftH = Math.max(leftLabelH, leftValueH);
-
-      doc.fontSize(9).font('Helvetica-Bold');
-      const rightLabelH = doc.heightOfString(`${label2}:`, { width: HALF_LABEL_WIDTH });
-      doc.font('Helvetica');
-      const rightValueH = doc.heightOfString(v2, { width: HALF_VALUE_WIDTH });
-      const rightH = Math.max(rightLabelH, rightValueH);
-
-      return Math.max(leftH, rightH, 14) + 4;
+      const leftH = measureHalfColumn(label1, val1, HALF_COL1_X);
+      const rightH = measureHalfColumn(label2, val2, HALF_COL2_X);
+      return Math.max(leftH, rightH) + ROW_PADDING;
     }
 
     function drawFieldRowHalf(label1, val1, label2, val2) {
-      const v1 = formatValue(val1);
-      const v2 = formatValue(val2);
       const rowH = measureFieldRowHalf(label1, val1, label2, val2);
-
-      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(`${label1}:`, MARGIN, y, { width: HALF_LABEL_WIDTH });
-      doc.font('Helvetica').fill(COLORS.text)
-        .text(v1, MARGIN + HALF_LABEL_WIDTH, y, { width: HALF_VALUE_WIDTH });
-
-      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(`${label2}:`, HALF_COL2_X, y, { width: HALF_LABEL_WIDTH });
-      doc.font('Helvetica').fill(COLORS.text)
-        .text(v2, HALF_COL2_X + HALF_LABEL_WIDTH, y, { width: HALF_VALUE_WIDTH });
-
+      drawHalfColumn(label1, val1, HALF_COL1_X);
+      drawHalfColumn(label2, val2, HALF_COL2_X);
       y += rowH;
     }
 
+    function formatBulletText(text) {
+      if (text.startsWith('[x] ') || text.startsWith('- ')) return text;
+      return `${PDF_BULLET}${text}`;
+    }
+
     function measureBullet(text) {
+      const line = formatBulletText(text);
       doc.fontSize(9).font('Helvetica');
-      const h = doc.heightOfString(`•  ${text}`, { width: CONTENT_WIDTH - 10 });
-      return Math.max(h, 14) + 2;
+      const h = doc.heightOfString(line, { width: CONTENT_WIDTH - 10 });
+      return Math.max(h, ROW_MIN_HEIGHT) + ROW_PADDING;
     }
 
     function drawBullet(text) {
       const rowH = measureBullet(text);
       doc.fontSize(9).font('Helvetica').fill(COLORS.text)
-        .text(`•  ${text}`, MARGIN + 10, y, { width: CONTENT_WIDTH - 10 });
+        .text(formatBulletText(text), MARGIN + 10, y, { width: CONTENT_WIDTH - 10 });
       y += rowH;
     }
 
@@ -721,12 +744,12 @@ function generateEnrollmentPDF(data) {
     }
 
     function drawSectionTitle(title) {
-      y += 8;
+      y += 10;
       doc.rect(MARGIN, y, CONTENT_WIDTH, 24).fill(COLORS.accent);
       doc.fill('#ffffff').fontSize(12).font('Helvetica-Bold')
         .text(title.toUpperCase(), MARGIN + 8, y + 6, { width: CONTENT_WIDTH - 16 });
       doc.fill(COLORS.text);
-      y += 32;
+      y += 34;
     }
 
     function renderSection(title, rows) {
@@ -790,7 +813,7 @@ function generateEnrollmentPDF(data) {
     // Title banner
     doc.rect(MARGIN, y, CONTENT_WIDTH, 30).fill('#edf2f7');
     doc.fill(COLORS.primary).fontSize(11).font('Helvetica-Bold')
-      .text('ENROLLMENT APPLICATION — Print and bring to center for signatures', MARGIN + 5, y + 9, { width: CONTENT_WIDTH - 10, align: 'center' });
+      .text('ENROLLMENT APPLICATION - Print and bring to center for signatures', MARGIN + 5, y + 9, { width: CONTENT_WIDTH - 10, align: 'center' });
     doc.fill(COLORS.text);
     y += 40;
 
@@ -852,7 +875,7 @@ function generateEnrollmentPDF(data) {
         custodyRows.push({
           type: 'field',
           label: m.name,
-          value: `Age: ${m.age || '—'}, Relationship: ${m.relationship || '—'}`,
+          value: `Age: ${formatValue(m.age)}, Relationship: ${formatValue(m.relationship)}`,
         });
       });
     }
@@ -883,11 +906,11 @@ function generateEnrollmentPDF(data) {
     if (ap1.name || ap2.name) {
       const authorizedRows = [];
       if (ap1.name) {
-        authorizedRows.push({ type: 'field', label: ap1.name, value: `${ap1.relationship || '—'} — ${ap1.homeCell || '—'}` });
+        authorizedRows.push({ type: 'field', label: ap1.name, value: pdfJoin([ap1.relationship, ap1.homeCell]) });
         if (ap1.address) authorizedRows.push({ type: 'field', label: 'Address', value: ap1.address });
       }
       if (ap2.name) {
-        authorizedRows.push({ type: 'field', label: ap2.name, value: `${ap2.relationship || '—'} — ${ap2.homeCell || '—'}` });
+        authorizedRows.push({ type: 'field', label: ap2.name, value: pdfJoin([ap2.relationship, ap2.homeCell]) });
         if (ap2.address) authorizedRows.push({ type: 'field', label: 'Address', value: ap2.address });
       }
       renderSection('Authorized Pickup Persons', authorizedRows);
@@ -920,7 +943,7 @@ function generateEnrollmentPDF(data) {
     ];
     const paymentRows = paymentAcks
       .filter(([key]) => payment[key])
-      .map(([, label]) => ({ type: 'bullet', text: `✓ ${label}` }));
+      .map(([, label]) => ({ type: 'bullet', text: `${PDF_CHECK}${label}` }));
     if (payment.isAfterSchool) paymentRows.push({ type: 'field', label: 'After School Program', value: 'Yes' });
     renderSection('Payment Policy Acknowledgments', paymentRows);
 
@@ -936,7 +959,7 @@ function generateEnrollmentPDF(data) {
       { type: 'field', label: 'Other Allergies', value: medical.otherAllergies },
       { type: 'field', label: 'Special Health Conditions', value: medical.specialHealthConditions },
     ];
-    if (medical.ackEmergencyMedicalCare) medicalRows.push({ type: 'bullet', text: '✓ Emergency medical care authorized' });
+    if (medical.ackEmergencyMedicalCare) medicalRows.push({ type: 'bullet', text: `${PDF_CHECK}Emergency medical care authorized` });
     renderSection('Medical & Emergency Information', medicalRows);
 
     const topicals = [
@@ -948,8 +971,8 @@ function generateEnrollmentPDF(data) {
     ];
     const approvedTopicals = topicals.filter(([key]) => policies[key]).map(([, label]) => label);
     const policyRows = [];
-    if (policies.ackNoLiabilityInsurance) policyRows.push({ type: 'bullet', text: '✓ No liability insurance policy acknowledged' });
-    if (policies.ackChildCombination) policyRows.push({ type: 'bullet', text: '✓ Child combination/mixed age group policy acknowledged' });
+    if (policies.ackNoLiabilityInsurance) policyRows.push({ type: 'bullet', text: `${PDF_CHECK}No liability insurance policy acknowledged` });
+    if (policies.ackChildCombination) policyRows.push({ type: 'bullet', text: `${PDF_CHECK}Child combination/mixed age group policy acknowledged` });
     if (approvedTopicals.length > 0) {
       policyRows.push({ type: 'field', label: 'Topical Preparations Authorized', value: approvedTopicals.join(', ') });
     }
@@ -968,7 +991,7 @@ function generateEnrollmentPDF(data) {
       ];
       const selectedFoods = foodTypes.filter(([key]) => infant[key]).map(([, label]) => label);
       const infantRows = [];
-      if (infant.ackSafeSleep) infantRows.push({ type: 'bullet', text: '✓ Safe sleep policy acknowledged' });
+      if (infant.ackSafeSleep) infantRows.push({ type: 'bullet', text: `${PDF_CHECK}Safe sleep policy acknowledged` });
       infantRows.push(
         { type: 'field', label: 'Takes Bottle', value: infant.takesBottle },
         { type: 'field', label: 'Bottle Warmed', value: infant.bottleWarmed },
@@ -1072,7 +1095,7 @@ function generateEnrollmentPDF(data) {
       { type: 'field', label: 'Birthday', value: family.familyBirthday },
       { type: 'field', label: 'Activities', value: family.familyActivities },
     ]);
-    renderSection('About Your Family — Additional', [
+    renderSection('About Your Family - Additional', [
       { type: 'field', label: 'Strengths', value: family.familyStrengths },
       { type: 'field', label: 'Areas to Work On', value: family.familyWorkOn },
       { type: 'field', label: 'Medical Needs', value: family.familyMedicalNeeds },
@@ -1085,7 +1108,7 @@ function generateEnrollmentPDF(data) {
 
     doc.rect(MARGIN, y, CONTENT_WIDTH, 30).fill('#edf2f7');
     doc.fill(COLORS.primary).fontSize(12).font('Helvetica-Bold')
-      .text('SIGNATURES — Required Before Enrollment', MARGIN + 5, y + 8, { width: CONTENT_WIDTH - 10, align: 'center' });
+      .text('SIGNATURES - Required Before Enrollment', MARGIN + 5, y + 8, { width: CONTENT_WIDTH - 10, align: 'center' });
     doc.fill(COLORS.text);
     y += 45;
 
