@@ -1344,6 +1344,11 @@ app.post('/api/enroll', async (req, res) => {
 
     console.log(`Enrollment emails sent for ${childFullName}`);
 
+    await trackGa4EnrollmentFormSubmit({
+      submissionId: enrollmentSubmissionId,
+      enrollmentType: derivedSubmission.enrollmentType,
+    });
+
     res.json({
       success: true,
       message: 'Enrollment submitted successfully. Check your email for the enrollment packet.',
@@ -1459,20 +1464,10 @@ function buildInboundCallStaffEmailPayload(call) {
   };
 }
 
-async function trackGa4PhoneCallLead(call) {
+async function sendGa4MeasurementProtocolEvent({ clientId, eventName, params }) {
   const measurementId = process.env.GA4_MEASUREMENT_ID;
   const apiSecret = process.env.GA4_API_SECRET;
-  if (!measurementId || !apiSecret || !call?.twilio_call_sid) return;
-
-  const params = {
-    event_category: 'engagement',
-    event_label: 'phone_call_lead',
-    lead_source: 'twilio_inbound_call',
-    answered: call.answered === 1,
-    dial_call_status: call.dial_call_status || '',
-    duration_seconds: call.duration_seconds || 0,
-    has_recording: Boolean(call.recording_url),
-  };
+  if (!measurementId || !apiSecret || !clientId || !eventName) return;
 
   try {
     const response = await fetch(
@@ -1481,8 +1476,8 @@ async function trackGa4PhoneCallLead(call) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_id: `twilio.${call.twilio_call_sid}`,
-          events: [{ name: 'phone_call_lead', params }],
+          client_id: clientId,
+          events: [{ name: eventName, params: params || {} }],
         }),
       }
     );
@@ -1492,6 +1487,55 @@ async function trackGa4PhoneCallLead(call) {
   } catch (error) {
     console.error('GA4 Measurement Protocol request failed:', error);
   }
+}
+
+async function trackGa4PhoneCallLead(call) {
+  if (!call?.twilio_call_sid) return;
+
+  await sendGa4MeasurementProtocolEvent({
+    clientId: `twilio.${call.twilio_call_sid}`,
+    eventName: 'phone_call_lead',
+    params: {
+      event_category: 'engagement',
+      event_label: 'phone_call_lead',
+      lead_source: 'twilio_inbound_call',
+      answered: call.answered === 1,
+      dial_call_status: call.dial_call_status || '',
+      duration_seconds: call.duration_seconds || 0,
+      has_recording: Boolean(call.recording_url),
+    },
+  });
+}
+
+async function trackGa4ContactFormSubmit({ submissionId, interest }) {
+  if (!submissionId) return;
+
+  await sendGa4MeasurementProtocolEvent({
+    clientId: `form.contact.${submissionId}`,
+    eventName: 'contact_form_submit',
+    params: {
+      event_category: 'engagement',
+      event_label: 'contact_form',
+      lead_source: 'server_contact_api',
+      interest: interest || '',
+    },
+  });
+}
+
+async function trackGa4EnrollmentFormSubmit({ submissionId, enrollmentType }) {
+  if (!submissionId) return;
+
+  await sendGa4MeasurementProtocolEvent({
+    clientId: `form.enrollment.${submissionId}`,
+    eventName: 'enrollment_form_submit',
+    params: {
+      event_category: 'engagement',
+      event_label: 'enrollment_form',
+      lead_source: 'server_enrollment_api',
+      number_of_children: 1,
+      enrollment_type: enrollmentType || '',
+    },
+  });
 }
 
 async function maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback = false } = {}) {
@@ -1777,6 +1821,8 @@ app.post('/api/contact', async (req, res) => {
       autoReplyEmailId: autoReplyEmailResult.data?.id,
       status: staffEmailResult.error || autoReplyEmailResult.error ? 'partial_error' : 'sent',
     });
+
+    await trackGa4ContactFormSubmit({ submissionId: contactSubmissionId, interest });
 
     res.json({ success: true, message: 'Contact request submitted successfully.', submissionId: contactSubmissionId });
   } catch (error) {
