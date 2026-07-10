@@ -16,7 +16,7 @@ declare global {
 // Track page views
 export const trackPageView = (url: string) => {
   if (typeof window.gtag !== 'undefined') {
-    window.gtag('config', 'GA_MEASUREMENT_ID', {
+    window.gtag('config', 'G-CHVPLXV45M', {
       page_path: url,
     });
   }
