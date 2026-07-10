@@ -565,27 +565,12 @@ function generateEnrollmentPDF(data) {
     const LABEL_WIDTH = 140;
     const VALUE_X = MARGIN + LABEL_WIDTH + LABEL_GAP;
     const VALUE_WIDTH = MARGIN + CONTENT_WIDTH - VALUE_X;
-    const HALF_COL_GAP = 14;
-    const HALF_COL_WIDTH = (CONTENT_WIDTH - HALF_COL_GAP) / 2;
-    const HALF_COL1_X = MARGIN;
-    const HALF_COL2_X = MARGIN + HALF_COL_WIDTH + HALF_COL_GAP;
-    const HALF_LABEL_WIDTH = 108;
     const PDF_EMPTY = '-';
     const PDF_BULLET = '- ';
     const PDF_CHECK = '[x] ';
     const SECTION_TITLE_HEIGHT = 44;
     const SUBHEADING_HEIGHT = 18;
     const SEPARATOR_HEIGHT = 14;
-
-    function halfColumnLayout(colX) {
-      const valueX = colX + HALF_LABEL_WIDTH + LABEL_GAP;
-      return {
-        labelX: colX,
-        labelWidth: HALF_LABEL_WIDTH,
-        valueX,
-        valueWidth: colX + HALF_COL_WIDTH - valueX,
-      };
-    }
 
     let y;
 
@@ -638,37 +623,17 @@ function generateEnrollmentPDF(data) {
       y += rowH;
     }
 
-    function measureHalfColumn(label, value, colX) {
-      const val = formatValue(value);
-      const { labelWidth, valueWidth } = halfColumnLayout(colX);
-      doc.fontSize(9).font('Helvetica-Bold');
-      const labelH = doc.heightOfString(`${label}:`, { width: labelWidth });
-      doc.font('Helvetica');
-      const valueH = doc.heightOfString(val, { width: valueWidth });
-      return Math.max(labelH, valueH, ROW_MIN_HEIGHT);
-    }
-
-    function drawHalfColumn(label, value, colX, rowY) {
-      const val = formatValue(value);
-      const { labelX, labelWidth, valueX, valueWidth } = halfColumnLayout(colX);
-      doc.fontSize(9).font('Helvetica-Bold').fill(COLORS.muted)
-        .text(`${label}:`, labelX, rowY, { width: labelWidth, lineBreak: true });
-      doc.font('Helvetica').fill(COLORS.text)
-        .text(val, valueX, rowY, { width: valueWidth, lineBreak: true });
-    }
-
     function measureFieldRowHalf(label1, val1, label2, val2) {
-      const leftH = measureHalfColumn(label1, val1, HALF_COL1_X);
-      const rightH = measureHalfColumn(label2, val2, HALF_COL2_X);
-      return Math.max(leftH, rightH) + ROW_PADDING;
+      return measureFieldRow(label1, val1) + measureFieldRow(label2, val2);
     }
 
     function drawFieldRowHalf(label1, val1, label2, val2) {
-      const rowH = measureFieldRowHalf(label1, val1, label2, val2);
-      const rowY = y;
-      drawHalfColumn(label1, val1, HALF_COL1_X, rowY);
-      drawHalfColumn(label2, val2, HALF_COL2_X, rowY);
-      y += rowH;
+      const rowH1 = measureFieldRow(label1, val1);
+      ensureSpace(rowH1);
+      drawFieldRow(label1, val1);
+      const rowH2 = measureFieldRow(label2, val2);
+      ensureSpace(rowH2);
+      drawFieldRow(label2, val2);
     }
 
     function formatBulletText(text) {
@@ -726,12 +691,9 @@ function generateEnrollmentPDF(data) {
             drawFieldRow(row.label, row.value);
             break;
           }
-          case 'half': {
-            const rowH = measureFieldRowHalf(row.label1, row.val1, row.label2, row.val2);
-            ensureSpace(rowH);
+          case 'half':
             drawFieldRowHalf(row.label1, row.val1, row.label2, row.val2);
             break;
-          }
           case 'bullet': {
             const rowH = measureBullet(row.text);
             ensureSpace(rowH);
@@ -780,8 +742,6 @@ function generateEnrollmentPDF(data) {
     }
 
     function fieldRowHalf(label1, val1, label2, val2) {
-      const rowH = measureFieldRowHalf(label1, val1, label2, val2);
-      ensureSpace(rowH);
       drawFieldRowHalf(label1, val1, label2, val2);
     }
 
