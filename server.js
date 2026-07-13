@@ -14,8 +14,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 const STAFF_EMAIL = process.env.STAFF_EMAIL || 'jay@brogrammers.agency';
+const CLIENT_INBOX_EMAIL = process.env.CLIENT_INBOX_EMAIL || 'genesislearningacademykennesaw@gmail.com';
 const LEAD_EMAIL_FROM = 'Genesis Learning Academy <glak@emails.brogrammersagency.com>';
 const isProduction = process.env.NODE_ENV === 'production';
+
+function emailRecipients(...addresses) {
+  return [...new Set(addresses.map((address) => String(address || '').trim()).filter(Boolean))];
+}
 
 app.set('trust proxy', true);
 
@@ -1770,7 +1775,7 @@ app.post('/api/contact', async (req, res) => {
 
     const staffEmailResult = await getResend().emails.send({
       from: LEAD_EMAIL_FROM,
-      to: [STAFF_EMAIL],
+      to: emailRecipients(STAFF_EMAIL, CLIENT_INBOX_EMAIL),
       subject: `New Genesis inquiry: ${interest} — ${parentName}`,
       replyTo: email,
       html: buildStaffLeadNotificationHtml({

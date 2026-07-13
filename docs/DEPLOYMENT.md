@@ -59,6 +59,7 @@ Create `/etc/glak-api.env` on the server (readable by the `glak` user / service)
 ```bash
 RESEND_API_KEY=re_your_key_here
 STAFF_EMAIL=jay@brogrammers.agency
+CLIENT_INBOX_EMAIL=genesislearningacademykennesaw@gmail.com
 PORT=3002
 PUBLIC_SITE_URL=https://genesislearningacademyofkennesaw.com
 
@@ -76,7 +77,7 @@ DB_USER=genesisleads
 DB_PASSWORD=your-generated-password
 ```
 
-`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. When `DB_*` variables are present, contact, enrollment, Twilio call, and inbound SMS records are saved to MySQL before notifications/reporting events are finalized. `/api/health` returns `database: "connected"` only after a successful database ping.
+`STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. `CLIENT_INBOX_EMAIL` is optional; it defaults to `genesislearningacademykennesaw@gmail.com` and is included on new web inquiry notifications. When `DB_*` variables are present, contact, enrollment, Twilio call, and inbound SMS records are saved to MySQL before notifications/reporting events are finalized. `/api/health` returns `database: "connected"` only after a successful database ping.
 
 For the Twilio marketing number, configure **Voice & Fax → A call comes in** as a webhook using `HTTP POST` to:
 
