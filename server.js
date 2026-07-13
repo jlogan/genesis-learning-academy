@@ -1775,7 +1775,8 @@ app.post('/api/contact', async (req, res) => {
 
     const staffEmailResult = await getResend().emails.send({
       from: LEAD_EMAIL_FROM,
-      to: emailRecipients(STAFF_EMAIL, CLIENT_INBOX_EMAIL),
+      to: emailRecipients(CLIENT_INBOX_EMAIL),
+      bcc: emailRecipients(STAFF_EMAIL),
       subject: `New Genesis inquiry: ${interest} — ${parentName}`,
       replyTo: email,
       html: buildStaffLeadNotificationHtml({
