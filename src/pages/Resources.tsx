@@ -296,14 +296,14 @@ const Resources = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <a
-              href="https://www.facebook.com/genesiskennesaw"
+              href="https://www.facebook.com/profile.php?id=61591273320156"
               target="_blank"
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-3 p-6 rounded-lg bg-secondary hover:bg-accent hover:scale-105 transition-all group w-full sm:w-auto max-w-xs"
             >
               <Facebook className="h-12 w-12 text-primary group-hover:text-accent-foreground" />
               <span className="font-semibold text-foreground group-hover:text-accent-foreground">Facebook</span>
-              <span className="text-sm text-muted-foreground group-hover:text-accent-foreground/80">@genesiskennesaw</span>
+              <span className="text-sm text-muted-foreground group-hover:text-accent-foreground/80">Genesis Learning Academy</span>
             </a>
             <a
               href="https://www.instagram.com/genesis_kennesaw"
