@@ -115,7 +115,8 @@ GROUP BY event_type;
 **Where:**
 
 - **MySQL** — `social_posts` rows logged by Brobot as drafts and updated when Marie publishes
-- Meta Business Suite / Facebook Page Insights for metrics not yet synced automatically
+- **Facebook Pages API sync** — `npm run social-posts -- sync-facebook --since YYYY-MM-DD --until YYYY-MM-DD` when `FACEBOOK_PAGE_ID` and `FACEBOOK_PAGE_ACCESS_TOKEN` are configured
+- Meta Business Suite / Facebook Page Insights as fallback for metrics not exposed by the token
 
 **What to pull:**
 
@@ -128,6 +129,14 @@ SELECT
   LEFT(caption, 180) AS caption_preview,
   cta,
   facebook_url,
+  facebook_post_id,
+  metrics_synced_at,
+  JSON_EXTRACT(metrics, '$.impressionsUnique') AS reach,
+  JSON_EXTRACT(metrics, '$.impressions') AS impressions,
+  JSON_EXTRACT(metrics, '$.reactions') AS reactions,
+  JSON_EXTRACT(metrics, '$.comments') AS comments,
+  JSON_EXTRACT(metrics, '$.shares') AS shares,
+  JSON_EXTRACT(metrics, '$.clicks') AS clicks,
   JSON_LENGTH(asset_paths) AS asset_count,
   metrics
 FROM social_posts

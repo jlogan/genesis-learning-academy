@@ -268,6 +268,9 @@ async function ensureLeadTables() {
       caption TEXT NULL,
       cta VARCHAR(255) NULL,
       facebook_url VARCHAR(1000) NULL,
+      facebook_post_id VARCHAR(255) NULL,
+      facebook_created_time DATETIME NULL,
+      metrics_synced_at DATETIME NULL,
       slack_channel VARCHAR(100) NULL,
       slack_thread_ts VARCHAR(100) NULL,
       requested_by VARCHAR(255) NULL,
@@ -278,13 +281,41 @@ async function ensureLeadTables() {
       notes TEXT NULL,
       raw_payload JSON NULL,
       INDEX idx_social_posts_platform_status (platform, status),
+      UNIQUE KEY uk_social_posts_facebook_post_id (facebook_post_id),
       INDEX idx_social_posts_planned_for (planned_for),
       INDEX idx_social_posts_published_at (published_at),
+      INDEX idx_social_posts_facebook_created_time (facebook_created_time),
       INDEX idx_social_posts_slack_thread (slack_channel, slack_thread_ts)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
   await ensureInboundCallNotificationColumns(pool);
+  await ensureSocialPostFacebookColumns(pool);
+}
+
+async function ensureSocialPostFacebookColumns(pool) {
+  const desiredColumns = [
+    ['facebook_post_id', 'ADD COLUMN facebook_post_id VARCHAR(255) NULL AFTER facebook_url'],
+    ['facebook_created_time', 'ADD COLUMN facebook_created_time DATETIME NULL AFTER facebook_post_id'],
+    ['metrics_synced_at', 'ADD COLUMN metrics_synced_at DATETIME NULL AFTER facebook_created_time'],
+  ];
+
+  for (const [columnName, alterSql] of desiredColumns) {
+    const [cols] = await pool.query(`SHOW COLUMNS FROM social_posts LIKE ?`, [columnName]);
+    if (!cols.length) {
+      await pool.query(`ALTER TABLE social_posts ${alterSql}`);
+    }
+  }
+
+  const [uniqueKeys] = await pool.query(`SHOW INDEX FROM social_posts WHERE Key_name = 'uk_social_posts_facebook_post_id'`);
+  if (!uniqueKeys.length) {
+    await pool.query(`ALTER TABLE social_posts ADD UNIQUE KEY uk_social_posts_facebook_post_id (facebook_post_id)`);
+  }
+
+  const [createdIndexes] = await pool.query(`SHOW INDEX FROM social_posts WHERE Key_name = 'idx_social_posts_facebook_created_time'`);
+  if (!createdIndexes.length) {
+    await pool.query(`ALTER TABLE social_posts ADD INDEX idx_social_posts_facebook_created_time (facebook_created_time)`);
+  }
 }
 
 async function ensureInboundCallNotificationColumns(pool) {
@@ -613,6 +644,9 @@ function normalizeSocialPostInput(data = {}) {
     caption: data.caption || null,
     cta: data.cta || null,
     facebookUrl: data.facebookUrl || data.postUrl || null,
+    facebookPostId: data.facebookPostId || data.facebook_post_id || null,
+    facebookCreatedTime: data.facebookCreatedTime || data.facebook_created_time || null,
+    metricsSyncedAt: data.metricsSyncedAt || data.metrics_synced_at || null,
     slackChannel: data.slackChannel || null,
     slackThreadTs: data.slackThreadTs || data.threadTs || null,
     requestedBy: data.requestedBy || null,
@@ -632,10 +666,12 @@ async function saveSocialPost(data) {
   const [result] = await pool.execute(
     `INSERT INTO social_posts
       (planned_for, published_at, platform, status, post_theme, caption, cta, facebook_url,
+       facebook_post_id, facebook_created_time, metrics_synced_at,
        slack_channel, slack_thread_ts, requested_by, created_by, asset_paths, selected_asset_path,
        metrics, notes, raw_payload)
      VALUES
       (:plannedFor, :publishedAt, :platform, :status, :postTheme, :caption, :cta, :facebookUrl,
+       :facebookPostId, :facebookCreatedTime, :metricsSyncedAt,
        :slackChannel, :slackThreadTs, :requestedBy, :createdBy, CAST(:assetPaths AS JSON), :selectedAssetPath,
        CAST(:metrics AS JSON), :notes, CAST(:rawPayload AS JSON))`,
     {
@@ -662,6 +698,9 @@ async function updateSocialPost(id, data) {
          caption = COALESCE(:caption, caption),
          cta = COALESCE(:cta, cta),
          facebook_url = COALESCE(:facebookUrl, facebook_url),
+         facebook_post_id = COALESCE(:facebookPostId, facebook_post_id),
+         facebook_created_time = COALESCE(:facebookCreatedTime, facebook_created_time),
+         metrics_synced_at = COALESCE(:metricsSyncedAt, metrics_synced_at),
          slack_channel = COALESCE(:slackChannel, slack_channel),
          slack_thread_ts = COALESCE(:slackThreadTs, slack_thread_ts),
          requested_by = COALESCE(:requestedBy, requested_by),
@@ -681,6 +720,121 @@ async function updateSocialPost(id, data) {
     }
   );
   return id;
+}
+
+function parseFacebookDate(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function getFacebookConfig() {
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  const graphVersion = process.env.FACEBOOK_GRAPH_VERSION || 'v23.0';
+  if (!pageId || !accessToken) {
+    throw new Error('FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN must be configured.');
+  }
+  return { pageId, accessToken, graphVersion };
+}
+
+async function facebookGraphGet(pathname, params = {}) {
+  const { accessToken, graphVersion } = getFacebookConfig();
+  const url = new URL(`https://graph.facebook.com/${graphVersion}/${pathname.replace(/^\//, '')}`);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
+  });
+  url.searchParams.set('access_token', accessToken);
+
+  const response = await fetch(url);
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = body?.error?.message || `Facebook API request failed with ${response.status}`;
+    throw new Error(message);
+  }
+  return body;
+}
+
+function getInsightValue(insights, name) {
+  const item = insights?.data?.find((metric) => metric.name === name);
+  const values = item?.values || [];
+  const latest = values[values.length - 1];
+  return latest?.value ?? null;
+}
+
+function normalizeFacebookPost(post) {
+  const metrics = {
+    source: 'facebook_pages_api',
+    syncedAt: new Date().toISOString(),
+    reactions: post.reactions?.summary?.total_count ?? null,
+    comments: post.comments?.summary?.total_count ?? null,
+    shares: post.shares?.count ?? null,
+    engagedUsers: getInsightValue(post.insights, 'post_engaged_users'),
+    impressions: getInsightValue(post.insights, 'post_impressions'),
+    impressionsUnique: getInsightValue(post.insights, 'post_impressions_unique'),
+    clicks: getInsightValue(post.insights, 'post_clicks'),
+  };
+
+  return {
+    status: 'published',
+    platform: 'facebook',
+    caption: post.message || post.story || null,
+    facebookUrl: post.permalink_url || null,
+    facebookPostId: post.id,
+    facebookCreatedTime: parseFacebookDate(post.created_time),
+    publishedAt: parseFacebookDate(post.created_time),
+    metricsSyncedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+    metrics,
+    rawPayload: post,
+  };
+}
+
+async function upsertFacebookSocialPost(post) {
+  const pool = getDbPool();
+  if (!pool) return null;
+  const normalized = normalizeFacebookPost(post);
+  const [existing] = await pool.execute(
+    `SELECT id FROM social_posts WHERE facebook_post_id = :facebookPostId LIMIT 1`,
+    { facebookPostId: normalized.facebookPostId }
+  );
+
+  if (existing[0]?.id) {
+    await updateSocialPost(existing[0].id, normalized);
+    return { id: existing[0].id, action: 'updated' };
+  }
+
+  const id = await saveSocialPost({
+    ...normalized,
+    createdBy: 'Facebook Pages API',
+    postTheme: 'Facebook import',
+  });
+  return { id, action: 'created' };
+}
+
+async function syncFacebookPagePosts({ limit = 25, since, until } = {}) {
+  const pool = getDbPool();
+  if (!pool) throw new Error('Database is not configured.');
+  const { pageId } = getFacebookConfig();
+  const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
+  const fields = [
+    'id',
+    'message',
+    'story',
+    'created_time',
+    'permalink_url',
+    'shares',
+    'reactions.summary(true).limit(0)',
+    'comments.summary(true).limit(0)',
+    'insights.metric(post_engaged_users,post_impressions,post_impressions_unique,post_clicks)',
+  ].join(',');
+
+  const response = await facebookGraphGet(`/${pageId}/posts`, { fields, limit: safeLimit, since, until });
+  const results = [];
+  for (const post of response.data || []) {
+    results.push({ facebookPostId: post.id, ...(await upsertFacebookSocialPost(post)) });
+  }
+  return { success: true, count: results.length, results };
 }
 
 async function listSocialPosts({ startDate, endDate, platform = 'facebook', status }) {
@@ -2010,6 +2164,21 @@ app.post('/api/social-posts', async (req, res) => {
   }
 });
 
+app.post('/api/social-posts/sync-facebook', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const result = await syncFacebookPagePosts({
+      limit: req.body?.limit || req.query.limit,
+      since: req.body?.since || req.query.since,
+      until: req.body?.until || req.query.until,
+    });
+    return res.json(result);
+  } catch (error) {
+    console.error('Facebook social posts sync error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to sync Facebook posts', details: error.message });
+  }
+});
+
 app.patch('/api/social-posts/:id', async (req, res) => {
   if (!requireSocialPostsApiKey(req, res)) return;
   try {
@@ -2075,7 +2244,14 @@ async function startServer() {
   });
 }
 
-export { generateEnrollmentPDF, ensureLeadTables, saveSocialPost, updateSocialPost, listSocialPosts };
+export {
+  generateEnrollmentPDF,
+  ensureLeadTables,
+  saveSocialPost,
+  updateSocialPost,
+  listSocialPosts,
+  syncFacebookPagePosts,
+};
 
 const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 

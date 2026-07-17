@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import fs from 'fs';
 import process from 'process';
-import { ensureLeadTables, listSocialPosts, saveSocialPost, updateSocialPost } from '../server.js';
+import { ensureLeadTables, listSocialPosts, saveSocialPost, syncFacebookPagePosts, updateSocialPost } from '../server.js';
 
 function usage() {
   console.log(`Usage:
   node scripts/social-posts.mjs create --file post.json
   node scripts/social-posts.mjs publish --id 12 --url https://facebook.com/... [--published-at "2026-07-17 10:30:00"]
   node scripts/social-posts.mjs list --start 2026-07-01 --end 2026-08-01 [--status published]
+  node scripts/social-posts.mjs sync-facebook [--limit 25] [--since 2026-07-01] [--until 2026-08-01]
 
 JSON fields for create/update:
   plannedFor, publishedAt, platform, status, postTheme, caption, cta, facebookUrl,
@@ -46,7 +47,7 @@ async function main() {
     return;
   }
 
-  if (!['create', 'publish', 'update', 'list'].includes(args.command)) {
+  if (!['create', 'publish', 'update', 'list', 'sync-facebook'].includes(args.command)) {
     usage();
     process.exitCode = 1;
     return;
@@ -91,6 +92,16 @@ async function main() {
       status: args.status,
     });
     console.log(JSON.stringify({ success: true, count: posts.length, posts }, null, 2));
+    return;
+  }
+
+  if (args.command === 'sync-facebook') {
+    const result = await syncFacebookPagePosts({
+      limit: args.limit,
+      since: args.since,
+      until: args.until,
+    });
+    console.log(JSON.stringify(result, null, 2));
     return;
   }
 

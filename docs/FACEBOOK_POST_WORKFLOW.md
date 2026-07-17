@@ -33,6 +33,9 @@ Important columns:
 - `asset_paths` — JSON array of local generated/downloadable image paths
 - `selected_asset_path` — asset Marie chose, if known
 - `facebook_url` — public Facebook post permalink when available
+- `facebook_post_id` — Graph API post ID for API-synced posts
+- `facebook_created_time` — original post timestamp from Facebook
+- `metrics_synced_at` — last time metrics were refreshed from Facebook
 - `slack_channel`, `slack_thread_ts` — source Slack context
 - `metrics` — JSON snapshot for future likes/reach/comments/shares/clicks
 
@@ -55,6 +58,20 @@ List posts for a monthly report:
 ```bash
 npm run social-posts -- list --start 2026-07-01 --end 2026-08-01 --status published
 ```
+
+Sync published Facebook posts and metrics from the Pages API:
+
+```bash
+npm run social-posts -- sync-facebook --limit 25 --since 2026-07-01 --until 2026-08-01
+```
+
+Required environment variables for Facebook sync:
+
+- `FACEBOOK_PAGE_ID` — Genesis Learning Academy Facebook Page ID
+- `FACEBOOK_PAGE_ACCESS_TOKEN` — long-lived Page access token
+- `FACEBOOK_GRAPH_VERSION` — optional, defaults to `v23.0`
+
+The Page token should come from a Meta app/user with Page access and the required permissions for the intended scope, typically `pages_show_list`, `pages_read_engagement`, `pages_read_user_content`, and `read_insights` for reporting/metrics. Add `pages_manage_posts` later if Brobot will publish posts through the API.
 
 Example payload:
 
@@ -80,6 +97,7 @@ Example payload:
 The server also exposes protected internal endpoints for future automation. They require `SOCIAL_POSTS_API_KEY` and the key must be sent via `x-api-key` or `Authorization: Bearer ...`.
 
 - `POST /api/social-posts` — create a row
+- `POST /api/social-posts/sync-facebook` — import/update published Page posts and metrics from the Facebook Pages API
 - `PATCH /api/social-posts/:id` — update/publish a row
 - `GET /api/social-posts?start=YYYY-MM-DD&end=YYYY-MM-DD&status=published` — report data
 
