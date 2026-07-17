@@ -739,7 +739,25 @@ function getFacebookConfig() {
   return { pageId, accessToken, graphVersion };
 }
 
-async function facebookGraphGet(pathname, params = {}) {
+function sanitizeFacebookPayload(value) {
+  if (Array.isArray(value)) return value.map(sanitizeFacebookPayload);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== 'access_token')
+      .map(([key, child]) => [key, sanitizeFacebookPayload(child)])
+  );
+}
+
+function safeFacebookWarning(error, fallback = 'facebook_api_warning') {
+  const message = String(error?.message || error || fallback);
+  if (message.includes('pages_read_user_content')) return 'missing_pages_read_user_content';
+  if (message.includes('valid insights metric')) return 'invalid_or_unavailable_insight_metric';
+  if (message.includes('permission') || message.includes('Permissions')) return 'missing_facebook_permission';
+  return message.slice(0, 180);
+}
+
+async function facebookGraphRequest(pathname, params = {}) {
   const { accessToken, graphVersion } = getFacebookConfig();
   const url = new URL(`https://graph.facebook.com/${graphVersion}/${pathname.replace(/^\//, '')}`);
   Object.entries(params).forEach(([key, value]) => {
@@ -750,30 +768,77 @@ async function facebookGraphGet(pathname, params = {}) {
   const response = await fetch(url);
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = body?.error?.message || `Facebook API request failed with ${response.status}`;
-    throw new Error(message);
+    return {
+      ok: false,
+      status: response.status,
+      data: null,
+      error: body?.error || { message: `Facebook API request failed with ${response.status}` },
+    };
   }
-  return body;
+  return { ok: true, status: response.status, data: body, error: null };
 }
 
-function getInsightValue(insights, name) {
-  const item = insights?.data?.find((metric) => metric.name === name);
+async function facebookGraphGet(pathname, params = {}) {
+  const result = await facebookGraphRequest(pathname, params);
+  if (!result.ok) {
+    throw new Error(result.error?.message || `Facebook API request failed with ${result.status}`);
+  }
+  return result.data;
+}
+
+function sumObjectValues(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  return Object.values(value).reduce((total, item) => total + (Number(item) || 0), 0);
+}
+
+async function getFacebookPostInsight(postId, metric) {
+  const result = await facebookGraphRequest(`/${postId}/insights`, { metric });
+  if (!result.ok) return { value: null, warning: `${metric}:${safeFacebookWarning(result.error)}` };
+  const item = result.data?.data?.[0];
   const values = item?.values || [];
   const latest = values[values.length - 1];
-  return latest?.value ?? null;
+  return { value: latest?.value ?? null, warning: null };
+}
+
+async function enrichFacebookPost(post) {
+  const warnings = new Set();
+  const enriched = { ...post, metricsData: {} };
+
+  const engagement = await facebookGraphRequest(`/${post.id}`, {
+    fields: 'reactions.summary(true).limit(0),comments.summary(true).limit(0)',
+  });
+  if (engagement.ok) {
+    enriched.reactions = engagement.data?.reactions || null;
+    enriched.comments = engagement.data?.comments || null;
+  } else {
+    warnings.add(`engagement:${safeFacebookWarning(engagement.error)}`);
+  }
+
+  for (const metric of ['post_clicks', 'post_reactions_by_type_total', 'post_engaged_users', 'post_impressions', 'post_impressions_unique']) {
+    const { value, warning } = await getFacebookPostInsight(post.id, metric);
+    if (warning) warnings.add(warning);
+    enriched.metricsData[metric] = value;
+  }
+
+  enriched.warnings = [...warnings];
+  return enriched;
 }
 
 function normalizeFacebookPost(post) {
+  const reactionsByType = post.metricsData?.post_reactions_by_type_total || null;
+  const reactions = post.reactions?.summary?.total_count ?? sumObjectValues(reactionsByType);
   const metrics = {
     source: 'facebook_pages_api',
     syncedAt: new Date().toISOString(),
-    reactions: post.reactions?.summary?.total_count ?? null,
+    reactions,
+    reactionsByType,
     comments: post.comments?.summary?.total_count ?? null,
     shares: post.shares?.count ?? null,
-    engagedUsers: getInsightValue(post.insights, 'post_engaged_users'),
-    impressions: getInsightValue(post.insights, 'post_impressions'),
-    impressionsUnique: getInsightValue(post.insights, 'post_impressions_unique'),
-    clicks: getInsightValue(post.insights, 'post_clicks'),
+    engagedUsers: post.metricsData?.post_engaged_users ?? null,
+    impressions: post.metricsData?.post_impressions ?? null,
+    impressionsUnique: post.metricsData?.post_impressions_unique ?? null,
+    clicks: post.metricsData?.post_clicks ?? null,
+    warnings: [...new Set(post.warnings || [])],
   };
 
   return {
@@ -786,7 +851,16 @@ function normalizeFacebookPost(post) {
     publishedAt: parseFacebookDate(post.created_time),
     metricsSyncedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
     metrics,
-    rawPayload: post,
+    rawPayload: sanitizeFacebookPayload({
+      id: post.id,
+      message: post.message || null,
+      story: post.story || null,
+      created_time: post.created_time || null,
+      permalink_url: post.permalink_url || null,
+      shares: post.shares || null,
+      metricsData: post.metricsData || {},
+      warnings: post.warnings || [],
+    }),
   };
 }
 
@@ -801,7 +875,7 @@ async function upsertFacebookSocialPost(post) {
 
   if (existing[0]?.id) {
     await updateSocialPost(existing[0].id, normalized);
-    return { id: existing[0].id, action: 'updated' };
+    return { id: existing[0].id, action: 'updated', warnings: normalized.metrics.warnings };
   }
 
   const id = await saveSocialPost({
@@ -809,7 +883,7 @@ async function upsertFacebookSocialPost(post) {
     createdBy: 'Facebook Pages API',
     postTheme: 'Facebook import',
   });
-  return { id, action: 'created' };
+  return { id, action: 'created', warnings: normalized.metrics.warnings };
 }
 
 async function syncFacebookPagePosts({ limit = 25, since, until } = {}) {
@@ -817,24 +891,17 @@ async function syncFacebookPagePosts({ limit = 25, since, until } = {}) {
   if (!pool) throw new Error('Database is not configured.');
   const { pageId } = getFacebookConfig();
   const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
-  const fields = [
-    'id',
-    'message',
-    'story',
-    'created_time',
-    'permalink_url',
-    'shares',
-    'reactions.summary(true).limit(0)',
-    'comments.summary(true).limit(0)',
-    'insights.metric(post_engaged_users,post_impressions,post_impressions_unique,post_clicks)',
-  ].join(',');
+  const fields = ['id', 'message', 'story', 'created_time', 'permalink_url', 'shares'].join(',');
 
   const response = await facebookGraphGet(`/${pageId}/posts`, { fields, limit: safeLimit, since, until });
   const results = [];
+  const warnings = new Set();
   for (const post of response.data || []) {
-    results.push({ facebookPostId: post.id, ...(await upsertFacebookSocialPost(post)) });
+    const enriched = await enrichFacebookPost(post);
+    (enriched.warnings || []).forEach((warning) => warnings.add(warning));
+    results.push({ facebookPostId: post.id, ...(await upsertFacebookSocialPost(enriched)) });
   }
-  return { success: true, count: results.length, results };
+  return { success: true, count: results.length, warnings: [...warnings], results };
 }
 
 async function listSocialPosts({ startDate, endDate, platform = 'facebook', status }) {

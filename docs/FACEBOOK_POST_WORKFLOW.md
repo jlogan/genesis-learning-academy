@@ -73,6 +73,8 @@ Required environment variables for Facebook sync:
 
 The Page token should come from a Meta app/user with Page access and the required permissions for the intended scope, typically `pages_show_list`, `pages_read_engagement`, `pages_read_user_content`, and `read_insights` for reporting/metrics. Add `pages_manage_posts` later if Brobot will publish posts through the API.
 
+The sync is permission-tolerant: it imports core post data first, then fills whatever engagement/insight metrics Meta allows. If the token lacks `pages_read_user_content`, comment/reaction summaries may be stored as `null` with warnings in `metrics.warnings`. If a Graph API version does not expose a reach/impressions metric, those fields may also be `null`; use Meta Business Suite as the fallback for any missing metrics.
+
 Example payload:
 
 ```json
