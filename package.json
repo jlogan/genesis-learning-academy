@@ -12,7 +12,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "preview:enrollment-pdf": "node scripts/preview-enrollment-pdf.mjs"
+    "preview:enrollment-pdf": "node scripts/preview-enrollment-pdf.mjs",
+    "social-posts": "node scripts/social-posts.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

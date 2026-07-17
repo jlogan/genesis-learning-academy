@@ -112,16 +112,49 @@ GROUP BY event_type;
 
 ## 5. Facebook engagement
 
-**Where:** Meta Business Suite / Facebook Page Insights for the GLAK page
+**Where:**
+
+- **MySQL** — `social_posts` rows logged by Brobot as drafts and updated when Marie publishes
+- Meta Business Suite / Facebook Page Insights for metrics not yet synced automatically
 
 **What to pull:**
 
-- Page views and reach
-- Post engagement (reactions, comments, shares)
-- Messenger conversations started (if Page inbox is monitored)
-- Top-performing posts (events, photos, enrollment reminders)
+```sql
+-- Monthly Facebook posts created/published through the manual Brobot workflow
+SELECT
+  COALESCE(published_at, planned_for, created_at) AS activity_date,
+  status,
+  post_theme,
+  LEFT(caption, 180) AS caption_preview,
+  cta,
+  facebook_url,
+  JSON_LENGTH(asset_paths) AS asset_count,
+  metrics
+FROM social_posts
+WHERE platform = 'facebook'
+  AND COALESCE(published_at, planned_for, created_at) >= '2026-07-01'
+  AND COALESCE(published_at, planned_for, created_at) < '2026-08-01'
+ORDER BY activity_date DESC;
 
-**Notes:** Tie spikes in site traffic (GA4) to Facebook posts when possible. Messenger and comment inquiries are leads even when they never hit the website form.
+-- Monthly Facebook posting cadence
+SELECT
+  status,
+  COUNT(*) AS posts
+FROM social_posts
+WHERE platform = 'facebook'
+  AND COALESCE(published_at, planned_for, created_at) >= '2026-07-01'
+  AND COALESCE(published_at, planned_for, created_at) < '2026-08-01'
+GROUP BY status;
+```
+
+**What to include in the report:**
+
+- Number of Facebook posts drafted/approved/published
+- Published post dates, themes, captions/CTA, and post links
+- Available engagement metrics from `metrics` or Meta Business Suite: reach/views, reactions, comments, shares, clicks
+- Notes about active page cadence and local-family positioning
+
+**Notes:** Brobot should create a draft row when generating post copy/media and update it to `published` when Marie confirms publication. Include Facebook post permalinks whenever Marie can provide them. Tie spikes in site traffic (GA4) to Facebook posts when possible. Messenger and comment inquiries are leads even when they never hit the website form. See [`FACEBOOK_POST_WORKFLOW.md`](./FACEBOOK_POST_WORKFLOW.md).
 
 ## Suggested monthly checklist
 

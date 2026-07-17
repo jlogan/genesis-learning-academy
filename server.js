@@ -255,6 +255,35 @@ async function ensureLeadTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS social_posts (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      planned_for DATE NULL,
+      published_at DATETIME NULL,
+      platform VARCHAR(50) NOT NULL DEFAULT 'facebook',
+      status VARCHAR(50) NOT NULL DEFAULT 'draft',
+      post_theme VARCHAR(255) NULL,
+      caption TEXT NULL,
+      cta VARCHAR(255) NULL,
+      facebook_url VARCHAR(1000) NULL,
+      slack_channel VARCHAR(100) NULL,
+      slack_thread_ts VARCHAR(100) NULL,
+      requested_by VARCHAR(255) NULL,
+      created_by VARCHAR(255) NULL,
+      asset_paths JSON NULL,
+      selected_asset_path VARCHAR(1000) NULL,
+      metrics JSON NULL,
+      notes TEXT NULL,
+      raw_payload JSON NULL,
+      INDEX idx_social_posts_platform_status (platform, status),
+      INDEX idx_social_posts_planned_for (planned_for),
+      INDEX idx_social_posts_published_at (published_at),
+      INDEX idx_social_posts_slack_thread (slack_channel, slack_thread_ts)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+
   await ensureInboundCallNotificationColumns(pool);
 }
 
@@ -567,6 +596,132 @@ async function updateEnrollmentEmailStatus(id, { parentEmailId, staffEmailId, st
      WHERE id = :id`,
     { id, parentEmailId: parentEmailId || null, staffEmailId: staffEmailId || null, status }
   );
+}
+
+function normalizeSocialPostInput(data = {}) {
+  const status = String(data.status || 'draft').trim().toLowerCase();
+  const platform = String(data.platform || 'facebook').trim().toLowerCase();
+  const assetPaths = Array.isArray(data.assetPaths) ? data.assetPaths.filter(Boolean) : [];
+  const metrics = data.metrics && typeof data.metrics === 'object' ? data.metrics : null;
+
+  return {
+    plannedFor: data.plannedFor || null,
+    publishedAt: data.publishedAt || (status === 'published' ? new Date().toISOString().slice(0, 19).replace('T', ' ') : null),
+    platform,
+    status,
+    postTheme: data.postTheme || data.theme || null,
+    caption: data.caption || null,
+    cta: data.cta || null,
+    facebookUrl: data.facebookUrl || data.postUrl || null,
+    slackChannel: data.slackChannel || null,
+    slackThreadTs: data.slackThreadTs || data.threadTs || null,
+    requestedBy: data.requestedBy || null,
+    createdBy: data.createdBy || 'Brobot',
+    assetPaths,
+    selectedAssetPath: data.selectedAssetPath || assetPaths[0] || null,
+    metrics,
+    notes: data.notes || null,
+    rawPayload: data,
+  };
+}
+
+async function saveSocialPost(data) {
+  const pool = getDbPool();
+  if (!pool) return null;
+  const post = normalizeSocialPostInput(data);
+  const [result] = await pool.execute(
+    `INSERT INTO social_posts
+      (planned_for, published_at, platform, status, post_theme, caption, cta, facebook_url,
+       slack_channel, slack_thread_ts, requested_by, created_by, asset_paths, selected_asset_path,
+       metrics, notes, raw_payload)
+     VALUES
+      (:plannedFor, :publishedAt, :platform, :status, :postTheme, :caption, :cta, :facebookUrl,
+       :slackChannel, :slackThreadTs, :requestedBy, :createdBy, CAST(:assetPaths AS JSON), :selectedAssetPath,
+       CAST(:metrics AS JSON), :notes, CAST(:rawPayload AS JSON))`,
+    {
+      ...post,
+      assetPaths: JSON.stringify(post.assetPaths),
+      metrics: post.metrics ? JSON.stringify(post.metrics) : null,
+      rawPayload: JSON.stringify(post.rawPayload),
+    }
+  );
+  return result.insertId;
+}
+
+async function updateSocialPost(id, data) {
+  const pool = getDbPool();
+  if (!pool) return null;
+  const post = normalizeSocialPostInput(data);
+  await pool.execute(
+    `UPDATE social_posts
+     SET planned_for = COALESCE(:plannedFor, planned_for),
+         published_at = COALESCE(:publishedAt, published_at),
+         platform = COALESCE(:platform, platform),
+         status = COALESCE(:status, status),
+         post_theme = COALESCE(:postTheme, post_theme),
+         caption = COALESCE(:caption, caption),
+         cta = COALESCE(:cta, cta),
+         facebook_url = COALESCE(:facebookUrl, facebook_url),
+         slack_channel = COALESCE(:slackChannel, slack_channel),
+         slack_thread_ts = COALESCE(:slackThreadTs, slack_thread_ts),
+         requested_by = COALESCE(:requestedBy, requested_by),
+         created_by = COALESCE(:createdBy, created_by),
+         asset_paths = COALESCE(CAST(:assetPaths AS JSON), asset_paths),
+         selected_asset_path = COALESCE(:selectedAssetPath, selected_asset_path),
+         metrics = COALESCE(CAST(:metrics AS JSON), metrics),
+         notes = COALESCE(:notes, notes),
+         raw_payload = CAST(:rawPayload AS JSON)
+     WHERE id = :id`,
+    {
+      id,
+      ...post,
+      assetPaths: post.assetPaths.length ? JSON.stringify(post.assetPaths) : null,
+      metrics: post.metrics ? JSON.stringify(post.metrics) : null,
+      rawPayload: JSON.stringify(post.rawPayload),
+    }
+  );
+  return id;
+}
+
+async function listSocialPosts({ startDate, endDate, platform = 'facebook', status }) {
+  const pool = getDbPool();
+  if (!pool) return [];
+  const where = ['platform = :platform'];
+  const params = { platform };
+  if (startDate) {
+    where.push('COALESCE(published_at, planned_for, created_at) >= :startDate');
+    params.startDate = startDate;
+  }
+  if (endDate) {
+    where.push('COALESCE(published_at, planned_for, created_at) < :endDate');
+    params.endDate = endDate;
+  }
+  if (status) {
+    where.push('status = :status');
+    params.status = status;
+  }
+
+  const [rows] = await pool.execute(
+    `SELECT * FROM social_posts
+     WHERE ${where.join(' AND ')}
+     ORDER BY COALESCE(published_at, planned_for, created_at) DESC, id DESC`,
+    params
+  );
+  return rows;
+}
+
+function requireSocialPostsApiKey(req, res) {
+  const expected = process.env.SOCIAL_POSTS_API_KEY;
+  if (!expected) {
+    res.status(503).json({ success: false, error: 'SOCIAL_POSTS_API_KEY is not configured.' });
+    return false;
+  }
+  const provided = req.get('x-api-key') || req.get('authorization')?.replace(/^Bearer\s+/i, '');
+  if (provided !== expected) {
+    res.status(401).json({ success: false, error: 'Unauthorized' });
+    return false;
+  }
+  return true;
 }
 
 // ─── PDF Generation ───────────────────────────────────────────────────────────
@@ -1841,6 +1996,51 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// ─── Social Post Tracking Endpoints ───────────────────────────────────────────
+
+app.post('/api/social-posts', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const socialPostId = await saveSocialPost(req.body || {});
+    if (!socialPostId) return res.status(503).json({ success: false, error: 'Database is not configured.' });
+    return res.json({ success: true, socialPostId });
+  } catch (error) {
+    console.error('Social post save error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to save social post', details: error.message });
+  }
+});
+
+app.patch('/api/social-posts/:id', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const socialPostId = Number(req.params.id);
+    if (!Number.isFinite(socialPostId) || socialPostId <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid social post id.' });
+    }
+    await updateSocialPost(socialPostId, req.body || {});
+    return res.json({ success: true, socialPostId });
+  } catch (error) {
+    console.error('Social post update error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update social post', details: error.message });
+  }
+});
+
+app.get('/api/social-posts', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listSocialPosts({
+      startDate: req.query.startDate || req.query.start || null,
+      endDate: req.query.endDate || req.query.end || null,
+      platform: req.query.platform || 'facebook',
+      status: req.query.status || null,
+    });
+    return res.json({ success: true, posts: rows });
+  } catch (error) {
+    console.error('Social posts list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list social posts', details: error.message });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   if (!dbConfig) {
@@ -1875,7 +2075,7 @@ async function startServer() {
   });
 }
 
-export { generateEnrollmentPDF };
+export { generateEnrollmentPDF, ensureLeadTables, saveSocialPost, updateSocialPost, listSocialPosts };
 
 const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 

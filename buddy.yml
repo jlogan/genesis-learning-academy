@@ -48,6 +48,9 @@
         - "rm -rf buddy-deploy"
         - "mkdir -p buddy-deploy"
         - "cp server.js package.json package-lock.json buddy-deploy/"
+        - "mkdir -p buddy-deploy/scripts buddy-deploy/docs"
+        - "cp scripts/social-posts.mjs buddy-deploy/scripts/"
+        - "cp docs/FACEBOOK_POST_WORKFLOW.md docs/MONTHLY_REPORTING.md buddy-deploy/docs/"
         - "cp deploy/glak-api.service deploy/nginx-api-proxy.conf buddy-deploy/"
 
     - action: "Transfer static site (SFTP)"
