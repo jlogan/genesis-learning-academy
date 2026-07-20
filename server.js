@@ -16,10 +16,22 @@ const PORT = process.env.PORT || 3001;
 const STAFF_EMAIL = process.env.STAFF_EMAIL || 'jay@brogrammers.agency';
 const CLIENT_INBOX_EMAIL = process.env.CLIENT_INBOX_EMAIL || 'genesislearningacademykennesaw@gmail.com';
 const LEAD_EMAIL_FROM = 'Genesis Learning Academy <glak@emails.brogrammersagency.com>';
+const DEFAULT_LEAD_SMS_RECIPIENTS = ['+14045937102', '+17708715583'];
 const isProduction = process.env.NODE_ENV === 'production';
 
 function emailRecipients(...addresses) {
   return [...new Set(addresses.map((address) => String(address || '').trim()).filter(Boolean))];
+}
+
+function phoneRecipients(...values) {
+  return [
+    ...new Set(
+      values
+        .flatMap((value) => String(value || '').split(','))
+        .map((number) => number.trim())
+        .filter(Boolean)
+    ),
+  ];
 }
 
 app.set('trust proxy', true);
@@ -39,6 +51,67 @@ function getResend() {
     resend = new Resend(process.env.RESEND_API_KEY);
   }
   return resend;
+}
+
+function buildLeadSmsBody({ parentName, phone, email, childAge, interest, message }) {
+  const normalizedMessage = String(message || '').replace(/\s+/g, ' ').trim();
+  const clippedMessage = normalizedMessage.length > 120 ? `${normalizedMessage.slice(0, 117)}...` : normalizedMessage;
+  return [
+    'GLAK new inquiry:',
+    parentName,
+    phone || 'no phone',
+    email,
+    childAge || '—',
+    interest,
+    clippedMessage ? `"${clippedMessage}"` : null,
+  ].filter(Boolean).join(' | ');
+}
+
+async function sendLeadSmsNotifications(lead) {
+  const accountSid = String(process.env.TWILIO_ACCOUNT_SID || '').trim();
+  const authToken = String(process.env.TWILIO_AUTH_TOKEN || '').trim();
+  const fromNumber = String(process.env.TWILIO_MARKETING_NUMBER || '').trim();
+  const recipients = phoneRecipients(
+    process.env.LEAD_SMS_NOTIFY_NUMBERS,
+    process.env.LEAD_SMS_NOTIFY_JAY,
+    process.env.LEAD_SMS_NOTIFY_OWNER,
+    ...DEFAULT_LEAD_SMS_RECIPIENTS
+  );
+
+  if (!accountSid || !authToken || !fromNumber || !recipients.length) {
+    console.warn('Lead SMS skipped: Twilio outbound env is not fully configured.');
+    return { sent: [], skipped: true };
+  }
+
+  const authorization = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+  const body = buildLeadSmsBody(lead);
+  const results = [];
+
+  for (const to of recipients) {
+    try {
+      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${authorization}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ To: to, From: fromNumber, Body: body }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      const result = { to, ok: response.ok, sid: payload.sid || null, status: payload.status || null };
+      results.push(result);
+      if (!response.ok) {
+        console.error('Lead SMS send error:', { to, status: response.status, code: payload.code, message: payload.message });
+      }
+    } catch (error) {
+      console.error('Lead SMS request failed:', { to, error: error.message });
+      results.push({ to, ok: false, sid: null, status: 'request_failed' });
+    }
+  }
+
+  const sentCount = results.filter((result) => result.ok).length;
+  console.log(`Lead SMS notifications sent: ${sentCount}/${recipients.length}`);
+  return { sent: results, skipped: false };
 }
 
 
@@ -2203,6 +2276,8 @@ app.post('/api/contact', async (req, res) => {
       autoReplyEmailId: autoReplyEmailResult.data?.id,
       status: staffEmailResult.error || autoReplyEmailResult.error ? 'partial_error' : 'sent',
     });
+
+    await sendLeadSmsNotifications({ parentName, phone, email, childAge, interest, message });
 
     await trackGa4ContactFormSubmit({ submissionId: contactSubmissionId, interest });
 

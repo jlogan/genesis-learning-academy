@@ -64,10 +64,16 @@ PORT=3002
 PUBLIC_SITE_URL=https://genesislearningacademyofkennesaw.com
 
 # Twilio marketing call forwarding/reporting
+TWILIO_ACCOUNT_SID=AC_your_twilio_account_sid
 TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_FORWARD_TO_NUMBER=+17706724255
+TWILIO_FORWARD_TO_NUMBER=+177****4255
 # Optional guard: reject webhooks for any other Twilio number
 TWILIO_MARKETING_NUMBER=+1yourtwilionumber
+# New form lead SMS alerts; messages are sent separately to each number.
+LEAD_SMS_NOTIFY_JAY=+140****7102
+LEAD_SMS_NOTIFY_OWNER=+177****5583
+# Optional comma-separated override/additional routing:
+# LEAD_SMS_NOTIFY_NUMBERS=+140****7102,+177****5583
 
 # Lead/reporting database
 DB_HOST=localhost
