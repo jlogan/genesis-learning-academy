@@ -300,13 +300,24 @@ async function ensureLeadTables() {
       recording_sid VARCHAR(64) NULL,
       recording_duration_seconds INT UNSIGNED NULL,
       answered TINYINT(1) NULL,
+      ai_assumed_type VARCHAR(50) NULL,
+      ai_caller_label VARCHAR(255) NULL,
+      ai_summary TEXT NULL,
+      ai_confidence DECIMAL(4,3) NULL,
+      ai_transcript MEDIUMTEXT NULL,
+      ai_model VARCHAR(100) NULL,
+      ai_processed_at DATETIME NULL,
+      ai_error TEXT NULL,
+      ai_raw_json JSON NULL,
       raw_payload JSON NULL,
       staff_email_id VARCHAR(255) NULL,
       notification_status VARCHAR(50) NOT NULL DEFAULT 'pending',
       UNIQUE KEY uk_inbound_calls_call_sid (twilio_call_sid),
       INDEX idx_inbound_calls_created_at (created_at),
       INDEX idx_inbound_calls_from_number (from_number),
-      INDEX idx_inbound_calls_answered (answered)
+      INDEX idx_inbound_calls_answered (answered),
+      INDEX idx_inbound_calls_ai_assumed_type (ai_assumed_type),
+      INDEX idx_inbound_calls_ai_processed_at (ai_processed_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
@@ -362,8 +373,40 @@ async function ensureLeadTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
+  await ensureInboundCallAiColumns(pool);
   await ensureInboundCallNotificationColumns(pool);
   await ensureSocialPostFacebookColumns(pool);
+}
+
+async function ensureInboundCallAiColumns(pool) {
+  const desiredColumns = [
+    ['ai_assumed_type', 'ADD COLUMN ai_assumed_type VARCHAR(50) NULL AFTER answered'],
+    ['ai_caller_label', 'ADD COLUMN ai_caller_label VARCHAR(255) NULL AFTER ai_assumed_type'],
+    ['ai_summary', 'ADD COLUMN ai_summary TEXT NULL AFTER ai_caller_label'],
+    ['ai_confidence', 'ADD COLUMN ai_confidence DECIMAL(4,3) NULL AFTER ai_summary'],
+    ['ai_transcript', 'ADD COLUMN ai_transcript MEDIUMTEXT NULL AFTER ai_confidence'],
+    ['ai_model', 'ADD COLUMN ai_model VARCHAR(100) NULL AFTER ai_transcript'],
+    ['ai_processed_at', 'ADD COLUMN ai_processed_at DATETIME NULL AFTER ai_model'],
+    ['ai_error', 'ADD COLUMN ai_error TEXT NULL AFTER ai_processed_at'],
+    ['ai_raw_json', 'ADD COLUMN ai_raw_json JSON NULL AFTER ai_error'],
+  ];
+
+  for (const [columnName, alterSql] of desiredColumns) {
+    const [cols] = await pool.query(`SHOW COLUMNS FROM inbound_calls LIKE ?`, [columnName]);
+    if (!cols.length) {
+      await pool.query(`ALTER TABLE inbound_calls ${alterSql}`);
+    }
+  }
+
+  const [typeIndex] = await pool.query(`SHOW INDEX FROM inbound_calls WHERE Key_name = 'idx_inbound_calls_ai_assumed_type'`);
+  if (!typeIndex.length) {
+    await pool.query(`ALTER TABLE inbound_calls ADD INDEX idx_inbound_calls_ai_assumed_type (ai_assumed_type)`);
+  }
+
+  const [processedIndex] = await pool.query(`SHOW INDEX FROM inbound_calls WHERE Key_name = 'idx_inbound_calls_ai_processed_at'`);
+  if (!processedIndex.length) {
+    await pool.query(`ALTER TABLE inbound_calls ADD INDEX idx_inbound_calls_ai_processed_at (ai_processed_at)`);
+  }
 }
 
 async function ensureSocialPostFacebookColumns(pool) {
