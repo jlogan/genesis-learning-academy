@@ -4,6 +4,7 @@ import { Menu, Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import genesisLogo from "@/assets/genesis-logo-clean.png";
+import { handlePhoneLinkClick } from "@/utils/analytics";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,6 +51,7 @@ const Navigation = () => {
               href="tel:6782934937"
               className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/15 transition-colors"
               aria-label="Call Genesis Learning Academy at 678-293-4937"
+              onClick={handlePhoneLinkClick("navigation_header")}
             >
               <Phone className="h-4 w-4" />
               Call Us: 678-293-4937
@@ -101,7 +103,13 @@ const Navigation = () => {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full">
-                <a href="tel:6782934937" onClick={() => setIsOpen(false)}>
+                <a
+                  href="tel:6782934937"
+                  onClick={() => {
+                    handlePhoneLinkClick("navigation_mobile")();
+                    setIsOpen(false);
+                  }}
+                >
                   Call Us: 678-293-4937
                 </a>
               </Button>

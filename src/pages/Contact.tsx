@@ -43,15 +43,15 @@ const Contact = () => {
         body: JSON.stringify(formData),
       });
 
+      const result = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || "Unable to send your message right now.");
+        throw new Error(result?.error || "Unable to send your message right now.");
       }
 
       trackContactSubmission({
-        parentName: formData.parentName,
-        email: formData.email,
         interest: formData.interest,
+        submissionId: result?.submissionId,
       });
 
       toast({

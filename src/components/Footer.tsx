@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Clock, Facebook, Instagram } from "lucide-react";
+import { handlePhoneLinkClick } from "@/utils/analytics";
 import brogrammersLogo from "@/assets/brogrammers-logo.png";
 import qualityRatedLogo from "@/assets/quality-rated-logo.png";
 
@@ -47,7 +48,11 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <a href="tel:6782934937" className="hover:text-accent transition-colors">
+                <a
+                  href="tel:6782934937"
+                  className="hover:text-accent transition-colors"
+                  onClick={handlePhoneLinkClick("footer")}
+                >
                   678-293-4937
                 </a>
               </div>

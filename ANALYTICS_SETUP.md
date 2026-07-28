@@ -143,3 +143,38 @@ Your site is configured with:
 - GDPR-friendly tracking setup
 
 Consider adding a Privacy Policy page if you don't have one already.
+
+## Meta (Facebook) Ads via Google Tag Manager
+
+The site does **not** embed Meta Pixel IDs or Conversions API tokens in source code. GTM (`GTM-PPQ3GWSH` in `index.html`) owns Meta Pixel firing and any server-side CAPI configuration.
+
+### Client-side dataLayer events (this repo)
+
+After successful form submit or phone link click, the app pushes **non-PII** events to `window.dataLayer`. Configure GTM Custom Event triggers and Meta tags to listen for:
+
+| dataLayer `event` | Meta standard event | When fired | Key fields |
+| --- | --- | --- | --- |
+| `meta_lead` | Lead | Contact or enrollment form success | `event_id`, `lead_type` (`contact_form` \| `enrollment_form`), `interest`, `number_of_children`, `language_preference`, `page_path` |
+| `meta_contact` | Contact | `tel:` link click (Footer, Navigation) | `event_id`, `contact_method` (`phone`), `link_location`, `page_path` |
+
+**Event ID / deduplication:** Form submissions use the API `submissionId` as `event_id` when available (stable across browser and server). Phone clicks generate a client `event_id` (`phone.<uuid>`). Pass the same `event_id` to Meta CAPI on the server if you add server-side lead tracking later.
+
+Implementation: `src/utils/analytics.ts` (`pushMetaLeadEvent`, `pushMetaContactEvent`, `handlePhoneLinkClick`).
+
+### GTM setup checklist (ops)
+
+1. **Container** — Confirm `GTM-PPQ3GWSH` is published for production (`index.html` head + body noscript).
+2. **Meta Pixel tag** — Add via GTM Meta template or custom HTML; use your Pixel ID from [Meta Events Manager](https://business.facebook.com/events_manager). Do not commit Pixel ID to this repo unless you intentionally centralize it in public HTML (current pattern: GTM only).
+3. **Triggers** — Custom Event triggers: `meta_lead` → Meta **Lead**; `meta_contact` → Meta **Contact**.
+4. **Variables** — Map dataLayer keys (`event_id`, `lead_type`, `interest`, `link_location`, etc.) to tag parameters or event parameters as needed.
+5. **CAPI (optional)** — Configure in GTM server container or separate backend; reuse `event_id` from form submissions for deduplication. Store access tokens in env/secrets (e.g. production host `.env`), not in git.
+6. **Verify** — Meta Events Manager → Test Events; GTM Preview mode; submit test contact/enrollment on staging; click header/footer phone links.
+
+### Env / secrets (production host)
+
+No Meta-specific env vars are required for client-side dataLayer pushes. If you add CAPI or offline conversions:
+
+- `META_PIXEL_ID` — Pixel ID (Events Manager)
+- `META_CAPI_ACCESS_TOKEN` — Conversions API token (restricted, server-only)
+
+See also `docs/MONTHLY_REPORTING.md` for lead reporting alongside GA4 and form email logs.

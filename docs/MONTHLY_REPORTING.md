@@ -14,6 +14,7 @@ Use these sources together for a monthly Genesis Learning Academy (GLAK) engagem
 | `contact_form_submit` | Contact / visit request form completions |
 | `enrollment_form_submit` | Enrollment packet submissions |
 | `conversion` (labels: `contact_lead`, `enrollment_lead`) | Lead conversions if Ads/conversion tags are configured |
+| `meta_lead`, `meta_contact` (GTM dataLayer → Meta Pixel) | Facebook/Meta Lead and Contact events when GTM tags are configured (see `ANALYTICS_SETUP.md`) |
 | Top pages (`/contact`, `/enroll`, `/programs`, `/tuition`) | Which pages drive interest |
 
 **Notes:** Replace placeholder `GA_MEASUREMENT_ID` in `index.html` and `src/utils/analytics.ts` with the live property ID (see `ANALYTICS_SETUP.md`). Filter by calendar month and compare to prior month.

@@ -1252,19 +1252,21 @@ const Enroll = () => {
         throw new Error(errorMessage);
       }
 
+      let submissionId: string | undefined;
       try {
         const text = await response.text();
-        text ? JSON.parse(text) : { success: true };
+        if (text) {
+          const result = JSON.parse(text) as { submissionId?: string };
+          submissionId = result.submissionId;
+        }
       } catch {
         console.warn("Could not parse response as JSON, but request succeeded");
       }
 
       trackEnrollmentSubmission({
-        parentName: data.parentGuardian.parent1.fullName,
-        email: data.parentGuardian.parent1.email || "",
         numberOfChildren: 1,
-        childAges: [data.childInfo.childBirthDate],
         languagePreference: "english",
+        submissionId,
       });
 
       localStorage.removeItem(STORAGE_KEY);
