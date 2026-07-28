@@ -170,9 +170,11 @@ GROUP BY status;
 
 **Where:**
 
-- **MySQL** — `meta_ad_accounts`, `meta_campaigns`, `meta_ad_sets`, `meta_ads`, `meta_ad_creatives`, `meta_ad_insights_snapshots`, and `meta_custom_audiences`
+- **MySQL** — `meta_ad_accounts`, `meta_campaigns`, `meta_ad_sets`, `meta_ad_creatives`, `meta_ads`, `meta_ad_insights_snapshots`, `meta_custom_audiences`, and `meta_ad_sync_runs`
 - **Graph API sync** — `npm run meta-ads -- sync --since YYYY-MM-DD --until YYYY-MM-DD` when `META_AD_ACCOUNT_ID` and `META_ACCESS_TOKEN` (or `FACEBOOK_LONG_LIVED_USER_TOKEN`) are configured
 - **Protected API** — same `SOCIAL_POSTS_API_KEY` auth as social posts (`x-api-key` header)
+- **Ad previews** — after sync, each ad row stores `preview_shareable_link` and `preview_url` (falls back to the shareable link). Open either URL in a browser to see what the ad looks like. The monthly report endpoint also returns these links per ad.
+- **Instagram delivery** — yes, ads can appear on Instagram when the ad set targets it. Insights snapshots break down delivery by `publisher_platform` (`facebook`, `instagram`, etc.) and `platform_position` (feed, story, reels). Ad set rows store configured `publisher_platforms`, `instagram_positions`, and full `targeting` JSON.
 
 **Env vars:**
 
@@ -192,6 +194,9 @@ SELECT
   SUM(impressions) AS impressions,
   SUM(reach) AS reach,
   SUM(clicks) AS clicks,
+  SUM(link_clicks) AS link_clicks,
+  SUM(leads) AS leads,
+  SUM(landing_page_views) AS landing_page_views,
   ROUND(SUM(spend), 2) AS spend
 FROM meta_ad_insights_snapshots
 WHERE date_start >= '2026-07-01'
@@ -218,10 +223,12 @@ SELECT
   a.name,
   a.status,
   a.preview_shareable_link,
+  a.preview_url,
   a.meta_campaign_id,
   s.publisher_platforms,
   s.instagram_positions,
-  s.facebook_positions
+  s.facebook_positions,
+  s.targeting
 FROM meta_ads a
 LEFT JOIN meta_ad_sets s ON s.meta_ad_set_id = a.meta_ad_set_id
 WHERE a.status = 'ACTIVE'
@@ -258,6 +265,24 @@ npm run meta-ads -- sync-insights --since 2026-07-01 --until 2026-07-31
 
 # List stored insights filtered to Instagram
 npm run meta-ads -- list-insights --start 2026-07-01 --end 2026-08-01 --platform instagram
+
+# Monthly report bundle (summary, platform split, campaigns, ads with previews)
+npm run meta-ads -- list-report --start 2026-07-01 --end 2026-08-01
+
+# Recent sync audit trail
+npm run meta-ads -- list-sync-runs --limit 10
+```
+
+**API examples:**
+
+```bash
+# Monthly report (same shape as list-report CLI)
+curl -H "x-api-key: $SOCIAL_POSTS_API_KEY" \
+  "https://genesislearningacademyofkennesaw.com/api/meta-ads/report?start=2026-07-01&end=2026-08-01"
+
+# Recent sync runs
+curl -H "x-api-key: $SOCIAL_POSTS_API_KEY" \
+  "https://genesislearningacademyofkennesaw.com/api/meta-ads/sync-runs?limit=10"
 ```
 
 **What to include in the report:**
@@ -268,7 +293,7 @@ npm run meta-ads -- list-insights --start 2026-07-01 --end 2026-08-01 --platform
 - Active campaign names/objectives and notable ad preview links
 - Custom audience sizes if retargeting/prospecting audiences changed
 
-**Notes:** Insights snapshots store daily rows with `publisher_platform` and `platform_position` breakdowns so monthly reports can answer placement questions without re-querying Meta. Ad set rows also store configured `publisher_platforms` and position targeting for context when an ad ran across multiple surfaces.
+**Notes:** Insights snapshots store daily rows with `publisher_platform` and `platform_position` breakdowns so monthly reports can answer placement questions without re-querying Meta. Parsed action columns (`link_clicks`, `landing_page_views`, `leads`, `post_engagements`) are populated during sync from the raw `actions` JSON. Ad set rows store configured `publisher_platforms`, position targeting, and full `targeting` JSON for report context. Each sync writes an audit row to `meta_ad_sync_runs`.
 
 ## Suggested monthly checklist
 

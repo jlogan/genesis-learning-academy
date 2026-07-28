@@ -11,6 +11,8 @@ import {
   listMetaAds,
   listMetaAdInsights,
   listMetaCustomAudiences,
+  getMetaAdsReport,
+  listMetaAdSyncRuns,
 } from '../server.js';
 
 function usage() {
@@ -23,6 +25,8 @@ function usage() {
   node scripts/meta-ads.mjs list-campaigns [--start YYYY-MM-DD] [--end YYYY-MM-DD]
   node scripts/meta-ads.mjs list-ads [--campaign-id ID] [--ad-set-id ID] [--status ACTIVE]
   node scripts/meta-ads.mjs list-insights --start YYYY-MM-DD --end YYYY-MM-DD [--platform facebook|instagram]
+  node scripts/meta-ads.mjs list-report --start YYYY-MM-DD --end YYYY-MM-DD
+  node scripts/meta-ads.mjs list-sync-runs [--limit 20]
   node scripts/meta-ads.mjs list-audiences
 
 Requires META_AD_ACCOUNT_ID and META_ACCESS_TOKEN (or FACEBOOK_LONG_LIVED_USER_TOKEN) for sync commands.
@@ -63,6 +67,8 @@ async function main() {
     'list-campaigns',
     'list-ads',
     'list-insights',
+    'list-report',
+    'list-sync-runs',
     'list-audiences',
   ];
   if (!commands.includes(args.command)) {
@@ -140,6 +146,26 @@ async function main() {
       insightLevel: args.level || 'ad',
     });
     console.log(JSON.stringify({ success: true, count: insights.length, insights }, null, 2));
+    return;
+  }
+
+  if (args.command === 'list-report') {
+    const startDate = args.start || args.startDate || args.since;
+    const endDate = args.end || args.endDate || args.until;
+    if (!startDate || !endDate) throw new Error('--start and --end are required for list-report');
+    const report = await getMetaAdsReport({
+      startDate,
+      endDate,
+      metaAccountId: args.accountId || args.metaAccountId || null,
+      insightLevel: args.level || 'ad',
+    });
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
+
+  if (args.command === 'list-sync-runs') {
+    const syncRuns = await listMetaAdSyncRuns({ limit: args.limit || 20 });
+    console.log(JSON.stringify({ success: true, count: syncRuns.length, syncRuns }, null, 2));
     return;
   }
 

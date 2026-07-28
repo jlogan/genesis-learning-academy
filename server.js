@@ -19,6 +19,8 @@ import {
   listMetaAds,
   listMetaAdInsights,
   listMetaCustomAudiences,
+  getMetaAdsReport,
+  listMetaAdSyncRuns,
 } from './lib/meta-ads.mjs';
 
 dotenv.config();
@@ -2540,6 +2542,33 @@ app.get('/api/meta-ads/audiences', async (req, res) => {
   }
 });
 
+app.get('/api/meta-ads/report', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const report = await getMetaAdsReport({
+      metaAccountId: req.query.metaAccountId || req.query.accountId || null,
+      startDate: req.query.startDate || req.query.start || req.query.since || null,
+      endDate: req.query.endDate || req.query.end || req.query.until || null,
+      insightLevel: req.query.insightLevel || req.query.level || 'ad',
+    });
+    return res.json(report);
+  } catch (error) {
+    console.error('Meta ads report error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to build Meta ads report', details: error.message });
+  }
+});
+
+app.get('/api/meta-ads/sync-runs', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listMetaAdSyncRuns({ limit: req.query.limit || 20 });
+    return res.json({ success: true, syncRuns: rows });
+  } catch (error) {
+    console.error('Meta ad sync runs list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list Meta ad sync runs', details: error.message });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   if (!dbConfig) {
@@ -2590,6 +2619,8 @@ export {
   listMetaAds,
   listMetaAdInsights,
   listMetaCustomAudiences,
+  getMetaAdsReport,
+  listMetaAdSyncRuns,
 };
 
 const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
