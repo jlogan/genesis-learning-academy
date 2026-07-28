@@ -166,6 +166,110 @@ GROUP BY status;
 
 **Notes:** Brobot should create a draft row when generating post copy/media and update it to `published` when Marie confirms publication. Include Facebook post permalinks whenever Marie can provide them. Tie spikes in site traffic (GA4) to Facebook posts when possible. Messenger and comment inquiries are leads even when they never hit the website form. See [`FACEBOOK_POST_WORKFLOW.md`](./FACEBOOK_POST_WORKFLOW.md).
 
+## 6. Meta / Facebook Ads (paid)
+
+**Where:**
+
+- **MySQL** — `meta_ad_accounts`, `meta_campaigns`, `meta_ad_sets`, `meta_ads`, `meta_ad_creatives`, `meta_ad_insights_snapshots`, and `meta_custom_audiences`
+- **Graph API sync** — `npm run meta-ads -- sync --since YYYY-MM-DD --until YYYY-MM-DD` when `META_AD_ACCOUNT_ID` and `META_ACCESS_TOKEN` (or `FACEBOOK_LONG_LIVED_USER_TOKEN`) are configured
+- **Protected API** — same `SOCIAL_POSTS_API_KEY` auth as social posts (`x-api-key` header)
+
+**Env vars:**
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `META_AD_ACCOUNT_ID` | Yes (sync) | Ad account ID, with or without `act_` prefix |
+| `META_ACCESS_TOKEN` | Yes (sync) | Marketing API token with `ads_read` |
+| `FACEBOOK_LONG_LIVED_USER_TOKEN` | Fallback | Used when `META_ACCESS_TOKEN` is unset |
+| `SOCIAL_POSTS_API_KEY` | Yes (API) | Protects `/api/meta-ads/*` endpoints |
+
+**What to pull:**
+
+```sql
+-- Monthly spend and delivery by publisher platform (Facebook vs Instagram)
+SELECT
+  publisher_platform,
+  SUM(impressions) AS impressions,
+  SUM(reach) AS reach,
+  SUM(clicks) AS clicks,
+  ROUND(SUM(spend), 2) AS spend
+FROM meta_ad_insights_snapshots
+WHERE date_start >= '2026-07-01'
+  AND date_end < '2026-08-01'
+  AND insight_level = 'ad'
+GROUP BY publisher_platform
+ORDER BY spend DESC;
+
+-- Placement breakdown (feed, story, reels, etc.)
+SELECT
+  publisher_platform,
+  platform_position,
+  SUM(impressions) AS impressions,
+  SUM(clicks) AS clicks,
+  ROUND(SUM(spend), 2) AS spend
+FROM meta_ad_insights_snapshots
+WHERE date_start >= '2026-07-01'
+  AND date_end < '2026-08-01'
+GROUP BY publisher_platform, platform_position
+ORDER BY spend DESC;
+
+-- Active ads with preview links for the report appendix
+SELECT
+  a.name,
+  a.status,
+  a.preview_shareable_link,
+  a.meta_campaign_id,
+  s.publisher_platforms,
+  s.instagram_positions,
+  s.facebook_positions
+FROM meta_ads a
+LEFT JOIN meta_ad_sets s ON s.meta_ad_set_id = a.meta_ad_set_id
+WHERE a.status = 'ACTIVE'
+ORDER BY a.name;
+
+-- Campaign summary for the month
+SELECT
+  c.name,
+  c.objective,
+  c.status,
+  ROUND(SUM(i.spend), 2) AS spend,
+  SUM(i.impressions) AS impressions,
+  SUM(i.clicks) AS clicks
+FROM meta_campaigns c
+LEFT JOIN meta_ad_insights_snapshots i
+  ON i.meta_campaign_id = c.meta_campaign_id
+ AND i.date_start >= '2026-07-01'
+ AND i.date_end < '2026-08-01'
+GROUP BY c.meta_campaign_id, c.name, c.objective, c.status
+ORDER BY spend DESC;
+```
+
+**CLI examples:**
+
+```bash
+# Full sync: structure + audiences + insights for July
+npm run meta-ads -- sync --since 2026-07-01 --until 2026-07-31
+
+# Structure only (campaigns, ad sets, ads, creatives)
+npm run meta-ads -- sync-structure
+
+# Insights only with platform/placement breakdowns
+npm run meta-ads -- sync-insights --since 2026-07-01 --until 2026-07-31
+
+# List stored insights filtered to Instagram
+npm run meta-ads -- list-insights --start 2026-07-01 --end 2026-08-01 --platform instagram
+```
+
+**What to include in the report:**
+
+- Total ad spend, impressions, reach, and clicks for the month
+- Facebook vs Instagram (and other publisher platforms) split
+- Top placements (feed, story, reels, etc.)
+- Active campaign names/objectives and notable ad preview links
+- Custom audience sizes if retargeting/prospecting audiences changed
+
+**Notes:** Insights snapshots store daily rows with `publisher_platform` and `platform_position` breakdowns so monthly reports can answer placement questions without re-querying Meta. Ad set rows also store configured `publisher_platforms` and position targeting for context when an ad ran across multiple surfaces.
+
 ## Suggested monthly checklist
 
 1. Export or screenshot GA4 traffic + `contact_form_submit` + `enrollment_form_submit` for the month.
@@ -173,7 +277,8 @@ GROUP BY status;
 3. Summarize Twilio inbound calls (total, answered, missed).
 4. Summarize Twilio inbound SMS (total, unique senders).
 5. Summarize Facebook reach, engagement, and notable posts or messages.
-6. Record totals in a single row: site sessions, contact leads, enrollment leads, phone calls, inbound SMS, Facebook reach.
+6. Sync Meta Ads (`npm run meta-ads -- sync --since … --until …`) and summarize paid spend, Facebook vs Instagram delivery, and top campaigns.
+7. Record totals in a single row: site sessions, contact leads, enrollment leads, phone calls, inbound SMS, Facebook reach, ad spend.
 
 ## Related docs
 

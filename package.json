@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:enrollment-pdf": "node scripts/preview-enrollment-pdf.mjs",
-    "social-posts": "node scripts/social-posts.mjs"
+    "social-posts": "node scripts/social-posts.mjs",
+    "meta-ads": "node scripts/meta-ads.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

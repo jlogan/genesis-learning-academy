@@ -81,6 +81,17 @@ DB_PORT=3306
 DB_NAME=genesisleads
 DB_USER=genesisleads
 DB_PASSWORD=your-generated-password
+
+# Facebook page posts (organic)
+FACEBOOK_PAGE_ID=your-page-id
+FACEBOOK_PAGE_ACCESS_TOKEN=your-page-token
+SOCIAL_POSTS_API_KEY=your-random-api-key
+
+# Meta Ads reporting (paid)
+META_AD_ACCOUNT_ID=act_your_ad_account_id
+META_ACCESS_TOKEN=your-marketing-api-token
+# Optional fallback if META_ACCESS_TOKEN is unset:
+# FACEBOOK_LONG_LIVED_USER_TOKEN=your-long-lived-user-token
 ```
 
 `STAFF_EMAIL` is optional; it defaults to `jay@brogrammers.agency` when unset. `CLIENT_INBOX_EMAIL` is optional; it defaults to `genesislearningacademykennesaw@gmail.com` and is the visible recipient on new web inquiry notifications; `STAFF_EMAIL` is BCC'd for confirmation. When `DB_*` variables are present, contact, enrollment, Twilio call, and inbound SMS records are saved to MySQL before notifications/reporting events are finalized. `/api/health` returns `database: "connected"` only after a successful database ping.

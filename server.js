@@ -7,6 +7,19 @@ import mysql from 'mysql2/promise';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import {
+  configureMetaAdsDb,
+  ensureMetaAdsTables,
+  syncMetaAds,
+  syncMetaAdAccountStructure,
+  syncMetaAdInsights,
+  syncMetaCustomAudiences,
+  listMetaAdAccounts,
+  listMetaCampaigns,
+  listMetaAds,
+  listMetaAdInsights,
+  listMetaCustomAudiences,
+} from './lib/meta-ads.mjs';
 
 dotenv.config();
 
@@ -135,6 +148,8 @@ function getDbPool() {
   if (!dbPool) dbPool = mysql.createPool(dbConfig);
   return dbPool;
 }
+
+configureMetaAdsDb(getDbPool);
 
 function getRequestMeta(req) {
   const forwardedFor = String(req.headers['x-forwarded-for'] || '');
@@ -376,6 +391,7 @@ async function ensureLeadTables() {
   await ensureInboundCallAiColumns(pool);
   await ensureInboundCallNotificationColumns(pool);
   await ensureSocialPostFacebookColumns(pool);
+  await ensureMetaAdsTables();
 }
 
 async function ensureInboundCallAiColumns(pool) {
@@ -2395,6 +2411,135 @@ app.get('/api/social-posts', async (req, res) => {
   }
 });
 
+// ─── Meta Ads Reporting Endpoints ─────────────────────────────────────────────
+
+app.post('/api/meta-ads/sync', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const result = await syncMetaAds({
+      since: req.body?.since || req.query.since || null,
+      until: req.body?.until || req.query.until || null,
+      syncAudiences: req.body?.syncAudiences !== false,
+      insightLevel: req.body?.insightLevel || req.query.insightLevel || 'ad',
+      includeBreakdowns: req.body?.includeBreakdowns !== false,
+    });
+    return res.json(result);
+  } catch (error) {
+    console.error('Meta Ads sync error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to sync Meta Ads data', details: error.message });
+  }
+});
+
+app.post('/api/meta-ads/sync-structure', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const result = await syncMetaAdAccountStructure();
+    return res.json(result);
+  } catch (error) {
+    console.error('Meta Ads structure sync error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to sync Meta Ads structure', details: error.message });
+  }
+});
+
+app.post('/api/meta-ads/sync-insights', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const result = await syncMetaAdInsights({
+      since: req.body?.since || req.query.since,
+      until: req.body?.until || req.query.until,
+      level: req.body?.level || req.query.level || 'ad',
+      includeBreakdowns: req.body?.includeBreakdowns !== false,
+    });
+    return res.json(result);
+  } catch (error) {
+    console.error('Meta Ads insights sync error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to sync Meta Ads insights', details: error.message });
+  }
+});
+
+app.post('/api/meta-ads/sync-audiences', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const result = await syncMetaCustomAudiences();
+    return res.json(result);
+  } catch (error) {
+    console.error('Meta custom audiences sync error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to sync Meta custom audiences', details: error.message });
+  }
+});
+
+app.get('/api/meta-ads/accounts', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listMetaAdAccounts();
+    return res.json({ success: true, accounts: rows });
+  } catch (error) {
+    console.error('Meta ad accounts list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list Meta ad accounts', details: error.message });
+  }
+});
+
+app.get('/api/meta-ads/campaigns', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listMetaCampaigns({
+      metaAccountId: req.query.metaAccountId || req.query.accountId || null,
+      startDate: req.query.startDate || req.query.start || null,
+      endDate: req.query.endDate || req.query.end || null,
+    });
+    return res.json({ success: true, campaigns: rows });
+  } catch (error) {
+    console.error('Meta campaigns list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list Meta campaigns', details: error.message });
+  }
+});
+
+app.get('/api/meta-ads/ads', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listMetaAds({
+      metaAccountId: req.query.metaAccountId || req.query.accountId || null,
+      metaCampaignId: req.query.metaCampaignId || req.query.campaignId || null,
+      metaAdSetId: req.query.metaAdSetId || req.query.adSetId || null,
+      status: req.query.status || null,
+    });
+    return res.json({ success: true, ads: rows });
+  } catch (error) {
+    console.error('Meta ads list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list Meta ads', details: error.message });
+  }
+});
+
+app.get('/api/meta-ads/insights', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listMetaAdInsights({
+      metaAccountId: req.query.metaAccountId || req.query.accountId || null,
+      startDate: req.query.startDate || req.query.start || req.query.since || null,
+      endDate: req.query.endDate || req.query.end || req.query.until || null,
+      publisherPlatform: req.query.publisherPlatform || req.query.platform || null,
+      insightLevel: req.query.insightLevel || req.query.level || 'ad',
+    });
+    return res.json({ success: true, insights: rows });
+  } catch (error) {
+    console.error('Meta ad insights list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list Meta ad insights', details: error.message });
+  }
+});
+
+app.get('/api/meta-ads/audiences', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listMetaCustomAudiences({
+      metaAccountId: req.query.metaAccountId || req.query.accountId || null,
+    });
+    return res.json({ success: true, audiences: rows });
+  } catch (error) {
+    console.error('Meta custom audiences list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list Meta custom audiences', details: error.message });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   if (!dbConfig) {
@@ -2436,6 +2581,15 @@ export {
   updateSocialPost,
   listSocialPosts,
   syncFacebookPagePosts,
+  syncMetaAds,
+  syncMetaAdAccountStructure,
+  syncMetaAdInsights,
+  syncMetaCustomAudiences,
+  listMetaAdAccounts,
+  listMetaCampaigns,
+  listMetaAds,
+  listMetaAdInsights,
+  listMetaCustomAudiences,
 };
 
 const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
