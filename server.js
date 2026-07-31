@@ -216,7 +216,7 @@ function normalizeCallerForBlocklist(value) {
   return raw.replace(/\D/g, '');
 }
 
-function getBlockedCallers() {
+function getEnvBlockedCallers() {
   return new Set(
     String(process.env.TWILIO_BLOCKED_CALLERS || '')
       .split(',')
@@ -225,10 +225,28 @@ function getBlockedCallers() {
   );
 }
 
-function isBlockedCaller(value) {
-  const blockedCallers = getBlockedCallers();
+function isEnvBlockedCaller(value) {
+  const blockedCallers = getEnvBlockedCallers();
   if (!blockedCallers.size) return false;
   return blockedCallers.has(normalizeCallerForBlocklist(value));
+}
+
+async function isBlockedCaller(value) {
+  const normalized = normalizeCallerForBlocklist(value);
+  if (!normalized) return false;
+  if (isEnvBlockedCaller(value)) return true;
+
+  const pool = getDbPool();
+  if (!pool) return false;
+  const [rows] = await pool.execute(
+    `SELECT id FROM caller_blocklist
+     WHERE phone_normalized = :phoneNormalized
+       AND active = 1
+       AND (expires_at IS NULL OR expires_at > UTC_TIMESTAMP())
+     LIMIT 1`,
+    { phoneNormalized: normalized }
+  );
+  return Boolean(rows.length);
 }
 
 function isCallScreeningEnabled() {
@@ -366,6 +384,9 @@ async function ensureLeadTables() {
       recording_sid VARCHAR(64) NULL,
       recording_duration_seconds INT UNSIGNED NULL,
       answered TINYINT(1) NULL,
+      disposition VARCHAR(50) NULL,
+      blocked_at_gate TINYINT(1) NOT NULL DEFAULT 0,
+      screening_result VARCHAR(50) NULL,
       ai_assumed_type VARCHAR(50) NULL,
       ai_caller_label VARCHAR(255) NULL,
       ai_summary TEXT NULL,
@@ -382,8 +403,32 @@ async function ensureLeadTables() {
       INDEX idx_inbound_calls_created_at (created_at),
       INDEX idx_inbound_calls_from_number (from_number),
       INDEX idx_inbound_calls_answered (answered),
+      INDEX idx_inbound_calls_disposition (disposition),
+      INDEX idx_inbound_calls_blocked_at_gate (blocked_at_gate),
       INDEX idx_inbound_calls_ai_assumed_type (ai_assumed_type),
       INDEX idx_inbound_calls_ai_processed_at (ai_processed_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS caller_blocklist (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      phone_normalized VARCHAR(32) NOT NULL,
+      phone_display VARCHAR(32) NULL,
+      reason VARCHAR(50) NOT NULL,
+      source VARCHAR(50) NOT NULL,
+      source_call_id BIGINT UNSIGNED NULL,
+      confidence DECIMAL(4,3) NULL,
+      notes TEXT NULL,
+      expires_at DATETIME NULL,
+      active TINYINT(1) NOT NULL DEFAULT 1,
+      UNIQUE KEY uk_caller_blocklist_phone (phone_normalized),
+      INDEX idx_caller_blocklist_active_reason (active, reason),
+      INDEX idx_caller_blocklist_created_at (created_at),
+      CONSTRAINT fk_caller_blocklist_source_call
+        FOREIGN KEY (source_call_id) REFERENCES inbound_calls(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
@@ -440,7 +485,9 @@ async function ensureLeadTables() {
   `);
 
   await ensureInboundCallAiColumns(pool);
+  await ensureInboundCallDispositionColumns(pool);
   await ensureInboundCallNotificationColumns(pool);
+  await ensureCallerBlocklistTable(pool);
   await ensureSocialPostFacebookColumns(pool);
   await ensureMetaAdsTables();
 }
@@ -474,6 +521,53 @@ async function ensureInboundCallAiColumns(pool) {
   if (!processedIndex.length) {
     await pool.query(`ALTER TABLE inbound_calls ADD INDEX idx_inbound_calls_ai_processed_at (ai_processed_at)`);
   }
+}
+
+async function ensureInboundCallDispositionColumns(pool) {
+  const desiredColumns = [
+    ['disposition', 'ADD COLUMN disposition VARCHAR(50) NULL AFTER answered'],
+    ['blocked_at_gate', 'ADD COLUMN blocked_at_gate TINYINT(1) NOT NULL DEFAULT 0 AFTER disposition'],
+    ['screening_result', 'ADD COLUMN screening_result VARCHAR(50) NULL AFTER blocked_at_gate'],
+  ];
+
+  for (const [columnName, alterSql] of desiredColumns) {
+    const [cols] = await pool.query(`SHOW COLUMNS FROM inbound_calls LIKE ?`, [columnName]);
+    if (!cols.length) {
+      await pool.query(`ALTER TABLE inbound_calls ${alterSql}`);
+    }
+  }
+
+  const [dispositionIndex] = await pool.query(`SHOW INDEX FROM inbound_calls WHERE Key_name = 'idx_inbound_calls_disposition'`);
+  if (!dispositionIndex.length) {
+    await pool.query(`ALTER TABLE inbound_calls ADD INDEX idx_inbound_calls_disposition (disposition)`);
+  }
+
+  const [blockedIndex] = await pool.query(`SHOW INDEX FROM inbound_calls WHERE Key_name = 'idx_inbound_calls_blocked_at_gate'`);
+  if (!blockedIndex.length) {
+    await pool.query(`ALTER TABLE inbound_calls ADD INDEX idx_inbound_calls_blocked_at_gate (blocked_at_gate)`);
+  }
+}
+
+async function ensureCallerBlocklistTable(pool) {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS caller_blocklist (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      phone_normalized VARCHAR(32) NOT NULL,
+      phone_display VARCHAR(32) NULL,
+      reason VARCHAR(50) NOT NULL,
+      source VARCHAR(50) NOT NULL,
+      source_call_id BIGINT UNSIGNED NULL,
+      confidence DECIMAL(4,3) NULL,
+      notes TEXT NULL,
+      expires_at DATETIME NULL,
+      active TINYINT(1) NOT NULL DEFAULT 1,
+      UNIQUE KEY uk_caller_blocklist_phone (phone_normalized),
+      INDEX idx_caller_blocklist_active_reason (active, reason),
+      INDEX idx_caller_blocklist_created_at (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
 }
 
 async function ensureSocialPostFacebookColumns(pool) {
@@ -525,6 +619,9 @@ async function upsertInboundCall({
   recordingSid,
   recordingDurationSeconds,
   answered,
+  disposition,
+  blockedAtGate,
+  screeningResult,
   rawPayload,
 }) {
   const pool = getDbPool();
@@ -533,10 +630,12 @@ async function upsertInboundCall({
   await pool.execute(
     `INSERT INTO inbound_calls
       (twilio_call_sid, parent_call_sid, from_number, to_number, forwarded_to, call_status, dial_call_status,
-       duration_seconds, recording_url, recording_sid, recording_duration_seconds, answered, raw_payload)
+       duration_seconds, recording_url, recording_sid, recording_duration_seconds, answered,
+       disposition, blocked_at_gate, screening_result, raw_payload)
      VALUES
       (:twilioCallSid, :parentCallSid, :fromNumber, :toNumber, :forwardedTo, :callStatus, :dialCallStatus,
-       :durationSeconds, :recordingUrl, :recordingSid, :recordingDurationSeconds, :answered, CAST(:rawPayload AS JSON))
+       :durationSeconds, :recordingUrl, :recordingSid, :recordingDurationSeconds, :answered,
+       :disposition, COALESCE(:blockedAtGate, 0), :screeningResult, CAST(:rawPayload AS JSON))
      ON DUPLICATE KEY UPDATE
        parent_call_sid = COALESCE(VALUES(parent_call_sid), parent_call_sid),
        from_number = COALESCE(VALUES(from_number), from_number),
@@ -549,6 +648,9 @@ async function upsertInboundCall({
        recording_sid = COALESCE(VALUES(recording_sid), recording_sid),
        recording_duration_seconds = COALESCE(VALUES(recording_duration_seconds), recording_duration_seconds),
        answered = COALESCE(VALUES(answered), answered),
+       disposition = COALESCE(VALUES(disposition), disposition),
+       blocked_at_gate = IF(:blockedAtGate IS NULL, blocked_at_gate, VALUES(blocked_at_gate)),
+       screening_result = COALESCE(VALUES(screening_result), screening_result),
        raw_payload = COALESCE(VALUES(raw_payload), raw_payload)`,
     {
       twilioCallSid,
@@ -563,6 +665,9 @@ async function upsertInboundCall({
       recordingSid: recordingSid || null,
       recordingDurationSeconds: recordingDurationSeconds ?? null,
       answered: answered ?? null,
+      disposition: disposition || null,
+      blockedAtGate: blockedAtGate == null ? null : (blockedAtGate ? 1 : 0),
+      screeningResult: screeningResult || null,
       rawPayload: rawPayload ? JSON.stringify(rawPayload) : null,
     }
   );
@@ -652,6 +757,215 @@ async function getInboundCallById(callId) {
   return rows[0] || null;
 }
 
+async function getInboundCallIdBySid(twilioCallSid) {
+  const pool = getDbPool();
+  if (!pool || !twilioCallSid) return null;
+  const [rows] = await pool.execute(
+    `SELECT id FROM inbound_calls WHERE twilio_call_sid = :twilioCallSid LIMIT 1`,
+    { twilioCallSid }
+  );
+  return rows[0]?.id || null;
+}
+
+async function updateInboundCallAiResult(callId, { assumedType, callerLabel, summary, confidence, transcript, model, error, rawJson }) {
+  const pool = getDbPool();
+  if (!pool || !callId) return;
+  await pool.execute(
+    `UPDATE inbound_calls
+     SET ai_assumed_type = :assumedType,
+         ai_caller_label = :callerLabel,
+         ai_summary = :summary,
+         ai_confidence = :confidence,
+         ai_transcript = :transcript,
+         ai_model = :model,
+         ai_error = :error,
+         ai_raw_json = CAST(:rawJson AS JSON),
+         ai_processed_at = UTC_TIMESTAMP()
+     WHERE id = :callId`,
+    {
+      callId,
+      assumedType: assumedType || null,
+      callerLabel: callerLabel || null,
+      summary: summary || null,
+      confidence: confidence ?? null,
+      transcript: transcript || null,
+      model: model || null,
+      error: error || null,
+      rawJson: JSON.stringify(rawJson || {}),
+    }
+  );
+}
+
+async function updateInboundCallDisposition(callId, { disposition, blockedAtGate, screeningResult }) {
+  const pool = getDbPool();
+  if (!pool || !callId) return;
+  await pool.execute(
+    `UPDATE inbound_calls
+     SET disposition = COALESCE(:disposition, disposition),
+         blocked_at_gate = IF(:blockedAtGate IS NULL, blocked_at_gate, :blockedAtGate),
+         screening_result = COALESCE(:screeningResult, screening_result)
+     WHERE id = :callId`,
+    {
+      callId,
+      disposition: disposition || null,
+      blockedAtGate: blockedAtGate == null ? null : (blockedAtGate ? 1 : 0),
+      screeningResult: screeningResult || null,
+    }
+  );
+}
+
+async function upsertCallerBlocklist({ phone, reason = 'spam', source = 'manual', sourceCallId, confidence, notes, expiresAt }) {
+  const pool = getDbPool();
+  const phoneNormalized = normalizeCallerForBlocklist(phone);
+  if (!pool || !phoneNormalized) return null;
+
+  await pool.execute(
+    `INSERT INTO caller_blocklist
+       (phone_normalized, phone_display, reason, source, source_call_id, confidence, notes, expires_at, active)
+     VALUES
+       (:phoneNormalized, :phoneDisplay, :reason, :source, :sourceCallId, :confidence, :notes, :expiresAt, 1)
+     ON DUPLICATE KEY UPDATE
+       phone_display = COALESCE(VALUES(phone_display), phone_display),
+       reason = VALUES(reason),
+       source = VALUES(source),
+       source_call_id = COALESCE(VALUES(source_call_id), source_call_id),
+       confidence = COALESCE(VALUES(confidence), confidence),
+       notes = COALESCE(VALUES(notes), notes),
+       expires_at = VALUES(expires_at),
+       active = 1`,
+    {
+      phoneNormalized,
+      phoneDisplay: phone || null,
+      reason,
+      source,
+      sourceCallId: sourceCallId || null,
+      confidence: confidence ?? null,
+      notes: notes || null,
+      expiresAt: expiresAt || null,
+    }
+  );
+
+  const [rows] = await pool.execute(
+    `SELECT id FROM caller_blocklist WHERE phone_normalized = :phoneNormalized LIMIT 1`,
+    { phoneNormalized }
+  );
+  return rows[0]?.id || null;
+}
+
+async function maybeAutoBlockCallerFromAi(callId) {
+  const call = await getInboundCallById(callId);
+  if (!call?.from_number || !call.ai_assumed_type) return false;
+  if (String(process.env.TWILIO_AUTO_BLOCK_ENABLED || 'true').trim().toLowerCase() === 'false') return false;
+
+  const type = String(call.ai_assumed_type || '').toLowerCase();
+  const confidence = Number(call.ai_confidence || 0);
+  const threshold = Number(process.env.TWILIO_AUTO_BLOCK_CONFIDENCE || 0.85);
+  const autoBlockTypes = new Set(['telemarketer', 'robocall', 'bot', 'spam']);
+  if (!autoBlockTypes.has(type) || confidence < threshold) return false;
+
+  await upsertCallerBlocklist({
+    phone: call.from_number,
+    reason: type === 'robocall' || type === 'bot' ? 'robocall' : 'telemarketer',
+    source: 'auto_ai',
+    sourceCallId: call.id,
+    confidence,
+    notes: call.ai_summary || `Auto-blocked from AI classification: ${type}`,
+  });
+  await updateInboundCallDisposition(call.id, { disposition: 'spam_post_call' });
+  return true;
+}
+
+async function fetchTwilioRecordingAudio(recordingUrl) {
+  const accountSid = String(process.env.TWILIO_ACCOUNT_SID || '').trim();
+  const authToken = String(process.env.TWILIO_AUTH_TOKEN || '').trim();
+  if (!recordingUrl || !accountSid || !authToken) return null;
+
+  const response = await fetch(`${recordingUrl}.mp3`, {
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+    },
+  });
+  if (!response.ok) throw new Error(`Twilio recording download failed: ${response.status}`);
+  return Buffer.from(await response.arrayBuffer());
+}
+
+async function transcribeInboundCallRecording(audioBuffer) {
+  const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
+  if (!apiKey || !audioBuffer?.length) return null;
+
+  const form = new FormData();
+  form.set('model', process.env.OPENAI_TRANSCRIPTION_MODEL || 'gpt-4o-mini-transcribe');
+  form.set('file', new Blob([audioBuffer], { type: 'audio/mpeg' }), 'call.mp3');
+  form.set('response_format', 'json');
+
+  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(`OpenAI transcription failed: ${response.status} ${payload.error?.message || ''}`);
+  return payload.text || '';
+}
+
+async function classifyInboundCallTranscript({ transcript, call }) {
+  const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
+  if (!apiKey || !transcript) return null;
+  const model = process.env.OPENAI_CALL_CLASSIFICATION_MODEL || 'gpt-4o-mini';
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      temperature: 0,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: 'Classify daycare inbound calls. Return JSON only with assumedType, callerLabel, summary, confidence. assumedType must be one of parent_inquiry, existing_parent, telemarketer, robocall, bot, wrong_number, vendor, unknown. Mark sales solicitations, automated recordings, appointment setters, SEO/marketing/loan/insurance pitches as telemarketer or robocall. Do not include sensitive child details.' },
+        { role: 'user', content: JSON.stringify({ durationSeconds: call.duration_seconds || 0, answered: call.answered === 1, transcript }) },
+      ],
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(`OpenAI classification failed: ${response.status} ${payload.error?.message || ''}`);
+  const content = payload.choices?.[0]?.message?.content || '{}';
+  return { model, payload: JSON.parse(content) };
+}
+
+async function maybeProcessInboundCallAi(callId) {
+  const call = await getInboundCallById(callId);
+  if (!call || call.ai_processed_at || !call.recording_url) return;
+  if (!String(process.env.OPENAI_API_KEY || '').trim()) return;
+
+  try {
+    const audio = await fetchTwilioRecordingAudio(call.recording_url);
+    const transcript = await transcribeInboundCallRecording(audio);
+    const classification = await classifyInboundCallTranscript({ transcript, call });
+    const result = classification?.payload || {};
+    await updateInboundCallAiResult(call.id, {
+      assumedType: result.assumedType || 'unknown',
+      callerLabel: result.callerLabel || null,
+      summary: result.summary || null,
+      confidence: Number(result.confidence || 0),
+      transcript,
+      model: classification?.model || process.env.OPENAI_CALL_CLASSIFICATION_MODEL || 'gpt-4o-mini',
+      rawJson: result,
+    });
+    await maybeAutoBlockCallerFromAi(call.id);
+  } catch (error) {
+    console.error('Inbound call AI processing failed:', error);
+    await updateInboundCallAiResult(call.id, {
+      assumedType: null,
+      callerLabel: null,
+      summary: null,
+      confidence: null,
+      transcript: call.ai_transcript || null,
+      model: process.env.OPENAI_CALL_CLASSIFICATION_MODEL || 'gpt-4o-mini',
+      error: error.message,
+      rawJson: { error: error.message },
+    });
+  }
+}
+
 async function updateInboundCallNotificationStatus(id, { staffEmailId, status }) {
   const pool = getDbPool();
   if (!pool || !id) return;
@@ -666,6 +980,9 @@ async function updateInboundCallNotificationStatus(id, { staffEmailId, status })
 function isInboundCallReadyForStaffNotification(call, { fromRecordingCallback = false } = {}) {
   if (!call?.dial_call_status) return false;
   if (call.notification_status === 'sent') return false;
+  if (call.blocked_at_gate === 1) return false;
+  if (['blocked', 'screened_out', 'spam_post_call'].includes(call.disposition)) return false;
+  if (['telemarketer', 'robocall', 'bot', 'spam'].includes(String(call.ai_assumed_type || '').toLowerCase())) return false;
   if (call.answered === 1 && !call.recording_url && !fromRecordingCallback) return false;
   return true;
 }
@@ -686,11 +1003,19 @@ async function maybeInsertInboundCallLeadEvent(callId) {
          'dialCallStatus', dial_call_status,
          'durationSeconds', duration_seconds,
          'recordingUrl', recording_url,
-         'recordingSid', recording_sid
+         'recordingSid', recording_sid,
+         'disposition', disposition,
+         'blockedAtGate', blocked_at_gate,
+         'screeningResult', screening_result,
+         'aiAssumedType', ai_assumed_type,
+         'aiConfidence', ai_confidence
        )
      FROM inbound_calls
      WHERE id = :callId
        AND dial_call_status IS NOT NULL
+       AND COALESCE(blocked_at_gate, 0) = 0
+       AND COALESCE(disposition, '') NOT IN ('blocked', 'screened_out', 'spam_post_call')
+       AND COALESCE(ai_assumed_type, '') NOT IN ('telemarketer', 'robocall', 'bot', 'spam')
        AND NOT EXISTS (
          SELECT 1 FROM lead_events
          WHERE event_type = 'inbound_phone_call'
@@ -2007,6 +2332,9 @@ function buildInboundCallStaffEmailPayload(call) {
     { label: 'Call status', valueHtml: escapeHtml(call.call_status || '—') },
     { label: 'Dial status', valueHtml: escapeHtml(call.dial_call_status || '—') },
     { label: 'Duration', valueHtml: escapeHtml(formatDurationSeconds(call.duration_seconds)) },
+    { label: 'Disposition', valueHtml: escapeHtml(call.disposition || 'unclassified') },
+    { label: 'AI caller type', valueHtml: escapeHtml(call.ai_assumed_type || 'not processed') },
+    { label: 'AI summary', valueHtml: escapeHtml(call.ai_summary || '—') },
     { label: 'Recording', valueHtml: recordingCell },
     { label: 'Call SID', valueHtml: escapeHtml(call.twilio_call_sid || '—') },
     { label: 'Parent call SID', valueHtml: escapeHtml(call.parent_call_sid || '—') },
@@ -2067,6 +2395,9 @@ async function trackGa4PhoneCallLead(call) {
       dial_call_status: call.dial_call_status || '',
       duration_seconds: call.duration_seconds || 0,
       has_recording: Boolean(call.recording_url),
+      caller_type: call.ai_assumed_type || 'unclassified',
+      disposition: call.disposition || 'unknown',
+      blocked: call.blocked_at_gate === 1 || ['blocked', 'screened_out', 'spam_post_call'].includes(call.disposition),
     },
   });
 }
@@ -2135,6 +2466,66 @@ async function maybeSendInboundCallStaffNotification(callId, { fromRecordingCall
   }
 }
 
+async function getInboundCallsReport({ startDate, endDate }) {
+  const pool = getDbPool();
+  if (!pool) return { success: false, error: 'Database is not configured.' };
+  const start = startDate || new Date(Date.now() - 30 * 86400 * 1000).toISOString().slice(0, 10);
+  const end = endDate || new Date(Date.now() + 86400 * 1000).toISOString().slice(0, 10);
+
+  const [summaryRows] = await pool.execute(
+    `SELECT COUNT(*) AS total,
+            SUM(answered = 1) AS answered,
+            SUM(answered = 0) AS missed,
+            SUM(blocked_at_gate = 1) AS blockedAtGate,
+            SUM(disposition = 'screened_out') AS screenedOut,
+            SUM(disposition = 'spam_post_call') AS spamPostCall,
+            SUM(COALESCE(duration_seconds, 0)) AS talkSeconds
+     FROM inbound_calls
+     WHERE created_at >= :startDate AND created_at < :endDate`,
+    { startDate: start, endDate: end }
+  );
+  const [byCallerType] = await pool.execute(
+    `SELECT COALESCE(ai_assumed_type, disposition, 'unclassified') AS type, COUNT(*) AS count
+     FROM inbound_calls
+     WHERE created_at >= :startDate AND created_at < :endDate
+     GROUP BY type
+     ORDER BY count DESC`,
+    { startDate: start, endDate: end }
+  );
+  const [blocklistAdds] = await pool.execute(
+    `SELECT reason, source, COUNT(*) AS count
+     FROM caller_blocklist
+     WHERE created_at >= :startDate AND created_at < :endDate
+     GROUP BY reason, source
+     ORDER BY count DESC`,
+    { startDate: start, endDate: end }
+  );
+  const [recentBlocks] = await pool.execute(
+    `SELECT cb.created_at, cb.phone_display, cb.reason, cb.source, cb.confidence, cb.notes, cb.source_call_id,
+            ic.ai_assumed_type, ic.ai_summary
+     FROM caller_blocklist cb
+     LEFT JOIN inbound_calls ic ON ic.id = cb.source_call_id
+     WHERE cb.active = 1
+     ORDER BY cb.created_at DESC
+     LIMIT 25`
+  );
+  return { success: true, startDate: start, endDate: end, summary: summaryRows[0] || {}, byCallerType, blocklistAdds, recentBlocks };
+}
+
+async function listCallerBlocklist({ activeOnly = true } = {}) {
+  const pool = getDbPool();
+  if (!pool) return [];
+  const [rows] = await pool.execute(
+    `SELECT id, created_at, updated_at, phone_display, phone_normalized, reason, source, source_call_id, confidence, notes, expires_at, active
+     FROM caller_blocklist
+     WHERE (:activeOnly = 0 OR active = 1)
+     ORDER BY updated_at DESC
+     LIMIT 200`,
+    { activeOnly: activeOnly ? 1 : 0 }
+  );
+  return rows;
+}
+
 // ─── Twilio Voice Marketing Call Endpoints ───────────────────────────────────
 
 app.post('/api/twilio/voice/inbound', async (req, res) => {
@@ -2161,14 +2552,21 @@ app.post('/api/twilio/voice/inbound', async (req, res) => {
       toNumber: To,
       forwardedTo: forwardTo,
       callStatus: CallStatus || 'ringing',
+      disposition: 'not_screened',
+      screeningResult: isCallScreeningEnabled() ? 'pending' : 'not_screened',
       rawPayload: req.body,
     });
   } catch (dbError) {
     console.error('Failed to save inbound Twilio call; continuing call flow anyway:', dbError);
   }
 
-  if (isBlockedCaller(From)) {
+  if (await isBlockedCaller(From)) {
     console.warn(`Blocked inbound Twilio call from ${From}`);
+    await updateInboundCallDisposition(await getInboundCallIdBySid(CallSid), {
+      disposition: 'blocked',
+      blockedAtGate: true,
+      screeningResult: 'blocked',
+    });
     return twilioXml(res, buildBlockedCallTwiml());
   }
 
@@ -2197,15 +2595,23 @@ app.post('/api/twilio/voice/screen', async (req, res) => {
     return twilioXml(res, buildTwiml('<Hangup/>'));
   }
 
-  if (isBlockedCaller(From)) {
+  const callId = await getInboundCallIdBySid(req.body?.CallSid || req.body?.ParentCallSid);
+  if (await isBlockedCaller(From)) {
     console.warn(`Blocked screened Twilio call from ${From}`);
+    await updateInboundCallDisposition(callId, {
+      disposition: 'blocked',
+      blockedAtGate: true,
+      screeningResult: 'blocked',
+    });
     return twilioXml(res, buildBlockedCallTwiml());
   }
 
   if (String(Digits || '') !== '1') {
+    await updateInboundCallDisposition(callId, { disposition: 'screened_out', screeningResult: 'failed' });
     return twilioXml(res, buildScreeningRejectTwiml());
   }
 
+  await updateInboundCallDisposition(callId, { disposition: 'forwarded', screeningResult: 'passed' });
   return twilioXml(res, buildInboundCallTwiml({ forwardTo, baseUrl: getPublicSiteUrl(req) }));
 });
 
@@ -2236,6 +2642,7 @@ app.post('/api/twilio/voice/status', async (req, res) => {
       recordingUrl: isRecordingCallback ? body.RecordingUrl : null,
       recordingSid: isRecordingCallback ? body.RecordingSid : null,
       recordingDurationSeconds: isRecordingCallback ? recordingDurationSeconds : null,
+      disposition: isRecordingCallback ? null : (answered === 0 ? 'missed' : 'forwarded'),
       rawPayload: body,
     });
 
@@ -2244,6 +2651,7 @@ app.post('/api/twilio/voice/status', async (req, res) => {
       await maybeSendInboundCallStaffNotification(callId);
     } else {
       await maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback: true });
+      void maybeProcessInboundCallAi(callId);
     }
   } catch (dbError) {
     console.error('Failed to save Twilio call status:', dbError);
@@ -2656,6 +3064,69 @@ app.get('/api/meta-ads/sync-runs', async (req, res) => {
   }
 });
 
+app.get('/api/inbound-calls/report', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const report = await getInboundCallsReport({
+      startDate: req.query.startDate || req.query.start || req.query.since || null,
+      endDate: req.query.endDate || req.query.end || req.query.until || null,
+    });
+    return res.json(report);
+  } catch (error) {
+    console.error('Inbound calls report error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to build inbound calls report', details: error.message });
+  }
+});
+
+app.get('/api/caller-blocklist', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const rows = await listCallerBlocklist({ activeOnly: req.query.activeOnly !== 'false' });
+    return res.json({ success: true, blocklist: rows });
+  } catch (error) {
+    console.error('Caller blocklist list error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list caller blocklist', details: error.message });
+  }
+});
+
+app.post('/api/caller-blocklist', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const id = await upsertCallerBlocklist({
+      phone: req.body?.phone,
+      reason: req.body?.reason || 'manual',
+      source: 'manual',
+      notes: req.body?.notes || null,
+      expiresAt: req.body?.expiresAt || null,
+    });
+    return res.json({ success: true, id });
+  } catch (error) {
+    console.error('Caller blocklist save error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to save caller blocklist entry', details: error.message });
+  }
+});
+
+app.post('/api/inbound-calls/:id/reclassify', async (req, res) => {
+  if (!requireSocialPostsApiKey(req, res)) return;
+  try {
+    const callId = Number(req.params.id);
+    await updateInboundCallAiResult(callId, {
+      assumedType: req.body?.assumedType,
+      callerLabel: req.body?.callerLabel || 'Manual review',
+      summary: req.body?.summary || null,
+      confidence: req.body?.confidence ?? 1,
+      transcript: req.body?.transcript || null,
+      model: 'manual',
+      rawJson: { manual: true, ...req.body },
+    });
+    const autoBlocked = req.body?.autoBlock === false ? false : await maybeAutoBlockCallerFromAi(callId);
+    return res.json({ success: true, autoBlocked });
+  } catch (error) {
+    console.error('Inbound call reclassify error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to reclassify inbound call', details: error.message });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   if (!dbConfig) {
@@ -2708,6 +3179,8 @@ export {
   listMetaCustomAudiences,
   getMetaAdsReport,
   listMetaAdSyncRuns,
+  getInboundCallsReport,
+  listCallerBlocklist,
 };
 
 const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
