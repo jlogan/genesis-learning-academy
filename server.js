@@ -209,6 +209,55 @@ function buildInboundCallTwiml({ forwardTo, baseUrl }) {
   </Dial>`);
 }
 
+function normalizeCallerForBlocklist(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^(anonymous|restricted|unknown)$/i.test(raw)) return 'anonymous';
+  return raw.replace(/\D/g, '');
+}
+
+function getBlockedCallers() {
+  return new Set(
+    String(process.env.TWILIO_BLOCKED_CALLERS || '')
+      .split(',')
+      .map((entry) => normalizeCallerForBlocklist(entry))
+      .filter(Boolean)
+  );
+}
+
+function isBlockedCaller(value) {
+  const blockedCallers = getBlockedCallers();
+  if (!blockedCallers.size) return false;
+  return blockedCallers.has(normalizeCallerForBlocklist(value));
+}
+
+function isCallScreeningEnabled() {
+  return String(process.env.TWILIO_CALL_SCREENING_ENABLED || '').trim().toLowerCase() === 'true';
+}
+
+function buildBlockedCallTwiml() {
+  return buildTwiml('<Say voice="alice">Your call cannot be completed.</Say><Hangup/>');
+}
+
+function buildScreeningPromptTwiml({ baseUrl }) {
+  const screenUrl = `${baseUrl}/api/twilio/voice/screen`;
+  return buildTwiml(`
+  <Gather numDigits="1" action="${escapeHtml(screenUrl)}" method="POST" timeout="6">
+    <Say voice="alice">Thanks for calling Genesis Learning Academy. Press 1 to connect to the center.</Say>
+  </Gather>
+  <Say voice="alice">Goodbye.</Say>
+  <Hangup/>`);
+}
+
+function buildScreeningRejectTwiml() {
+  return buildTwiml('<Say voice="alice">Goodbye.</Say><Hangup/>');
+}
+
+function isUnexpectedTwilioNumber(to) {
+  const expectedMarketingNumber = String(process.env.TWILIO_MARKETING_NUMBER || '').trim();
+  return Boolean(expectedMarketingNumber && to !== expectedMarketingNumber);
+}
+
 function twilioXml(res, body) {
   return res.status(200).type('text/xml').send(body);
 }
@@ -2100,8 +2149,7 @@ app.post('/api/twilio/voice/inbound', async (req, res) => {
   }
 
   const { CallSid, From, To, CallStatus } = req.body || {};
-  const expectedMarketingNumber = String(process.env.TWILIO_MARKETING_NUMBER || '').trim();
-  if (expectedMarketingNumber && To !== expectedMarketingNumber) {
+  if (isUnexpectedTwilioNumber(To)) {
     console.warn(`Rejected Twilio call for unexpected number: ${To}`);
     return twilioXml(res, buildTwiml('<Hangup/>'));
   }
@@ -2116,7 +2164,46 @@ app.post('/api/twilio/voice/inbound', async (req, res) => {
       rawPayload: req.body,
     });
   } catch (dbError) {
-    console.error('Failed to save inbound Twilio call; forwarding call anyway:', dbError);
+    console.error('Failed to save inbound Twilio call; continuing call flow anyway:', dbError);
+  }
+
+  if (isBlockedCaller(From)) {
+    console.warn(`Blocked inbound Twilio call from ${From}`);
+    return twilioXml(res, buildBlockedCallTwiml());
+  }
+
+  const baseUrl = getPublicSiteUrl(req);
+  if (isCallScreeningEnabled()) {
+    return twilioXml(res, buildScreeningPromptTwiml({ baseUrl }));
+  }
+
+  return twilioXml(res, buildInboundCallTwiml({ forwardTo, baseUrl }));
+});
+
+app.post('/api/twilio/voice/screen', async (req, res) => {
+  if (!validateTwilioRequest(req)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const forwardTo = String(process.env.TWILIO_FORWARD_TO_NUMBER || '').trim();
+  if (!forwardTo) {
+    console.error('TWILIO_FORWARD_TO_NUMBER is not set; cannot forward screened inbound Twilio call.');
+    return twilioXml(res, buildScreeningRejectTwiml());
+  }
+
+  const { From, To, Digits } = req.body || {};
+  if (isUnexpectedTwilioNumber(To)) {
+    console.warn(`Rejected screened Twilio call for unexpected number: ${To}`);
+    return twilioXml(res, buildTwiml('<Hangup/>'));
+  }
+
+  if (isBlockedCaller(From)) {
+    console.warn(`Blocked screened Twilio call from ${From}`);
+    return twilioXml(res, buildBlockedCallTwiml());
+  }
+
+  if (String(Digits || '') !== '1') {
+    return twilioXml(res, buildScreeningRejectTwiml());
   }
 
   return twilioXml(res, buildInboundCallTwiml({ forwardTo, baseUrl: getPublicSiteUrl(req) }));
