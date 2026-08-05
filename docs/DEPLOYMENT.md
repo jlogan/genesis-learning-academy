@@ -69,6 +69,10 @@ TWILIO_AUTH_TOKEN=your-twilio-auth-token
 TWILIO_FORWARD_TO_NUMBER=+177****4255
 # Optional guard: reject webhooks for any other Twilio number
 TWILIO_MARKETING_NUMBER=+1yourtwilionumber
+# Optional call screening: callers must press 1 before forwarding
+TWILIO_CALL_SCREENING_ENABLED=true
+# Optional custom greeting audio (falls back to Twilio TTS when unset)
+TWILIO_GREETING_AUDIO_URL=https://genesislearningacademyofkennesaw.com/audio/inbound-greeting.mp3
 # New form lead SMS alerts; messages are sent separately to each number.
 LEAD_SMS_NOTIFY_JAY=+140****7102
 LEAD_SMS_NOTIFY_OWNER=+177****5583
@@ -103,6 +107,30 @@ https://genesislearningacademyofkennesaw.com/api/twilio/voice/inbound
 ```
 
 The API returns TwiML that forwards to `TWILIO_FORWARD_TO_NUMBER`, records the bridged call, and posts dial/recording callbacks back to `/api/twilio/voice/status`. `TWILIO_AUTH_TOKEN` is required so the API can reject unsigned/spoofed Twilio requests. `PUBLIC_SITE_URL` must be the public HTTPS origin Twilio can reach for status and recording callbacks.
+
+When `TWILIO_CALL_SCREENING_ENABLED=true`, inbound callers hear a greeting and must press **1** to connect; wrong or missing input plays **Goodbye** and hangs up. The greeting is:
+
+> It's a beautiful day at Genesis. Press 1 to be connected to the center.
+
+Set `TWILIO_GREETING_AUDIO_URL` to a publicly reachable MP3 (HTTPS) to play custom audio inside the `<Gather>`; when unset, Twilio `<Say voice="alice">` speaks that text instead.
+
+### Custom greeting audio (ElevenLabs)
+
+Generate `public/audio/inbound-greeting.mp3` locally (requires ElevenLabs API access; not stored on the server):
+
+```bash
+ELEVENLABS_API_KEY=your_key ELEVENLABS_VOICE_ID=your_voice_id npm run voice:greeting
+```
+
+The script writes to `public/audio/inbound-greeting.mp3` and prints the output path. Commit the MP3 or copy it to the server docroot so nginx serves it at `/audio/inbound-greeting.mp3` after deploy (Vite copies `public/` into `dist/` during `npm run build`).
+
+Then set on the server:
+
+```bash
+TWILIO_GREETING_AUDIO_URL=https://genesislearningacademyofkennesaw.com/audio/inbound-greeting.mp3
+```
+
+Restart `glak-api` after updating `/etc/glak-api.env`. Without `TWILIO_GREETING_AUDIO_URL`, screening still works using Twilio TTS with the same copy.
 
 For inbound SMS on the same Twilio number, configure **Messaging → A message comes in** as a webhook using `HTTP POST` to:
 

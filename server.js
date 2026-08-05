@@ -257,11 +257,18 @@ function buildBlockedCallTwiml() {
   return buildTwiml('<Say voice="alice">Your call cannot be completed.</Say><Hangup/>');
 }
 
+const SCREENING_GREETING_TEXT =
+  "It's a beautiful day at Genesis. Press 1 to be connected to the center.";
+
 function buildScreeningPromptTwiml({ baseUrl }) {
   const screenUrl = `${baseUrl}/api/twilio/voice/screen`;
+  const greetingAudioUrl = String(process.env.TWILIO_GREETING_AUDIO_URL || '').trim();
+  const promptBody = greetingAudioUrl
+    ? `<Play>${escapeHtml(greetingAudioUrl)}</Play>`
+    : `<Say voice="alice">${escapeHtml(SCREENING_GREETING_TEXT)}</Say>`;
   return buildTwiml(`
   <Gather numDigits="1" action="${escapeHtml(screenUrl)}" method="POST" timeout="6">
-    <Say voice="alice">Thanks for calling Genesis Learning Academy. Press 1 to connect to the center.</Say>
+    ${promptBody}
   </Gather>
   <Say voice="alice">Goodbye.</Say>
   <Hangup/>`);

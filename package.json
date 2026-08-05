@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "preview:enrollment-pdf": "node scripts/preview-enrollment-pdf.mjs",
     "social-posts": "node scripts/social-posts.mjs",
-    "meta-ads": "node scripts/meta-ads.mjs"
+    "meta-ads": "node scripts/meta-ads.mjs",
+    "voice:greeting": "node scripts/generate-elevenlabs-greeting.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
