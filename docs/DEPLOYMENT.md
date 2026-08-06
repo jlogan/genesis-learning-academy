@@ -73,6 +73,15 @@ TWILIO_MARKETING_NUMBER=+1yourtwilionumber
 TWILIO_CALL_SCREENING_ENABLED=true
 # Optional custom greeting audio (falls back to Twilio TTS when unset)
 TWILIO_GREETING_AUDIO_URL=https://genesislearningacademyofkennesaw.com/audio/inbound-greeting.mp3
+# Missed-call voicemail (enabled by default when staff does not answer)
+TWILIO_VOICEMAIL_ENABLED=true
+# Optional voicemail greeting audio (falls back to Twilio TTS when unset)
+# TWILIO_VOICEMAIL_AUDIO_URL=https://genesislearningacademyofkennesaw.com/audio/voicemail-greeting.mp3
+# TWILIO_VOICEMAIL_GREETING_TEXT=Sorry we missed your call. Please leave your name, number, and a brief message after the beep.
+# TWILIO_VOICEMAIL_MAX_SECONDS=120
+# TWILIO_VOICEMAIL_MIN_SECONDS=1
+# Optional override for signed voicemail playback links (defaults to TWILIO_AUTH_TOKEN)
+# VOICEMAIL_LINK_SECRET=your-random-secret
 # New form lead SMS alerts; messages are sent separately to each number.
 LEAD_SMS_NOTIFY_JAY=+140****7102
 LEAD_SMS_NOTIFY_OWNER=+177****5583
@@ -106,7 +115,9 @@ For the Twilio marketing number, configure **Voice & Fax → A call comes in** a
 https://genesislearningacademyofkennesaw.com/api/twilio/voice/inbound
 ```
 
-The API returns TwiML that forwards to `TWILIO_FORWARD_TO_NUMBER`, records the bridged call, and posts dial/recording callbacks back to `/api/twilio/voice/status`. `TWILIO_AUTH_TOKEN` is required so the API can reject unsigned/spoofed Twilio requests. `PUBLIC_SITE_URL` must be the public HTTPS origin Twilio can reach for status and recording callbacks.
+The API returns TwiML that forwards to `TWILIO_FORWARD_TO_NUMBER`, records the bridged call, and posts dial/recording callbacks back to `/api/twilio/voice/dial-complete` and `/api/twilio/voice/status`. `TWILIO_AUTH_TOKEN` is required so the API can reject unsigned/spoofed Twilio requests. `PUBLIC_SITE_URL` must be the public HTTPS origin Twilio can reach for status and recording callbacks.
+
+When staff do not answer a forwarded call (`no-answer`, `busy`, `failed`, or `canceled`), the API returns a separate voicemail greeting (not the main Genesis screening greeting) followed by `<Record>`. Voicemail audio is saved on the same `inbound_calls` row (`recording_url`, `recording_sid`, `recording_duration_seconds`) with disposition `voicemail` or `missed_no_message`. Staff receive an email with a signed playback link at `/api/twilio/voice/recording/:id?token=...` that streams the MP3 without Twilio Console access. Set `TWILIO_VOICEMAIL_ENABLED=false` to hang up on missed calls instead (legacy behavior). Answered-call bridge recording and staff notifications are unchanged.
 
 When `TWILIO_CALL_SCREENING_ENABLED=true`, inbound callers hear a greeting and must press **1** to connect; wrong or missing input plays **Goodbye** and hangs up. The greeting is:
 
