@@ -201,12 +201,77 @@ function buildInboundSmsReplyTwiml() {
 }
 
 function buildInboundCallTwiml({ forwardTo, baseUrl }) {
-  const statusUrl = `${baseUrl}/api/twilio/voice/status`;
+  const dialCompleteUrl = `${baseUrl}/api/twilio/voice/dial-complete`;
   const recordingStatusUrl = `${baseUrl}/api/twilio/voice/status?kind=recording`;
   return buildTwiml(`
-  <Dial answerOnBridge="true" record="record-from-answer-dual" recordingStatusCallback="${escapeHtml(recordingStatusUrl)}" recordingStatusCallbackEvent="completed" action="${escapeHtml(statusUrl)}" method="POST">
+  <Dial answerOnBridge="true" record="record-from-answer-dual" recordingStatusCallback="${escapeHtml(recordingStatusUrl)}" recordingStatusCallbackEvent="completed" action="${escapeHtml(dialCompleteUrl)}" method="POST">
     <Number>${escapeHtml(forwardTo)}</Number>
   </Dial>`);
+}
+
+const DEFAULT_VOICEMAIL_GREETING_TEXT =
+  'Sorry we missed your call. Please leave your name, number, and a brief message after the beep.';
+
+function isVoicemailEnabled() {
+  return String(process.env.TWILIO_VOICEMAIL_ENABLED ?? 'true').trim().toLowerCase() !== 'false';
+}
+
+function isMissedDialStatus(status) {
+  return ['busy', 'failed', 'no-answer', 'canceled'].includes(String(status || '').toLowerCase());
+}
+
+function buildVoicemailPromptTwiml({ baseUrl }) {
+  const voicemailCompleteUrl = `${baseUrl}/api/twilio/voice/voicemail/complete`;
+  const recordingStatusUrl = `${baseUrl}/api/twilio/voice/status?kind=voicemail`;
+  const greetingAudioUrl = String(process.env.TWILIO_VOICEMAIL_AUDIO_URL || '').trim();
+  const greetingText = String(process.env.TWILIO_VOICEMAIL_GREETING_TEXT || DEFAULT_VOICEMAIL_GREETING_TEXT).trim();
+  const greetingBody = greetingAudioUrl
+    ? `<Play>${escapeHtml(greetingAudioUrl)}</Play>`
+    : `<Say voice="alice">${escapeHtml(greetingText)}</Say>`;
+  const maxLength = toNullableNumber(process.env.TWILIO_VOICEMAIL_MAX_SECONDS) || 120;
+  return buildTwiml(`
+  ${greetingBody}
+  <Record maxLength="${maxLength}" playBeep="true" trim="trim-silence" action="${escapeHtml(voicemailCompleteUrl)}" method="POST" recordingStatusCallback="${escapeHtml(recordingStatusUrl)}" recordingStatusCallbackEvent="completed" timeout="10"/>
+  <Say voice="alice">We did not receive a message. Goodbye.</Say>
+  <Hangup/>`);
+}
+
+function buildVoicemailThankYouTwiml() {
+  return buildTwiml('<Say voice="alice">Thank you. Goodbye.</Say><Hangup/>');
+}
+
+function getRecordingLinkSecret() {
+  return String(process.env.VOICEMAIL_LINK_SECRET || process.env.TWILIO_AUTH_TOKEN || '').trim();
+}
+
+function signRecordingPlaybackToken(callId, recordingSid) {
+  const secret = getRecordingLinkSecret();
+  if (!secret || !callId || !recordingSid) return null;
+  return crypto.createHmac('sha256', secret).update(`${callId}:${recordingSid}`).digest('hex');
+}
+
+function verifyRecordingPlaybackToken(callId, recordingSid, token) {
+  const expected = signRecordingPlaybackToken(callId, recordingSid);
+  if (!expected || !token) return false;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(String(token), 'hex'));
+  } catch {
+    return false;
+  }
+}
+
+function buildStaffRecordingPlaybackUrl(call, baseUrl) {
+  if (!call?.id || !call?.recording_sid || !baseUrl) return null;
+  const token = signRecordingPlaybackToken(call.id, call.recording_sid);
+  if (!token) return null;
+  return `${baseUrl}/api/twilio/voice/recording/${call.id}?token=${encodeURIComponent(token)}`;
+}
+
+function getVoicemailDispositionFromRecording({ recordingUrl, recordingDurationSeconds }) {
+  const duration = Number(recordingDurationSeconds) || 0;
+  const minDuration = Number(process.env.TWILIO_VOICEMAIL_MIN_SECONDS || 1);
+  if (recordingUrl && duration >= minDuration) return 'voicemail';
+  return 'missed_no_message';
 }
 
 function normalizeCallerForBlocklist(value) {
@@ -984,13 +1049,18 @@ async function updateInboundCallNotificationStatus(id, { staffEmailId, status })
   );
 }
 
-function isInboundCallReadyForStaffNotification(call, { fromRecordingCallback = false } = {}) {
+function isInboundCallReadyForStaffNotification(call, { fromRecordingCallback = false, fromVoicemailComplete = false } = {}) {
   if (!call?.dial_call_status) return false;
   if (call.notification_status === 'sent') return false;
   if (call.blocked_at_gate === 1) return false;
   if (['blocked', 'screened_out', 'spam_post_call'].includes(call.disposition)) return false;
   if (['telemarketer', 'robocall', 'bot', 'spam'].includes(String(call.ai_assumed_type || '').toLowerCase())) return false;
   if (call.answered === 1 && !call.recording_url && !fromRecordingCallback) return false;
+  if (call.answered === 0) {
+    if (call.disposition === 'missed' && isVoicemailEnabled()) return false;
+    if (call.disposition === 'voicemail' && !call.recording_url && !fromRecordingCallback && !fromVoicemailComplete) return false;
+    if (!['voicemail', 'missed_no_message', 'missed'].includes(call.disposition)) return false;
+  }
   return true;
 }
 
@@ -2325,11 +2395,15 @@ function formatAnsweredLabel(answered) {
   return 'Unknown';
 }
 
-function buildInboundCallStaffEmailPayload(call) {
+function buildInboundCallStaffEmailPayload(call, { baseUrl } = {}) {
   const fromNumber = call.from_number || 'Unknown';
-  const recordingCell = call.recording_url
-    ? `<a href="${escapeHtml(call.recording_url)}">Listen to recording</a>`
-    : '—';
+  const siteUrl = String(baseUrl || process.env.PUBLIC_SITE_URL || '').replace(/\/$/, '');
+  const playbackUrl = buildStaffRecordingPlaybackUrl(call, siteUrl);
+  const recordingCell = playbackUrl
+    ? `<a href="${escapeHtml(playbackUrl)}">Listen to recording</a>`
+    : call.recording_url
+      ? `<a href="${escapeHtml(call.recording_url)}">Listen to recording</a>`
+      : '—';
 
   const rows = [
     { label: 'From', valueHtml: `<a href="tel:${escapeHtml(fromNumber)}">${escapeHtml(fromNumber)}</a>` },
@@ -2350,15 +2424,20 @@ function buildInboundCallStaffEmailPayload(call) {
     { label: 'Last updated', valueHtml: formatTimestampForEmail(call.updated_at) },
   ];
 
-  const answeredLabel = call.answered === 1 ? 'answered' : 'missed';
+  let answeredLabel = call.answered === 1 ? 'answered' : 'missed';
+  if (call.disposition === 'voicemail') answeredLabel = 'voicemail';
+  if (call.disposition === 'missed_no_message') answeredLabel = 'missed (no message)';
+  const footerNote = playbackUrl
+    ? `Call back ${escapeHtml(fromNumber)} when ready.`
+    : `Call back ${escapeHtml(fromNumber)} when ready. Recording links may require Twilio Console access.`;
   return {
     from: LEAD_EMAIL_FROM,
     to: [STAFF_EMAIL],
     subject: `Inbound call (${answeredLabel}): ${fromNumber}`,
     html: buildStaffLeadNotificationHtml({
-      title: '📞 Inbound Phone Call',
+      title: call.disposition === 'voicemail' ? '📞 New Voicemail' : '📞 Inbound Phone Call',
       rows,
-      footerNote: `Call back ${escapeHtml(fromNumber)} when ready. Recording links may require Twilio Console access.`,
+      footerNote,
     }),
   };
 }
@@ -2440,14 +2519,15 @@ async function trackGa4EnrollmentFormSubmit({ submissionId, enrollmentType }) {
   });
 }
 
-async function maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback = false } = {}) {
+async function maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback = false, fromVoicemailComplete = false } = {}) {
   if (!callId) return;
 
   const call = await getInboundCallById(callId);
-  if (!isInboundCallReadyForStaffNotification(call, { fromRecordingCallback })) return;
+  if (!isInboundCallReadyForStaffNotification(call, { fromRecordingCallback, fromVoicemailComplete })) return;
 
   try {
-    const staffEmailResult = await getResend().emails.send(buildInboundCallStaffEmailPayload(call));
+    const baseUrl = String(process.env.PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    const staffEmailResult = await getResend().emails.send(buildInboundCallStaffEmailPayload(call, { baseUrl }));
 
     if (staffEmailResult.error) {
       console.error('Inbound call staff email error:', staffEmailResult.error);
@@ -2622,19 +2702,131 @@ app.post('/api/twilio/voice/screen', async (req, res) => {
   return twilioXml(res, buildInboundCallTwiml({ forwardTo, baseUrl: getPublicSiteUrl(req) }));
 });
 
+app.post('/api/twilio/voice/dial-complete', async (req, res) => {
+  if (!validateTwilioRequest(req)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const body = req.body || {};
+  const twilioCallSid = body.CallSid;
+  const dialCallStatus = body.DialCallStatus || null;
+  const durationSeconds = toNullableNumber(body.DialCallDuration);
+  const answered = getAnsweredFromDialStatus(dialCallStatus, durationSeconds);
+  const baseUrl = getPublicSiteUrl(req);
+
+  try {
+    const callId = await upsertInboundCall({
+      twilioCallSid,
+      fromNumber: body.From,
+      toNumber: body.To,
+      callStatus: body.CallStatus,
+      dialCallStatus,
+      durationSeconds,
+      answered,
+      disposition: answered === 0 ? 'missed' : 'forwarded',
+      rawPayload: body,
+    });
+
+    await maybeInsertInboundCallLeadEvent(callId);
+
+    if (answered === 1) {
+      return twilioXml(res, buildTwiml('<Hangup/>'));
+    }
+
+    if (isMissedDialStatus(dialCallStatus) && isVoicemailEnabled()) {
+      return twilioXml(res, buildVoicemailPromptTwiml({ baseUrl }));
+    }
+
+    await maybeSendInboundCallStaffNotification(callId);
+    return twilioXml(res, buildTwiml('<Hangup/>'));
+  } catch (dbError) {
+    console.error('Failed to handle Twilio dial-complete:', dbError);
+    return twilioXml(res, buildTwiml('<Hangup/>'));
+  }
+});
+
+app.post('/api/twilio/voice/voicemail/complete', async (req, res) => {
+  if (!validateTwilioRequest(req)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const body = req.body || {};
+  const twilioCallSid = body.CallSid;
+  const recordingUrl = body.RecordingUrl || null;
+  const recordingSid = body.RecordingSid || null;
+  const recordingDurationSeconds = toNullableNumber(body.RecordingDuration);
+  const disposition = getVoicemailDispositionFromRecording({ recordingUrl, recordingDurationSeconds });
+
+  try {
+    const callId = await upsertInboundCall({
+      twilioCallSid,
+      fromNumber: body.From,
+      toNumber: body.To,
+      recordingUrl,
+      recordingSid,
+      recordingDurationSeconds,
+      disposition,
+      rawPayload: body,
+    });
+
+    await maybeInsertInboundCallLeadEvent(callId);
+    await maybeSendInboundCallStaffNotification(callId, { fromVoicemailComplete: true });
+    if (disposition === 'voicemail') {
+      void maybeProcessInboundCallAi(callId);
+    }
+  } catch (dbError) {
+    console.error('Failed to save Twilio voicemail completion:', dbError);
+  }
+
+  return twilioXml(res, buildVoicemailThankYouTwiml());
+});
+
+app.get('/api/twilio/voice/recording/:callId', async (req, res) => {
+  const callId = toNullableNumber(req.params.callId);
+  const token = String(req.query.token || '').trim();
+  if (!callId || !token) {
+    return res.status(400).send('Bad request');
+  }
+
+  try {
+    const call = await getInboundCallById(callId);
+    if (!call?.recording_url || !call.recording_sid) {
+      return res.status(404).send('Not found');
+    }
+    if (!verifyRecordingPlaybackToken(callId, call.recording_sid, token)) {
+      return res.status(403).send('Forbidden');
+    }
+
+    const audio = await fetchTwilioRecordingAudio(call.recording_url);
+    if (!audio) {
+      return res.status(502).send('Unable to fetch recording');
+    }
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    return res.send(audio);
+  } catch (error) {
+    console.error('Voicemail playback failed:', error);
+    return res.status(500).send('Playback failed');
+  }
+});
+
 app.post('/api/twilio/voice/status', async (req, res) => {
   if (!validateTwilioRequest(req)) {
     return res.status(403).send('Forbidden');
   }
 
   const body = req.body || {};
-  const isRecordingCallback = req.query.kind === 'recording';
+  const callbackKind = String(req.query.kind || '').trim();
+  const isRecordingCallback = callbackKind === 'recording';
+  const isVoicemailRecordingCallback = callbackKind === 'voicemail';
+  if (!isRecordingCallback && !isVoicemailRecordingCallback) {
+    return res.status(200).send('OK');
+  }
+
   const parentCallSid = body.ParentCallSid || null;
   const twilioCallSid = parentCallSid || body.CallSid;
-  const durationSeconds = toNullableNumber(body.DialCallDuration || body.CallDuration);
   const recordingDurationSeconds = toNullableNumber(body.RecordingDuration);
-  const dialCallStatus = body.DialCallStatus || null;
-  const answered = getAnsweredFromDialStatus(dialCallStatus, durationSeconds);
 
   try {
     const callId = await upsertInboundCall({
@@ -2642,24 +2834,20 @@ app.post('/api/twilio/voice/status', async (req, res) => {
       parentCallSid,
       fromNumber: body.From,
       toNumber: body.To,
-      callStatus: body.CallStatus,
-      dialCallStatus: isRecordingCallback ? null : dialCallStatus,
-      durationSeconds: isRecordingCallback ? null : durationSeconds,
-      answered: isRecordingCallback ? null : answered,
-      recordingUrl: isRecordingCallback ? body.RecordingUrl : null,
-      recordingSid: isRecordingCallback ? body.RecordingSid : null,
-      recordingDurationSeconds: isRecordingCallback ? recordingDurationSeconds : null,
-      disposition: isRecordingCallback ? null : (answered === 0 ? 'missed' : 'forwarded'),
+      recordingUrl: body.RecordingUrl || null,
+      recordingSid: body.RecordingSid || null,
+      recordingDurationSeconds,
+      disposition: isVoicemailRecordingCallback
+        ? getVoicemailDispositionFromRecording({
+            recordingUrl: body.RecordingUrl,
+            recordingDurationSeconds,
+          })
+        : null,
       rawPayload: body,
     });
 
-    if (!isRecordingCallback) {
-      await maybeInsertInboundCallLeadEvent(callId);
-      await maybeSendInboundCallStaffNotification(callId);
-    } else {
-      await maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback: true });
-      void maybeProcessInboundCallAi(callId);
-    }
+    await maybeSendInboundCallStaffNotification(callId, { fromRecordingCallback: true });
+    void maybeProcessInboundCallAi(callId);
   } catch (dbError) {
     console.error('Failed to save Twilio call status:', dbError);
   }
